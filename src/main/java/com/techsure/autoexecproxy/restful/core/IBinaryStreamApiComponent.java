@@ -17,7 +17,6 @@ public interface IBinaryStreamApiComponent {
         return false;
     }
 
-    String getConfig();
 
     Object doService(ApiVo interfaceVo, JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception;
 

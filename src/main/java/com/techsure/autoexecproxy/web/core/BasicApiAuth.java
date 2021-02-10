@@ -1,6 +1,9 @@
 package com.techsure.autoexecproxy.web.core;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.common.utils.StringUtils;
+import com.techsure.autoexecproxy.common.config.Config;
+import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.dto.ApiVo;
 import org.apache.commons.net.util.Base64;
 import org.springframework.stereotype.Component;
@@ -15,28 +18,31 @@ import java.util.List;
 public class BasicApiAuth extends ApiAuthBase {
 
     @Override
-    public String getType() {
-        return ApiVo.AuthenticateType.BASIC.getValue();
+    public AuthenticateType getType() {
+        return AuthenticateType.BASIC;
     }
 
     @Override
     public int myAuth(ApiVo interfaceVo, JSONObject jsonParam, HttpServletRequest request) throws IOException {
         String authorization = request.getHeader("Authorization");
-        authorization = authorization.replace("Basic ", "");
-        byte[] bytes = Base64.decodeBase64(authorization);
-        authorization = new String(bytes, StandardCharsets.UTF_8);
-        String[] as = authorization.split(":");
-        if (as.length == 2) {
-            String username = as[0];
-            String password = as[1];
-            if (interfaceVo.getUsername().equalsIgnoreCase(username) && interfaceVo.getPassword().equals(password)) {
+        if (StringUtils.isNotBlank(authorization)) {
+            authorization = authorization.replace("Basic ", "");
+            byte[] bytes = Base64.decodeBase64(authorization);
+            authorization = new String(bytes, StandardCharsets.UTF_8);
+            String[] as = authorization.split(":");
+            if (as.length == 2) {
+                String username = as[0];
+                String password = as[1];
+                if (Config.ACCESS_KEY().equalsIgnoreCase(username) && Config.ACCESS_SECRET().equals(password)) {
+                } else {
+                    return 522;//用户验证失败
+                }
             } else {
                 return 522;//用户验证失败
             }
-        } else {
-            return 522;//用户验证失败
+            return 1;
         }
-        return 1;
+        return 522;
     }
 
 

@@ -3,6 +3,7 @@ package com.techsure.autoexecproxy.dto;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
+import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.restful.annotation.EntityField;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,28 +60,6 @@ public class ApiVo implements Serializable {
     }
 
 
-    public enum AuthenticateType {
-        NOAUTH("-", "无需认证"), BASIC("basic", "Basic认证");
-
-        private String type;
-        private String text;
-
-        private AuthenticateType(String _type, String _text) {
-            this.type = _type;
-            this.text = _text;
-        }
-
-        public String getValue() {
-            return this.type;
-        }
-
-        public String getText() {
-            return this.text;
-        }
-
-
-    }
-
     @EntityField(name = "名称", type = ApiParamType.STRING)
     private String name;
     @EntityField(name = "处理器", type = ApiParamType.STRING)
@@ -101,8 +80,7 @@ public class ApiVo implements Serializable {
     private String username;
     @EntityField(name = "密码", type = ApiParamType.STRING)
     private String password;
-    @EntityField(name = "认证方式", type = ApiParamType.STRING)
-    private String authtype = "";
+
     @EntityField(name = "接口类型", type = ApiParamType.STRING)
     private String type;
     @EntityField(name = "接口类型名称", type = ApiParamType.STRING)
@@ -170,14 +148,6 @@ public class ApiVo implements Serializable {
         this.type = type;
     }
 
-
-    public String getAuthtype() {
-        return authtype;
-    }
-
-    public void setAuthtype(String authtype) {
-        this.authtype = authtype;
-    }
 
     public String getUsername() {
         return username;
@@ -259,7 +229,6 @@ public class ApiVo implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((authtype == null) ? 0 : authtype.hashCode());
         result = prime * result + ((config == null) ? 0 : config.hashCode());
         result = prime * result + ((description == null) ? 0 : description.hashCode());
         result = prime * result + ((handler == null) ? 0 : handler.hashCode());
@@ -284,13 +253,6 @@ public class ApiVo implements Serializable {
             return false;
         }
         ApiVo other = (ApiVo) obj;
-        if (authtype == null) {
-            if (other.authtype != null) {
-                return false;
-            }
-        } else if (!authtype.equals(other.authtype)) {
-            return false;
-        }
         if (config == null) {
             if (other.config != null) {
                 return false;
@@ -393,6 +355,5 @@ public class ApiVo implements Serializable {
     public void setUrl(String url) {
         this.url = url;
     }
-
 
 }

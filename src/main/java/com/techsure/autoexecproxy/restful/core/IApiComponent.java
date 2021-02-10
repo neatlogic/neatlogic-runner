@@ -37,15 +37,6 @@ public interface IApiComponent {
      **/
     String getName();
 
-    /*
-     * @Description:
-     * @Author: chenqiwei
-     * @Date: 2021/2/9 10:31 下午
-     * @Params: []
-     * @Returns: java.lang.String
-     **/
-    String getConfig();
-
 
     /*
      * @Description:

@@ -3,6 +3,7 @@ package com.techsure.autoexecproxy.web;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
+import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.dto.ApiHandlerVo;
 import com.techsure.autoexecproxy.dto.ApiVo;
 import com.techsure.autoexecproxy.exception.ApiNotFoundException;
@@ -77,7 +78,7 @@ public class ApiDispatcher {
         /*认证，如果是查看帮助接口，则不需要认证*/
         String uri = request.getRequestURI();
         if (!(uri.contains("/api/help/") && !token.contains("/api/help/"))) {
-            IApiAuth apiAuth = ApiAuthFactory.getApiAuth(interfaceVo.getAuthtype());
+            IApiAuth apiAuth = ApiAuthFactory.getApiAuth(Config.AUTH_TYPE());
             if (apiAuth != null) {
                 int result = apiAuth.auth(interfaceVo, paramObj, request);
                 if (result != 1) {

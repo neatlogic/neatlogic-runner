@@ -10,7 +10,6 @@ public interface IJsonStreamApiComponent {
 
     String getName();
 
-    String getConfig();
 
     // true时返回格式不再包裹固定格式
     default boolean isRaw() {

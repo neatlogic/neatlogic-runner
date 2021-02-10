@@ -3,6 +3,7 @@ package com.techsure.autoexecproxy.restful.core.privateapi;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.dto.ApiHandlerVo;
 import com.techsure.autoexecproxy.dto.ApiVo;
 import com.techsure.autoexecproxy.restful.core.IApiComponent;
@@ -34,15 +35,12 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
     private static final Map<String, IJsonStreamApiComponent> streamComponentMap = new HashMap<>();
     private static final Map<String, IBinaryStreamApiComponent> binaryComponentMap = new HashMap<>();
     // 按照token表达式长度排序，最长匹配原则
-    private static final Map<String, ApiVo> regexApiMap = new TreeMap<String, ApiVo>(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            // 先按照长度排序，如果长度一样按照内容排序
-            if (o1.length() != o2.length()) {
-                return o1.length() - o2.length();
-            } else {
-                return o1.compareTo(o2);
-            }
+    private static final Map<String, ApiVo> regexApiMap = new TreeMap<>((o1, o2) -> {
+        // 先按照长度排序，如果长度一样按照内容排序
+        if (o1.length() != o2.length()) {
+            return o1.length() - o2.length();
+        } else {
+            return o1.compareTo(o2);
         }
     });
     private static final Pattern p = Pattern.compile("\\{([^}]+)}");
@@ -62,9 +60,7 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
     public static ApiVo getApiByToken(String token) {
         ApiVo apiVo = apiMap.get(token);
         if (apiVo == null) {
-            Iterator<String> keys = regexApiMap.keySet().iterator();
-            while (keys.hasNext()) {
-                String regex = keys.next();
+            for (String regex : regexApiMap.keySet()) {
                 Pattern pattern = Pattern.compile(regex);
                 Matcher matcher = pattern.matcher(token);
                 if (matcher.find()) {
@@ -134,7 +130,6 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                 ApiHandlerVo restComponentVo = new ApiHandlerVo();
                 restComponentVo.setHandler(component.getClassName());
                 restComponentVo.setName(component.getName());
-                restComponentVo.setConfig(component.getConfig());
                 restComponentVo.setType(ApiVo.Type.OBJECT.getValue());
                 apiHandlerList.add(restComponentVo);
                 apiHandlerMap.put(component.getClassName(), restComponentVo);
@@ -147,7 +142,6 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                         token = token.substring(0, token.length() - 1);
                     }
                     ApiVo apiVo = new ApiVo();
-                    apiVo.setAuthtype("token");
                     apiVo.setToken(token);
                     apiVo.setHandler(component.getClassName());
                     apiVo.setHandlerName(component.getName());
@@ -189,7 +183,6 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                 ApiHandlerVo restComponentVo = new ApiHandlerVo();
                 restComponentVo.setHandler(component.getId());
                 restComponentVo.setName(component.getName());
-                restComponentVo.setConfig(component.getConfig());
                 restComponentVo.setType(ApiVo.Type.STREAM.getValue());
                 apiHandlerList.add(restComponentVo);
                 apiHandlerMap.put(component.getId(), restComponentVo);
@@ -202,14 +195,13 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                         token = token.substring(0, token.length() - 1);
                     }
                     ApiVo apiVo = new ApiVo();
-                    apiVo.setAuthtype("token");
                     apiVo.setToken(token);
                     apiVo.setHandler(component.getId());
                     apiVo.setHandlerName(component.getName());
                     apiVo.setName(component.getName());
                     apiVo.setType(ApiVo.Type.STREAM.getValue());
 
-                    if (token.indexOf("{") > -1) {
+                    if (token.contains("{")) {
                         Matcher m = p.matcher(token);
                         StringBuffer temp = new StringBuffer();
                         int i = 0;
@@ -244,7 +236,6 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                 ApiHandlerVo restComponentVo = new ApiHandlerVo();
                 restComponentVo.setHandler(component.getId());
                 restComponentVo.setName(component.getName());
-                restComponentVo.setConfig(component.getConfig());
                 restComponentVo.setType(ApiVo.Type.BINARY.getValue());
                 apiHandlerList.add(restComponentVo);
                 apiHandlerMap.put(component.getId(), restComponentVo);
@@ -257,7 +248,6 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                         token = token.substring(0, token.length() - 1);
                     }
                     ApiVo apiVo = new ApiVo();
-                    apiVo.setAuthtype("token");
                     apiVo.setToken(token);
                     apiVo.setHandler(component.getId());
                     apiVo.setHandlerName(component.getName());

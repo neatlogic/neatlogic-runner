@@ -1,10 +1,11 @@
-package com.techsure.autoexecproxy.web.core;
+package com.techsure.autoexecproxy.web.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.StringUtils;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.dto.ApiVo;
+import com.techsure.autoexecproxy.web.core.ApiAuthBase;
 import org.apache.commons.net.util.Base64;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,7 @@ public class BasicApiAuth extends ApiAuthBase {
     }
 
     @Override
-    public int myAuth(ApiVo interfaceVo, JSONObject jsonParam, HttpServletRequest request) throws IOException {
+    public int myAuth(ApiVo interfaceVo, JSONObject jsonParam, HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         if (StringUtils.isNotBlank(authorization)) {
             authorization = authorization.replace("Basic ", "");
@@ -34,13 +35,13 @@ public class BasicApiAuth extends ApiAuthBase {
                 String username = as[0];
                 String password = as[1];
                 if (Config.ACCESS_KEY().equalsIgnoreCase(username) && Config.ACCESS_SECRET().equals(password)) {
+                    return 1;
                 } else {
                     return 522;//用户验证失败
                 }
             } else {
                 return 522;//用户验证失败
             }
-            return 1;
         }
         return 522;
     }
@@ -50,7 +51,7 @@ public class BasicApiAuth extends ApiAuthBase {
     public JSONObject help() {
         JSONObject helpJson = new JSONObject();
         helpJson.put("title", "Basic认证");
-        List<String> detailList = new ArrayList<String>();
+        List<String> detailList = new ArrayList<>();
         helpJson.put("detailList", detailList);
         detailList.add("request header需要包含键值对Authorization:Basic xxx");
         detailList.add("（xxx是 '用户名:密码' 的base64编码）。");

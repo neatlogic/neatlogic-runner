@@ -1,6 +1,5 @@
 package com.techsure.autoexecproxy.web.core;
 
-import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -13,9 +12,6 @@ import java.util.Map;
 public class ApiAuthFactory implements ApplicationListener<ContextRefreshedEvent> {
     private static final Map<String, IApiAuth> apiAuthMap = new HashMap<>();
 
-    public static Map<String, IApiAuth> getApiAuthMap() {
-        return apiAuthMap;
-    }
 
     public static IApiAuth getApiAuth(String type) {
         return apiAuthMap.get(type);

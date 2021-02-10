@@ -1,0 +1,40 @@
+package com.techsure.autoexecproxy.restful.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.restful.core.ApiComponentBase;
+import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
+import org.springframework.stereotype.Component;
+
+/**
+ * @Title: CheckHandler
+ * @Package: com.techsure.autoexecproxy.restful.handler
+ * @Description: 健康检查
+ * @author: chenqiwei
+ * @date: 2021/2/1010:54 上午
+ * Copyright(c) 2021 TechSure Co.,Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ **/
+@Component
+public class HealthCheckApi extends PrivateApiComponentBase {
+
+
+    @Override
+    public String getName() {
+        return "健康检查";
+    }
+
+    @Override
+    public String getConfig() {
+        return null;
+    }
+
+    @Override
+    public Object myDoService(JSONObject jsonObj) throws Exception {
+        return null;
+    }
+
+    @Override
+    public String getToken() {
+        return "check";
+    }
+}

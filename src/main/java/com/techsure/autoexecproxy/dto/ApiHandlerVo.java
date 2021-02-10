@@ -4,8 +4,6 @@ package com.techsure.autoexecproxy.dto;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
 import com.techsure.autoexecproxy.restful.annotation.EntityField;
 
-import java.util.List;
-
 public class ApiHandlerVo {
     @EntityField(name = "处理器", type = ApiParamType.STRING)
     private String handler;
@@ -13,16 +11,6 @@ public class ApiHandlerVo {
     private String name;
     @EntityField(name = "处理器类型", type = ApiParamType.STRING)
     private String type;
-    private List<ApiVo> interfaceList;
-
-
-    public List<ApiVo> getInterfaceList() {
-        return interfaceList;
-    }
-
-    public void setInterfaceList(List<ApiVo> interfaceList) {
-        this.interfaceList = interfaceList;
-    }
 
     public String getHandler() {
         return handler;

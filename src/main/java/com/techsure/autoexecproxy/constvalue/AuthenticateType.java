@@ -10,11 +10,11 @@ package com.techsure.autoexecproxy.constvalue;
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  **/
 public enum AuthenticateType {
-    NOAUTH("-", "无需认证"), BASIC("basic", "Basic认证");
+    NOAUTH("", "无需认证"), BASIC("basic", "Basic认证");
     private final String type;
     private final String text;
 
-    private AuthenticateType(String _type, String _text) {
+    AuthenticateType(String _type, String _text) {
         this.type = _type;
         this.text = _text;
     }

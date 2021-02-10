@@ -1,14 +1,8 @@
 package com.techsure.autoexecproxy.restful.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.techsure.autoexecproxy.constvalue.ApiParamType;
 import com.techsure.autoexecproxy.restful.annotation.Description;
-import com.techsure.autoexecproxy.restful.annotation.Input;
-import com.techsure.autoexecproxy.restful.annotation.Output;
-import com.techsure.autoexecproxy.restful.annotation.Param;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,7 +16,6 @@ import org.springframework.stereotype.Component;
  **/
 @Component
 public class HealthCheckApi extends PrivateApiComponentBase {
-    private static final Logger logger = LoggerFactory.getLogger(HealthCheckApi.class);
 
 
     @Override
@@ -31,12 +24,9 @@ public class HealthCheckApi extends PrivateApiComponentBase {
     }
 
 
-    @Input({@Param(name = "id", type = ApiParamType.LONG, desc = "id，不提供代表新增模型")})
-    @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "id，不提供代表新增模型")})
     @Description(desc = "健康检查接口")
     @Override
-    public Object myDoService(JSONObject jsonObj) throws Exception {
-        logger.error("FAILED");
+    public Object myDoService(JSONObject jsonObj) {
         return null;
     }
 

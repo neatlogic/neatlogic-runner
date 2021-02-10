@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerMapping;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -54,10 +53,6 @@ public class ApiDispatcher {
         errorMap.put(522, "访问认证失败");
     }
 
-    @PostConstruct
-    public void init() {
-        System.out.println("INIT");
-    }
 
     private void doIt(HttpServletRequest request, HttpServletResponse response, String token, ApiVo.Type apiType, JSONObject paramObj, JSONObject returnObj, String action) throws Exception {
         ApiVo interfaceVo = PrivateApiComponentFactory.getApiByToken(token);
@@ -69,7 +64,6 @@ public class ApiDispatcher {
             paramObj.putAll(interfaceVo.getPathVariableObj());
         }
 
-        // 判断是否master模块接口，如果是不允许访问
         ApiHandlerVo apiHandlerVo = PrivateApiComponentFactory.getApiHandlerByHandler(interfaceVo.getHandler());
         if (apiHandlerVo == null) {
             throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");

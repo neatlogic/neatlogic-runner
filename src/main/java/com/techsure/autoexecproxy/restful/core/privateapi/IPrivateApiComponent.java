@@ -20,6 +20,6 @@ public interface IPrivateApiComponent extends IApiComponent {
      * @Params: []
      * @Returns: java.lang.String
      **/
-    public String getToken();
+    String getToken();
 
 }

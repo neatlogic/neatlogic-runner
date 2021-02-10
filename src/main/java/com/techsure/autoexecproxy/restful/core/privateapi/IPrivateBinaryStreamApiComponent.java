@@ -18,6 +18,6 @@ public interface IPrivateBinaryStreamApiComponent extends IBinaryStreamApiCompon
      * @Params: []
      * @Returns: java.lang.String
      **/
-    public String getToken();
+    String getToken();
 
 }

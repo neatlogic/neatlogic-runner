@@ -1,6 +1,5 @@
 package com.techsure.autoexecproxy.restful.core;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
@@ -10,7 +9,6 @@ import com.techsure.autoexecproxy.exception.ParamValueTooLongException;
 import com.techsure.autoexecproxy.exception.ParamValueTooShortException;
 import com.techsure.autoexecproxy.param.validate.core.ParamValidatorFactory;
 import com.techsure.autoexecproxy.restful.annotation.*;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -34,10 +32,6 @@ public class Config {
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
 
-
-    static {
-
-    }
 
     public static String OCTOPUS_HOME_URL() {
         return OCTOPUS_HOME_URL;
@@ -109,31 +103,4 @@ public class Config {
             logger.error(e.getMessage(), e);
         }
     }
-
-    private static String getProperty(String configFile, String keyName, String defaultValue, boolean isRequired) {
-        Properties pro = new Properties();
-        try (InputStream is = Config.class.getClassLoader().getResourceAsStream(configFile)) {
-            pro.load(is);
-            String value = pro.getProperty(keyName, defaultValue);
-            if (value != null) {
-                value = value.trim();
-            }
-            return value;
-        } catch (Exception e) {
-            if (isRequired) {
-                logger.error(e.getMessage(), e);
-            }
-        }
-        return "";
-    }
-
-    public static String getProperty(String configFile, String keyName) {
-        return getProperty(configFile, keyName, "", false);
-    }
-
-    public static String getProperty(String configFile, String keyName, boolean isRequired) {
-        return getProperty(configFile, keyName, "", isRequired);
-    }
-
-
 }

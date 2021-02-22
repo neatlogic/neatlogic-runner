@@ -1,6 +1,8 @@
 package com.techsure.autoexecproxy.web;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 import com.techsure.autoexecproxy.common.config.Config;
@@ -54,7 +56,7 @@ public class ApiDispatcher {
     }
 
 
-    private void doIt(HttpServletRequest request, HttpServletResponse response, String token, ApiVo.Type apiType, JSONObject paramObj, JSONObject returnObj, String action) throws Exception {
+    private JSON doIt(HttpServletRequest request, HttpServletResponse response, String token, ApiVo.Type apiType, JSONObject paramObj, String action) throws Exception {
         ApiVo interfaceVo = PrivateApiComponentFactory.getApiByToken(token);
 
         if (interfaceVo == null) {
@@ -90,14 +92,21 @@ public class ApiDispatcher {
                     Object returnV = restComponent.doService(interfaceVo, paramObj);
                     Long endtime = System.currentTimeMillis();
                     if (!restComponent.isRaw()) {
+                        JSONObject returnObj = new JSONObject();
                         returnObj.put("TimeCost", endtime - starttime);
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
+                        return returnObj;
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        Object o = JSON.parse(JSON.toJSONString(returnV));
+                        if (o instanceof JSONObject) {
+                            return (JSONObject) o;
+                        } else {
+                            return (JSONArray) o;
+                        }
                     }
                 } else {
-                    returnObj.putAll(restComponent.help());
+                    return restComponent.help();
                 }
             } else {
                 throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");
@@ -110,14 +119,21 @@ public class ApiDispatcher {
                     Object returnV = restComponent.doService(interfaceVo, paramObj, new JSONReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8)));
                     Long endtime = System.currentTimeMillis();
                     if (!restComponent.isRaw()) {
+                        JSONObject returnObj = new JSONObject();
                         returnObj.put("TimeCost", endtime - starttime);
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
+                        return returnObj;
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        Object o = JSON.parse(JSON.toJSONString(returnV));
+                        if (o instanceof JSONObject) {
+                            return (JSONObject) o;
+                        } else {
+                            return (JSONArray) o;
+                        }
                     }
                 } else {
-                    returnObj.putAll(restComponent.help());
+                    return restComponent.help();
                 }
             } else {
                 throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");
@@ -130,19 +146,27 @@ public class ApiDispatcher {
                     Object returnV = restComponent.doService(interfaceVo, paramObj, request, response);
                     Long endtime = System.currentTimeMillis();
                     if (!restComponent.isRaw()) {
+                        JSONObject returnObj = new JSONObject();
                         returnObj.put("TimeCost", endtime - starttime);
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
+                        return returnObj;
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        Object o = JSON.parse(JSON.toJSONString(returnV));
+                        if (o instanceof JSONObject) {
+                            return (JSONObject) o;
+                        } else {
+                            return (JSONArray) o;
+                        }
                     }
                 } else {
-                    returnObj.putAll(restComponent.help());
+                    return restComponent.help();
                 }
             } else {
                 throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");
             }
         }
+        return new JSONObject();
     }
 
     @RequestMapping(value = "/rest/**", method = RequestMethod.GET)
@@ -161,18 +185,22 @@ public class ApiDispatcher {
                 paramObj.put(p, request.getParameter(p));
             }
         }
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         if (!response.isCommitted()) {
             response.setContentType(RESPONSE_TYPE_JSON);
@@ -184,7 +212,7 @@ public class ApiDispatcher {
     public void dispatcherForPost(@RequestBody String jsonStr, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
             JSONObject paramObj;
             if (StringUtils.isNotBlank(jsonStr)) {
@@ -208,15 +236,19 @@ public class ApiDispatcher {
                 }
             }
 
-            doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackTrace(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackTrace(ex));
+            returnObj = rObj;
             logger.error(ex.getMessage(), ex);
         }
         if (!response.isCommitted()) {
@@ -226,7 +258,7 @@ public class ApiDispatcher {
     }
 
     @RequestMapping(value = "/stream/**", method = RequestMethod.POST)
-    public void displatcherForPostStream(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void dispatcherForPostStream(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
@@ -241,27 +273,31 @@ public class ApiDispatcher {
                 paramObj.put(p, request.getParameter(p));
             }
         }
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.STREAM, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.STREAM, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         if (!response.isCommitted()) {
             response.setContentType(RESPONSE_TYPE_JSON);
-            response.getWriter().print(returnObj.toJSONString());
+            response.getWriter().print(returnObj);
         }
     }
 
     @RequestMapping(value = "/binary/**", method = RequestMethod.GET)
-    public void displatcherForPostBinary(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void dispatcherForPostBinary(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
@@ -277,22 +313,26 @@ public class ApiDispatcher {
                 paramObj.put(p, request.getParameter(p));
             }
         }
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.BINARY, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         if (!response.isCommitted()) {
             response.setContentType(RESPONSE_TYPE_JSON);
-            response.getWriter().print(returnObj.toJSONString());
+            response.getWriter().print(returnObj);
         }
     }
 
@@ -312,22 +352,26 @@ public class ApiDispatcher {
             paramObj = new JSONObject();
         }
 
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.BINARY, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         if (!response.isCommitted()) {
             response.setContentType(RESPONSE_TYPE_JSON);
-            response.getWriter().print(returnObj.toJSONString());
+            response.getWriter().print(returnObj);
         }
     }
 
@@ -347,22 +391,26 @@ public class ApiDispatcher {
                 paramObj.put(p, request.getParameter(p));
             }
         }
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.BINARY, paramObj, returnObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         if (!response.isCommitted()) {
             response.setContentType(RESPONSE_TYPE_JSON);
-            response.getWriter().print(returnObj.toJSONString());
+            response.getWriter().print(returnObj);
         }
     }
 
@@ -371,21 +419,25 @@ public class ApiDispatcher {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.OBJECT, null, returnObj, "help");
+            returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, null, "help");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         response.setContentType(RESPONSE_TYPE_JSON);
-        response.getWriter().print(returnObj.toJSONString());
+        response.getWriter().print(returnObj);
     }
 
     @RequestMapping(value = "/help/stream/**", method = RequestMethod.GET)
@@ -393,21 +445,25 @@ public class ApiDispatcher {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.STREAM, null, returnObj, "help");
+            returnObj = doIt(request, response, token, ApiVo.Type.STREAM, null, "help");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         response.setContentType(RESPONSE_TYPE_JSON);
-        response.getWriter().print(returnObj.toJSONString());
+        response.getWriter().print(returnObj);
     }
 
     @RequestMapping(value = "/help/binary/**", method = RequestMethod.GET)
@@ -415,21 +471,25 @@ public class ApiDispatcher {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
-        JSONObject returnObj = new JSONObject();
+        JSON returnObj;
         try {
-            doIt(request, response, token, ApiVo.Type.BINARY, null, returnObj, "help");
+            returnObj = doIt(request, response, token, ApiVo.Type.BINARY, null, "help");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ex.getMessage());
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
-            returnObj.put("Status", "ERROR");
-            returnObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ExceptionUtils.getStackFrames(ex));
+            returnObj = rObj;
         }
         response.setContentType(RESPONSE_TYPE_JSON);
-        response.getWriter().print(returnObj.toJSONString());
+        response.getWriter().print(returnObj);
     }
 
 }

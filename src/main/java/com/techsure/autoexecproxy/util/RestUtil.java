@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -76,6 +77,9 @@ public class RestUtil {
 
             // 设置默认header
             connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+            if(StringUtils.isNotBlank(restVo.getTenant())){
+                connection.setRequestProperty("Tenant", restVo.getTenant());
+            }
 
             connection.connect();
         } catch (Exception e) {
@@ -85,18 +89,28 @@ public class RestUtil {
         if (connection != null) {
             try (DataOutputStream out = new DataOutputStream(connection.getOutputStream());) {
                 if (restVo.getPayload() != null) {
-                    out.write(restVo.getPayload().toJSONString().getBytes("utf-8"));
+                    out.write(restVo.getPayload().toJSONString().getBytes(StandardCharsets.UTF_8));
                     out.flush();
                 }
                 out.close();
-                // 处理返回值
-                InputStreamReader reader = new InputStreamReader(connection.getInputStream(), "utf-8");
+                // 处理返回值 异常则需要获取具体异常信息
+                InputStreamReader reader = null;
+                if (100 <= connection.getResponseCode() && connection.getResponseCode() <= 399) {
+                    reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8);
+                } else {
+                    reader = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
+                }
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(reader, writer);
                 result = writer.toString();
+                if (100 > connection.getResponseCode() || connection.getResponseCode() > 399) {
+                    logger.error(connection.getResponseCode()+":"+result);
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 result = e.getMessage();
+            }finally {
+                connection.disconnect();
             }
         }
         return result;

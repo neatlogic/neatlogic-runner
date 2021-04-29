@@ -16,6 +16,7 @@ public class RestVo {
     private String password;
     private String token;
     private String method;
+    private String tenant;
     private JSONObject payload;
     List<String> paramNameList;
     List<String> paramValueList;
@@ -25,12 +26,13 @@ public class RestVo {
     private List<Object> paramList;
     private Map<String, Object> paramMap;
 
-    public RestVo(String url, JSONObject payload, String authType, String username, String password) {
+    public RestVo(String url, JSONObject payload, String authType, String username, String password,String tenant) {
         this.url = url;
         this.authType = authType;
         this.password = password;
         this.username = username;
         this.payload = payload;
+        this.tenant = tenant;
     }
 
     public String getAuthType() {
@@ -156,4 +158,11 @@ public class RestVo {
         this.timeout = timeout;
     }
 
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
+    }
 }

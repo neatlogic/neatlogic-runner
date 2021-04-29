@@ -1,5 +1,6 @@
 package com.techsure.autoexecproxy.core;
 
+import com.techsure.autoexecproxy.constvalue.JobAction;
 import com.techsure.autoexecproxy.dto.CommandVo;
 import com.techsure.autoexecproxy.threadpool.CommonThreadPool;
 
@@ -10,6 +11,7 @@ import com.techsure.autoexecproxy.threadpool.CommonThreadPool;
 public class ExecManager {
 
     public static void exec(CommandVo commandVo){
+        commandVo.setAction(JobAction.EXEC.getValue());
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }
@@ -22,7 +24,7 @@ public class ExecManager {
 
     }
 
-    public static void redo(){
+    public static void reset(){
 
     }
 

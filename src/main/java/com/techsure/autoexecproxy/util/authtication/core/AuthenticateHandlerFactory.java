@@ -9,7 +9,7 @@ import java.util.Set;
 public class AuthenticateHandlerFactory {
 	private static Map<String, IAuthenticateHandler> handlerMap = new HashMap<>();
 	static {
-		Reflections reflections = new Reflections("codedriver.framework.integration.authtication.handler");
+		Reflections reflections = new Reflections("com.techsure.autoexecproxy.util.authtication.handler");
 		Set<Class<? extends IAuthenticateHandler>> modules = reflections.getSubTypesOf(IAuthenticateHandler.class);
 		for (Class<? extends IAuthenticateHandler> c : modules) {
 			IAuthenticateHandler handler;

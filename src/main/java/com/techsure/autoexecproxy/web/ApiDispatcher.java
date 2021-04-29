@@ -83,6 +83,10 @@ public class ApiDispatcher {
             }
         }
 
+        //param补充 tenant 租户信息
+        if(StringUtils.isNotBlank(request.getHeader("Tenant"))){
+            paramObj.put("tenant",request.getHeader("Tenant"));
+        }
 
         if (apiType.equals(ApiVo.Type.OBJECT)) {
             IApiComponent restComponent = PrivateApiComponentFactory.getInstance(interfaceVo.getHandler());

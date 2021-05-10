@@ -1,6 +1,7 @@
 package com.techsure.autoexecproxy.core;
 
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.dto.CommandVo;
 import com.techsure.autoexecproxy.dto.RestVo;
@@ -18,7 +19,6 @@ import java.util.Map;
  **/
 public class ExecProcessCommand implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ExecProcessCommand.class);
-    private static final String CALLBACK_HOST = "http://localhost:8080/codedriver/public/api/rest/";
     private final ProcessBuilder builder;
     private final CommandVo commandVo;
 
@@ -27,6 +27,7 @@ public class ExecProcessCommand implements Runnable {
         builder = new ProcessBuilder(commandVo.getCommandList());
         Map<String, String> env = builder.environment();
         env.put("JOB_ID",commandVo.getJobId());
+        env.put("JOB_PHASE_NAME", commandVo.getJobPhaseName());
     }
 
     @Override
@@ -76,7 +77,8 @@ public class ExecProcessCommand implements Runnable {
             payload.put("errorMsg", e.getMessage());
             logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage());
         } finally {
-            String url = CALLBACK_HOST + "autoexec/job/process/status/update";
+            String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
+            String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
             try {
                 result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BASIC.getValue(), "codedriver", "123456",commandVo.getTenant()));
                 JSONObject.parseObject(result);

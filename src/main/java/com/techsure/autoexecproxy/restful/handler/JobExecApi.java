@@ -30,8 +30,6 @@ public class JobExecApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         //TODO 执行命令
         CommandVo commandVo = new CommandVo(jsonObj);
-        HttpServletRequest request = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-        commandVo.setTenant(jsonObj.getString("tenant"));
         commandVo.setCommandList(Collections.singletonList("ipconfig"));
         ExecManager.exec(commandVo);
         return null;

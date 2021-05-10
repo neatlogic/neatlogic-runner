@@ -28,14 +28,14 @@ public class Config {
     private static String JWT_SECRET = "techsure#codedriver$secret";
     private static String AUTOEXEC_HOME;//脚本目录
     private static String DATA_HOME;// 存储文件路径
-    private static String OCTOPUS_HOME_URL;//octopus的链接地址，callback时需要使用
+    private static String CALLBACK_URL;//octopus的链接地址，callback时需要使用
     private static String AUTH_TYPE;//autoexecproxy的认证方式
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
 
 
-    public static String OCTOPUS_HOME_URL() {
-        return OCTOPUS_HOME_URL;
+    public static String CALLBACK_URL() {
+        return CALLBACK_URL;
     }
 
     public static String JWT_SECRET() {
@@ -102,7 +102,7 @@ public class Config {
             if (StringUtils.isBlank(AUTOEXEC_HOME)) {
                 logger.error("请在配置文件中定义autoexec.home参数");
             }
-            OCTOPUS_HOME_URL = prop.getProperty("octopus.home.url");
+            CALLBACK_URL = prop.getProperty("callback.url");
             JWT_SECRET = prop.getProperty("jwt.secret", "techsure#codedriver$secret");
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");

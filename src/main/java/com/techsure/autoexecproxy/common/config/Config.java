@@ -32,6 +32,7 @@ public class Config {
     private static String AUTH_TYPE;//autoexecproxy的认证方式
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
+    private static String PARAM_PATH;//参数保存路径
 
 
     public static String CALLBACK_URL() {
@@ -56,6 +57,9 @@ public class Config {
 
     public static String ACCESS_SECRET() {
         return ACCESS_SECRET;
+    }
+    public static String PARAM_PATH() {
+        return PARAM_PATH;
     }
 
 
@@ -107,6 +111,7 @@ public class Config {
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
+            PARAM_PATH = prop.getProperty("param.path", "/data/job");
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

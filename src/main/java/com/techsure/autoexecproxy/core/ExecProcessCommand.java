@@ -26,8 +26,7 @@ public class ExecProcessCommand implements Runnable {
         this.commandVo = commandVo;
         builder = new ProcessBuilder(commandVo.getCommandList());
         Map<String, String> env = builder.environment();
-        env.put("JOB_ID",commandVo.getJobId());
-        env.put("JOB_PHASE_NAME", commandVo.getJobPhaseName());
+
     }
 
     @Override
@@ -38,11 +37,10 @@ public class ExecProcessCommand implements Runnable {
             Process process;
             boolean isStarted = false;
             synchronized (commandVo) {
-                payload.put("jobId", commandVo.getJobId());
-                payload.put("jobPhaseName", commandVo.getJobPhaseName());
+                payload.put("jobId",commandVo.getJobId());
                 payload.put("status", 1);
                 payload.put("command", commandVo);
-                builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
+                //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
                 isStarted = true;
             }

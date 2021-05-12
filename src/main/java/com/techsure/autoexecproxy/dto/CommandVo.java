@@ -1,6 +1,7 @@
 package com.techsure.autoexecproxy.dto;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -10,10 +11,10 @@ import java.util.List;
  **/
 public class CommandVo {
     private String jobId;
-    private String jobPhaseName;
     private String execUser;
     private String action;
     private String tenant;
+    private String config;
 
     List<String> commandList;
     Boolean isCancel;
@@ -23,9 +24,16 @@ public class CommandVo {
 
     public CommandVo(JSONObject jsonObj) {
         this.jobId = jsonObj.getString("jobId");
-        this.jobPhaseName = jsonObj.getString("jobPhaseName");
         this.tenant = jsonObj.getString("tenant");
+        this.config = jsonObj.toJSONString();
+    }
 
+    public String getJobId() {
+        if(StringUtils.isNotBlank(config)){
+            JSONObject configJson = JSONObject.parseObject(config);
+            return  configJson.getString("jobId");
+        }
+        return jobId;
     }
 
     public String getAction() {
@@ -34,22 +42,6 @@ public class CommandVo {
 
     public void setAction(String action) {
         this.action = action;
-    }
-
-    public String getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(String jobId) {
-        this.jobId = jobId;
-    }
-
-    public String getJobPhaseName() {
-        return jobPhaseName;
-    }
-
-    public void setJobPhaseName(String jobPhaseName) {
-        this.jobPhaseName = jobPhaseName;
     }
 
     public String getExecUser() {
@@ -82,5 +74,13 @@ public class CommandVo {
 
     public void setTenant(String tenant) {
         this.tenant = tenant;
+    }
+
+    public String getConfig() {
+        return config;
+    }
+
+    public void setConfig(String config) {
+        this.config = config;
     }
 }

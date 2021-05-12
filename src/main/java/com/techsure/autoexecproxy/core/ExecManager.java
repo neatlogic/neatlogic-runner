@@ -28,7 +28,7 @@ public class ExecManager {
         String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(),new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(),filePath,"","");
         //set command
-        commandVo.setCommandList(Collections.singletonList(String.format("%s %s",COMMAND_AUTOEXEC,"")));
+        commandVo.setCommandList(Collections.singletonList(String.format("%s",COMMAND_AUTOEXEC)));
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }

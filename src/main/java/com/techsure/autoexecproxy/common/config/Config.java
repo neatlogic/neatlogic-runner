@@ -33,6 +33,9 @@ public class Config {
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
     private static String PARAM_PATH;//参数保存路径
+    private static String LOG_PATH;//执行日志路径
+    private static Long LOGTAIL_BUFLEN;//日志tail buff长度
+    private static String WARN_PATTERN;//告警提示关键字
 
 
     public static String CALLBACK_URL() {
@@ -61,7 +64,15 @@ public class Config {
     public static String PARAM_PATH() {
         return PARAM_PATH;
     }
-
+    public static String LOG_PATH() {
+        return LOG_PATH;
+    }
+    public static Long LOGTAIL_BUFLEN() {
+        return LOGTAIL_BUFLEN;
+    }
+    public static String WARN_PATTERN() {
+        return WARN_PATTERN;
+    }
 
     public static String DATA_HOME() {
         if (!DATA_HOME.endsWith(File.separator)) {
@@ -112,6 +123,9 @@ public class Config {
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
             PARAM_PATH = prop.getProperty("param.path", "/data/job");
+            LOG_PATH = prop.getProperty("param.path", "/data/job");
+            WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
+            LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(32 * 1024)));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

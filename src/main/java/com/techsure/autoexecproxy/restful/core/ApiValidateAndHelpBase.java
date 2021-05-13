@@ -9,6 +9,7 @@ import com.techsure.autoexecproxy.exception.ParamValueTooLongException;
 import com.techsure.autoexecproxy.exception.ParamValueTooShortException;
 import com.techsure.autoexecproxy.param.validate.core.ParamValidatorFactory;
 import com.techsure.autoexecproxy.restful.annotation.*;
+import com.techsure.autoexecproxy.util.HtmlUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ public class ApiValidateAndHelpBase {
                     encodeHtml(valList);
                     paramObj.replace(key, valList.toJSONString());
                 } catch (Exception e) {
-                    paramObj.replace(key, escapeXss(value.toString()));
+                    paramObj.replace(key, HtmlUtil.encodeHtml(value.toString()));
                 }
             }
         } else if (value instanceof JSONObject) {
@@ -57,30 +58,13 @@ public class ApiValidateAndHelpBase {
 	private static Pattern evalPattern = Pattern.compile("eval\\((.*?)\\)", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOLL);
 	*/
 
-    private static String escapeXss(String str) {
-        if (StringUtils.isNotBlank(str)) {
-			/*
-			 处理js xss注入
-			 str = scriptPattern.matcher(str).replaceAll("");
-			 str = javascriptPattern.matcher(str).replaceAll("");
-			 str = evalPattern.matcher(str).replaceAll("");
-			*/
-            str = str.replace("&", "&amp;");
-            str = str.replace("<", "&lt;");
-            str = str.replace(">", "&gt;");
-            str = str.replace("'", "&#39;");
-            str = str.replace("\"", "&quot;");
 
-            return str;
-        }
-        return "";
-    }
 
 
     private static void escapeXss(JSONObject j) {
         Set<String> set = j.keySet();
         for (String s : set) {
-            String newKey = escapeXss(s);
+            String newKey = HtmlUtil.encodeHtml(s);
             if (!newKey.equals(s)) {
                 Object value = j.get(s);
                 j.remove(s);
@@ -91,7 +75,7 @@ public class ApiValidateAndHelpBase {
             } else if (j.get(newKey) instanceof JSONArray) {
                 encodeHtml(j.getJSONArray(newKey));
             } else if (j.get(newKey) instanceof String) {
-                j.replace(newKey, escapeXss(j.getString(newKey)));
+                j.replace(newKey, HtmlUtil.encodeHtml(j.getString(newKey)));
             }
         }
     }
@@ -103,7 +87,7 @@ public class ApiValidateAndHelpBase {
             } else if (j.get(i) instanceof JSONArray) {
                 encodeHtml(j.getJSONArray(i));
             } else if (j.get(i) instanceof String) {
-                j.set(i, escapeXss(j.getString(i)));
+                j.set(i, HtmlUtil.encodeHtml(j.getString(i)));
             }
         }
     }

@@ -5,15 +5,6 @@ import com.techsure.autoexecproxy.core.ExecManager;
 import com.techsure.autoexecproxy.dto.CommandVo;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.servlet.support.RequestContext;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
 
 /**
  * @author lvzk

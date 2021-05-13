@@ -39,7 +39,7 @@ public class ExecManager {
      * @param jobPathSb 根据作业id生产的path
      * @return 作业path
      */
-    private static String getJobPath(String jobId,StringBuilder jobPathSb){
+    public static String getJobPath(String jobId,StringBuilder jobPathSb){
         if(jobPathSb.length() > 0){
             jobPathSb.append(File.separator);
         }

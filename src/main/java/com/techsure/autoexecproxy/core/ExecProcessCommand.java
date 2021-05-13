@@ -26,7 +26,7 @@ public class ExecProcessCommand implements Runnable {
         this.commandVo = commandVo;
         builder = new ProcessBuilder(commandVo.getCommandList());
         Map<String, String> env = builder.environment();
-
+        env.put("tenant", commandVo.getTenant());
     }
 
     @Override

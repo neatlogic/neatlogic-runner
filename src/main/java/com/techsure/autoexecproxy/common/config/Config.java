@@ -123,7 +123,7 @@ public class Config {
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
             PARAM_PATH = prop.getProperty("param.path", "/data/job");
-            LOG_PATH = prop.getProperty("param.path", "/data/job");
+            LOG_PATH = prop.getProperty("log.path", "/data/job");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(32 * 1024)));
         } catch (IOException e) {

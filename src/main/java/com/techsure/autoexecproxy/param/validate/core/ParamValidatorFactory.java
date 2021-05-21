@@ -11,7 +11,7 @@ public class ParamValidatorFactory {
     private static final Map<ApiParamType, ApiParamValidatorBase> authParamMap = new HashMap<>();
 
     static {
-        Reflections reflections = new Reflections("codedriver");
+        Reflections reflections = new Reflections("com.techsure");
         Set<Class<? extends ApiParamValidatorBase>> authClass = reflections.getSubTypesOf(ApiParamValidatorBase.class);
         for (Class<? extends ApiParamValidatorBase> c : authClass) {
             try {

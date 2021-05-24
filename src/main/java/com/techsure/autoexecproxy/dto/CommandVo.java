@@ -25,6 +25,7 @@ public class CommandVo {
     public CommandVo(JSONObject jsonObj) {
         this.jobId = jsonObj.getString("jobId");
         this.tenant = jsonObj.getString("tenant");
+        this.execUser = jsonObj.getString("execUser");
         this.config = jsonObj.toJSONString();
     }
 

@@ -2,6 +2,7 @@ package com.techsure.autoexecproxy.util;
 
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.dto.FileTailerVo;
+import com.techsure.autoexecproxy.exception.MkdirPermissionDeniedException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,7 +24,10 @@ public class FileUtil {
         InputStream inputStream = IOUtils.toInputStream(content, StandardCharsets.UTF_8.toString());
         File file = new File(path);
         if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdirs();
+            if(!file.getParentFile().mkdirs()){
+                throw new MkdirPermissionDeniedException();
+            }
+
         }
         FileOutputStream fos = new FileOutputStream(file);
         IOUtils.copyLarge(inputStream, fos);

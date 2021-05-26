@@ -30,7 +30,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "position", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
+            @Param(name = "logPos", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip", isRequired = true),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口", isRequired = true),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
@@ -42,7 +42,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("phase");
-        Long position = jsonObj.getLong("position");
+        Long logPos = jsonObj.getLong("logPos");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port");
         String direction = jsonObj.getString("direction");
@@ -54,7 +54,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             logPath += "local-0.txt";
         }
 
-        return FileUtil.tailLog(logPath, position, direction);
+        return FileUtil.tailLog(logPath, logPos, direction);
     }
 
     @Override

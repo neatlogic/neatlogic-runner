@@ -79,9 +79,10 @@ public class FileUtil {
                         && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
-                    content.append(line);
+                    content.append("<div>").append(line).append("</div>");
                 }
                 fileTailer.setLogPos(fis.getFilePointer());
+                fileTailer.setEndPos(fis.getFilePointer());
             } catch (IOException ex) {
                 logger.error("ge tail log for file:" + logFile.getAbsolutePath() + "failed", ex);
             }

@@ -14,6 +14,7 @@ import com.techsure.autoexecproxy.util.FileUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -32,6 +33,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             @Param(name = "position", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip", isRequired = true),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口", isRequired = true),
+            @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
             @Param(name = "direction", type = ApiParamType.STRING, desc = "读取方向", isRequired = true)
     })
     @Output({
@@ -44,7 +46,14 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port");
         String direction = jsonObj.getString("direction");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator + ip + "-" + port + ".text";
+        String execMode = jsonObj.getString("execMode");
+        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
+        if(Objects.equals(execMode,"target")){
+            logPath +=  ip + "-" + port + ".text";
+        }else{
+            logPath += "local-0.text";
+        }
+
         return FileUtil.tailLog(logPath, position, direction);
     }
 

@@ -49,9 +49,9 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
         if(Objects.equals(execMode,"target")){
-            logPath +=  ip + "-" + port + ".text";
+            logPath +=  ip + "-" + port + ".txt";
         }else{
-            logPath += "local-0.text";
+            logPath += "local-0.txt";
         }
 
         return FileUtil.tailLog(logPath, position, direction);

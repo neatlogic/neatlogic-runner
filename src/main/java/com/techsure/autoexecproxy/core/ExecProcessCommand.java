@@ -24,7 +24,7 @@ public class ExecProcessCommand implements Runnable {
 
     public ExecProcessCommand(CommandVo commandVo) {
         this.commandVo = commandVo;
-        builder = new ProcessBuilder("/bin/sh", "-c",commandVo.getCommandList().get(0));
+        builder = new ProcessBuilder(commandVo.getCommandList());
         Map<String, String> env = builder.environment();
         env.put("tenant", commandVo.getTenant());
     }

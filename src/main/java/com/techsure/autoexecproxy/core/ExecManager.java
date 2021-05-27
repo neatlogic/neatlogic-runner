@@ -13,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -28,7 +30,7 @@ public class ExecManager {
         String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(),new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(),filePath,"","");
         //set command
-        commandVo.setCommandList(Collections.singletonList(String.format("python3 /app/autoexec/bin/autoexec --jobid '%s' --execuser '%s' -p '%s'",commandVo.getJobId(),commandVo.getExecUser(),filePath)));
+        commandVo.setCommandList(Arrays.asList("python3 /app/autoexec/bin/autoexec "," --jobid "+commandVo.getJobId(), " --execuser "+ commandVo.getExecUser(), " -p " + filePath));
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }

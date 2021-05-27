@@ -28,7 +28,7 @@ public class ExecManager {
         String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(),new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(),filePath,"","");
         //set command
-        commandVo.setCommandList(Collections.singletonList(String.format("python3 %s/bin/autoexec --jobid \"%s\" --execuser \"%s\" ",Config.AUTOEXEC_HOME(),commandVo.getJobId(),commandVo.getExecUser())));
+        commandVo.setCommandList(Collections.singletonList(String.format("python3 %s/bin/autoexec --jobid \"%s\" --execuser \"%s\" -p %s",Config.AUTOEXEC_HOME(),commandVo.getJobId(),commandVo.getExecUser(),filePath)));
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }

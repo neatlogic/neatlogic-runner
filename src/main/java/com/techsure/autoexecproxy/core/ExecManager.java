@@ -27,44 +27,45 @@ public class ExecManager {
     public static void exec(CommandVo commandVo) throws Exception {
         commandVo.setAction(JobAction.EXEC.getValue());
         //save params.json
-        String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(),new StringBuilder()) + File.separator + "params.json";
-        FileUtil.saveFile(commandVo.getConfig(),filePath,"","");
+        String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
+        FileUtil.saveFile(commandVo.getConfig(), filePath, "", "");
         //set command
-        commandVo.setCommandList(Arrays.asList("autoexec"," --jobid "+commandVo.getJobId(), " --execuser "+ commandVo.getExecUser(), " -p " + filePath));
+        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath));
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }
 
     /**
      * 递归截取3位jobId作为path
-     * @param jobId 作业id
+     *
+     * @param jobId     作业id
      * @param jobPathSb 根据作业id生产的path
      * @return 作业path
      */
-    public static String getJobPath(String jobId,StringBuilder jobPathSb){
-        if(jobPathSb.length() > 0){
+    public static String getJobPath(String jobId, StringBuilder jobPathSb) {
+        if (jobPathSb.length() > 0) {
             jobPathSb.append(File.separator);
         }
-        if(jobId.length() > 3){
-            String tmp = jobId.substring(0,3);
+        if (jobId.length() > 3) {
+            String tmp = jobId.substring(0, 3);
             jobId = jobId.replaceFirst(tmp, StringUtils.EMPTY);
             jobPathSb.append(tmp);
-            getJobPath(jobId,jobPathSb);
-        }else {
+            getJobPath(jobId, jobPathSb);
+        } else {
             jobPathSb.append(jobId);
         }
         return jobPathSb.toString();
     }
 
-    public static void pause(){
+    public static void pause() {
 
     }
 
-    public static void stop(){
+    public static void stop() {
 
     }
 
-    public static void reset(){
+    public static void reset() {
 
     }
 

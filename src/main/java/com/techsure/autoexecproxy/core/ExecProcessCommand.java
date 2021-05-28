@@ -21,10 +21,13 @@ public class ExecProcessCommand implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ExecProcessCommand.class);
     private final ProcessBuilder builder;
     private final CommandVo commandVo;
+    private static final File NULL_FILE = new File( "/dev/null");
 
     public ExecProcessCommand(CommandVo commandVo) {
         this.commandVo = commandVo;
         builder = new ProcessBuilder(commandVo.getCommandList());
+        builder.redirectOutput(NULL_FILE);
+        builder.redirectError(NULL_FILE);
         Map<String, String> env = builder.environment();
         env.put("tenant", commandVo.getTenant());
     }
@@ -42,32 +45,11 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
-                isStarted = true;
-            }
-            if (isStarted) {
-                StringBuilder errorSb = new StringBuilder();
-                InputStream errInput = process.getErrorStream();
-                BufferedReader errReader = new BufferedReader(new InputStreamReader(errInput));
-                String line = null;
-                int length = 0;
-                while ((line = errReader.readLine()) != null) {
-                    length += line.length();
-                    if (length > 4000) {
-                        errorSb.append(line.substring(0, length - 4000));
-                        break;
-                    }
-                    errorSb.append(line).append("\n");
-                }
                 process.waitFor();
                 int exitStatus = process.exitValue();
-
-
                 if (exitStatus != 0) {
-                    payload.put("status", 0);
-                    payload.put("errorMsg", errorSb.toString());
-                    logger.error("execute " + commandVo.toString() + " failed. " + errorSb.toString());
+                    logger.error("execute " + commandVo.toString() + "exit status:" + exitStatus + ", failed.");
                 }
-
             }
         } catch (Exception e) {
             logger.error("run command failed.", e);

@@ -129,7 +129,7 @@ public class FileUtil {
                 if (desFile.isFile() && desFile.exists()) {
                     StringBuilder str = new StringBuilder();
                     fr = new FileInputStream(desFile);
-                    in = new InputStreamReader(fr, filePath);
+                    in = new InputStreamReader(fr, StandardCharsets.UTF_8);
                     filebr = new BufferedReader(in);
                     String inLine = "";
                     while ((inLine = filebr.readLine()) != null) {

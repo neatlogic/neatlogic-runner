@@ -47,7 +47,7 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
         if(Objects.equals(execMode,"target")){
             logPath +=  ip + "-" + port + ".history";
         }else{
-            logPath += "local-0.history";
+            logPath += "local-0.hislog";
         }
         return FileUtil.readFileList(logPath);
     }

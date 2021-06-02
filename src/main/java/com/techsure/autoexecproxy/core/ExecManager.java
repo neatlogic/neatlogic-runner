@@ -61,8 +61,12 @@ public class ExecManager {
 
     }
 
-    public static void stop() {
-
+    public static void abort(CommandVo commandVo) {
+        commandVo.setAction(JobAction.ABORT.getValue());
+        //set command
+        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--abort"));
+        ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
+        CommonThreadPool.execute(processCommand);
     }
 
     public static void reset() {

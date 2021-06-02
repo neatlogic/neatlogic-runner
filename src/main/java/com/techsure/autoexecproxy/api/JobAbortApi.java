@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author lvzk
- * @since 2021/4/21 17:31
+ * @since 2021/6/2 15:31
  **/
 @Component
-public class JobExecApi extends PrivateApiComponentBase {
+public class JobAbortApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
         return "创建执行作业剧本进程";
@@ -20,12 +20,12 @@ public class JobExecApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         CommandVo commandVo = new CommandVo(jsonObj);
-        ExecManager.exec(commandVo);
+        ExecManager.abort(commandVo);
         return null;
     }
 
     @Override
     public String getToken() {
-        return "/job/exec";
+        return "/job/abort";
     }
 }

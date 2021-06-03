@@ -3,6 +3,7 @@ package com.techsure.autoexecproxy.core;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
+import com.techsure.autoexecproxy.constvalue.JobAction;
 import com.techsure.autoexecproxy.dto.CommandVo;
 import com.techsure.autoexecproxy.dto.RestVo;
 import com.techsure.autoexecproxy.util.RestUtil;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -45,7 +47,9 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
-                process.waitFor();
+                if(Objects.equals(JobAction.ABORT.getValue(),commandVo.getAction())) {
+                    process.waitFor();
+                }
                 int exitStatus = process.exitValue();
                 if (exitStatus != 0) {
                     logger.error("execute " + commandVo.toString() + "exit status:" + exitStatus + ", failed.");

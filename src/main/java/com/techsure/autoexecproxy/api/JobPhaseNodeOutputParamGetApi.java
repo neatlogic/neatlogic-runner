@@ -1,7 +1,6 @@
 package com.techsure.autoexecproxy.api;
 
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONReader;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
 import com.techsure.autoexecproxy.core.ExecManager;
@@ -12,23 +11,18 @@ import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBas
 import com.techsure.autoexecproxy.util.FileUtil;
 import org.springframework.stereotype.Component;
 
-import javax.servlet.ServletOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 /**
  * @author lvzk
- * @since 2021/5/28 10:31
+ * @since 2021/6/4 16:31
  **/
 @Component
-public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
+public class JobPhaseNodeOutputParamGetApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "获取作业节点执行状态";
+        return "获取作业节点输出参数";
     }
 
     @Input({
@@ -43,11 +37,10 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator+phase + File.separator ;
+        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "output" + File.separator ;
         if(Objects.equals(execMode,"target")){
             logPath +=  ip + "-" + port + ".json";
         }else{
@@ -58,6 +51,6 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/job/phase/node/status/get";
+        return "/job/phase/node/output/param/get";
     }
 }

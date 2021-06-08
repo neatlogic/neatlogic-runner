@@ -30,7 +30,7 @@ public class CommandVo {
         //执行判断是不是执行第一个phase
         Integer isFirstFireTmp = jsonObj.getInteger("isFirstFire");
         if (isFirstFireTmp != null) {
-            this.isFirstFire = isFirstFireTmp == 0;
+            this.isFirstFire = isFirstFireTmp == 1;
         }
         this.config = jsonObj.toJSONString();
     }

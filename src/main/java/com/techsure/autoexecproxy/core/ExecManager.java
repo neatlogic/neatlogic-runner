@@ -32,7 +32,7 @@ public class ExecManager {
         FileUtil.saveFile(commandVo.getConfig(), filePath, "", "");
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath);
-        if(commandVo.getFirstFire()){
+        if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
             commandList.add("--firstfire");
         }
         commandVo.setCommandList(commandList);

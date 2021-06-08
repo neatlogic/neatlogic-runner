@@ -27,14 +27,18 @@ public class CommandVo {
         this.jobId = jsonObj.getString("jobId");
         this.tenant = jsonObj.getString("tenant");
         this.execUser = jsonObj.getString("execUser");
-        this.isFirstFire = jsonObj.getInteger("isFirstFire") == 0;
+        //执行判断是不是执行第一个phase
+        Integer isFirstFireTmp = jsonObj.getInteger("isFirstFire");
+        if (isFirstFireTmp != null) {
+            this.isFirstFire = isFirstFireTmp == 0;
+        }
         this.config = jsonObj.toJSONString();
     }
 
     public String getJobId() {
-        if(StringUtils.isNotBlank(config)){
+        if (StringUtils.isNotBlank(config)) {
             JSONObject configJson = JSONObject.parseObject(config);
-            return  configJson.getString("jobId");
+            return configJson.getString("jobId");
         }
         return jobId;
     }

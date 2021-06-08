@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -30,7 +31,11 @@ public class ExecManager {
         String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(), filePath, "", "");
         //set command
-        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath));
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath);
+        if(commandVo.getFirstFire()){
+            commandList.add("--firstfire");
+        }
+        commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }

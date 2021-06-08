@@ -15,6 +15,7 @@ public class CommandVo {
     private String action;
     private String tenant;
     private String config;
+    private Boolean isFirstFire;
 
     List<String> commandList;
     Boolean isCancel;
@@ -26,6 +27,7 @@ public class CommandVo {
         this.jobId = jsonObj.getString("jobId");
         this.tenant = jsonObj.getString("tenant");
         this.execUser = jsonObj.getString("execUser");
+        this.isFirstFire = jsonObj.getInteger("isFirstFire") == 0;
         this.config = jsonObj.toJSONString();
     }
 
@@ -35,6 +37,10 @@ public class CommandVo {
             return  configJson.getString("jobId");
         }
         return jobId;
+    }
+
+    public Boolean getFirstFire() {
+        return isFirstFire;
     }
 
     public String getAction() {

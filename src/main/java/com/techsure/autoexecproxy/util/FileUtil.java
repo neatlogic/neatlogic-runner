@@ -92,7 +92,9 @@ public class FileUtil {
                         && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
-                    content.append("<div>").append(line).append("</div>");
+                    String time = line.substring(0,8);
+                    String info = line.substring(9);
+                    content.append(String.format("<div><span class='text-tip'>%s</span> %s</div>",time,info));
                 }
                 fileTailer.setLogPos(fis.getFilePointer());
                 fileTailer.setEndPos(fis.getFilePointer());

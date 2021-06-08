@@ -1,5 +1,6 @@
 package com.techsure.autoexecproxy.core;
 
+import com.google.common.collect.Lists;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.JobAction;
 import com.techsure.autoexecproxy.dto.CommandVo;
@@ -33,6 +34,7 @@ public class ExecManager {
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
+            commandList = Lists.newArrayList(commandList);
             commandList.add("--firstfire");
         }
         commandVo.setCommandList(commandList);

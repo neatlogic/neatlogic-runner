@@ -14,6 +14,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lvzk
@@ -49,6 +50,8 @@ public class ExecProcessCommand implements Runnable {
                 process = builder.start();
                 if(Objects.equals(JobAction.ABORT.getValue(),commandVo.getAction())) {
                     process.waitFor();
+                }else{
+                    process.waitFor(1, TimeUnit.SECONDS);
                 }
                 int exitStatus = process.exitValue();
                 if (exitStatus != 0) {
@@ -64,7 +67,7 @@ public class ExecProcessCommand implements Runnable {
             String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
             String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
             try {
-                result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BASIC.getValue(), "codedriver", "123456",commandVo.getTenant()));
+                result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BASIC.getValue(), "codedriver", "x15wDEzSbBL6tV1W",commandVo.getTenant()));
                 JSONObject.parseObject(result);
             } catch (Exception e) {
                 logger.error("do RESTFul api failed,url: #{},result: #{}", url,result);

@@ -30,8 +30,8 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "ip", type = ApiParamType.STRING, desc = "ip", isRequired = true),
-            @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口", isRequired = true),
+            @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
+            @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
     })
     @Output({

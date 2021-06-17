@@ -48,11 +48,7 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
-                if(Objects.equals(JobAction.ABORT.getValue(),commandVo.getAction())) {
-                    process.waitFor();
-                }else{
-                    process.waitFor(1, TimeUnit.SECONDS);
-                }
+                process.waitFor(1, TimeUnit.SECONDS);
                 int exitStatus = process.exitValue();
                 if (exitStatus != 0) {
                     logger.error("execute " + commandVo.toString() + "exit status:" + exitStatus + ", failed.");

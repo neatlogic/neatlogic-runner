@@ -64,8 +64,12 @@ public class ExecManager {
         return jobPathSb.toString();
     }
 
-    public static void pause() {
-
+    public static void pause(CommandVo commandVo) {
+        commandVo.setAction(JobAction.PAUSE.getValue());
+        //set command
+        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--pause"));
+        ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
+        CommonThreadPool.execute(processCommand);
     }
 
     public static void abort(CommandVo commandVo) {

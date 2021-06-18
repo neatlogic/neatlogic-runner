@@ -94,7 +94,15 @@ public class FileUtil {
                     fileTailer.setLastLine(line);
                     String time = line.substring(0,8);
                     String info = line.substring(9);
-                    content.append(String.format("<div><span class='text-tip'>%s</span> %s</div>",time,info));
+                    String infoClass = StringUtils.EMPTY;
+                    if(info.startsWith("ERROR")){
+                        infoClass = "text-danger";
+                    }else if(info.startsWith("WARN")){
+                        infoClass = "text-warn";
+                    }else if(info.startsWith("FINEST")){
+                        infoClass = "text-success";
+                    }
+                    content.append(String.format("<div><span class='text-tip'>%s</span> <span class='%s'>%s</span></div>",time,infoClass,info));
                 }
                 fileTailer.setLogPos(fis.getFilePointer());
                 fileTailer.setEndPos(fis.getFilePointer());

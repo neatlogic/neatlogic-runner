@@ -5,6 +5,7 @@
        xmlns:mvc="http://www.springframework.org/schema/mvc"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
        xsi:schemaLocation="http://www.springframework.org/schema/aop
 		http://www.springframework.org/schema/aop/spring-aop.xsd
 		http://www.springframework.org/schema/beans
@@ -14,7 +15,7 @@
 		http://www.springframework.org/schema/mvc
 		http://www.springframework.org/schema/mvc/spring-mvc.xsd
 		http://www.springframework.org/schema/util
-		http://www.springframework.org/schema/util/spring-util.xsd">
+		http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/data/mongo https://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
 
 
     <!-- 本地配置加载器,nacos不可用时加载配置数据 -->
@@ -32,6 +33,15 @@
     <aop:aspectj-autoproxy/>
     <mvc:annotation-driven/>
 
+    <!-- 加载Properties文件 -->
+    <bean id="configurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath*:config.properties</value>
+            </list>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+    </bean>
     <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
         <property name="messageConverters">
             <util:list id="beanList">
@@ -53,4 +63,15 @@
         <!-- 设置上传文件的最大尺寸为100MB -->
         <property name="maxUploadSize" value="524288000"/>
     </bean>
+
+    <mongo:mongo-client id="mongoClient" host="${mongo.host}" port="${mongo.port}" credential="${mongo.userName}:${mongo.password}@${mongo.dbname}">
+
+    </mongo:mongo-client>
+
+    <mongo:db-factory id="mongoDbFactory" dbname="autoexec" mongo-client-ref="mongoClient" />
+
+    <bean id="anotherMongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+    </bean>
+
 </beans>

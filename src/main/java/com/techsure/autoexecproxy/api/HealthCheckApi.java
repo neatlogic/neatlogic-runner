@@ -27,6 +27,6 @@ public class HealthCheckApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "check";
+        return "/health/check";
     }
 }

@@ -19,16 +19,16 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 @Component
-public class JobPhaseNodeLogGetApi extends PrivateBinaryStreamApiComponentBase {
+public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/job/phase/node/log/get";
+        return "/job/phase/node/log/download";
     }
 
     @Override
     public String getName() {
-        return "获取剧本节点执行日志";
+        return "下载剧本节点执行日志";
     }
 
     @Input({

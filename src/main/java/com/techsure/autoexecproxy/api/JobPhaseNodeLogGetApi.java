@@ -5,7 +5,6 @@ import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
 import com.techsure.autoexecproxy.core.ExecManager;
 import com.techsure.autoexecproxy.restful.annotation.Input;
-import com.techsure.autoexecproxy.restful.annotation.Output;
 import com.techsure.autoexecproxy.restful.annotation.Param;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.techsure.autoexecproxy.util.FileUtil;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Objects;

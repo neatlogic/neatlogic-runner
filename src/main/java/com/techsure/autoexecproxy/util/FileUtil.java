@@ -11,10 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -200,6 +197,21 @@ public class FileUtil {
             logger.error("read file Exception:" + e.getMessage());
         }
         return fileVoList;
+    }
+
+    /**
+     * 根据文件路径获取输入流
+     * @param path 文件路径
+     * @return 输入流
+     * @throws Exception
+     */
+    public static InputStream getInputStream(String path) throws Exception {
+        InputStream in = null;
+        File file = new File(path);
+        if (file.exists() && file.isFile()) {
+            in = new FileInputStream(file);
+        }
+        return in;
     }
 
 }

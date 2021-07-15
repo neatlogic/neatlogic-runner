@@ -11,6 +11,7 @@ import com.techsure.autoexecproxy.restful.annotation.Output;
 import com.techsure.autoexecproxy.restful.annotation.Param;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecproxy.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String phase = jsonObj.getString("phase");
         Long logPos = jsonObj.getLong("logPos");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null? StringUtils.EMPTY: jsonObj.getString("port");
         String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;

@@ -90,14 +90,17 @@ public class FileUtil {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
                     String time = line.substring(0,8);
-                    String info = line.substring(9);
                     String infoClass = StringUtils.EMPTY;
-                    if(info.startsWith("ERROR")){
-                        infoClass = "text-danger";
-                    }else if(info.startsWith("WARN")){
-                        infoClass = "text-warn";
-                    }else if(info.startsWith("FINEST")){
-                        infoClass = "text-success";
+                    String info = StringUtils.EMPTY;
+                    if(line.length() > 9) {
+                        info = line.substring(9);
+                        if (info.startsWith("ERROR")) {
+                            infoClass = "text-danger";
+                        } else if (info.startsWith("WARN")) {
+                            infoClass = "text-warn";
+                        } else if (info.startsWith("FINEST")) {
+                            infoClass = "text-success";
+                        }
                     }
                     content.append(String.format("<div><span class='text-tip'>%s</span> <span class='%s'>%s</span></div>",time,infoClass,info));
                 }
@@ -214,4 +217,28 @@ public class FileUtil {
         return in;
     }
 
+    /**
+     *  删除文件夹或文件
+     * @param path 文件路径
+     */
+    public static void deleteDirectoryOrFile(String path) {
+        File dirFile = new File(path);
+        if (!dirFile.isDirectory()) {
+            dirFile.getAbsoluteFile().delete();
+        } else {
+            File[] files = dirFile.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                if (files[i].isFile()) {
+                    File file = new File(files[i].getAbsolutePath());
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                } else {
+                    deleteDirectoryOrFile(files[i].getAbsolutePath());
+                }
+            }
+            if (Objects.requireNonNull(dirFile.listFiles()).length == 0)
+                dirFile.delete();
+        }
+    }
 }

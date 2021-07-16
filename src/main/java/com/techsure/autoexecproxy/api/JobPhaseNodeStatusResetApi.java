@@ -16,6 +16,7 @@ import com.techsure.autoexecproxy.restful.annotation.Param;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecproxy.util.FileUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -72,21 +73,21 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("jobId", jobId.toString());
                 document.put("phase", phase);
                 document.put("host", host);
-                document.put("port", port);
+                document.put("port", port == null ? StringUtils.EMPTY : port);
                 Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
                 if (result == null) {
                     throw new ExecuteJobActionException();
                 }
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-                if(Objects.equals(execMode,"target")){
-                    nodeStatusPath +=  host + "-" + port + ".json";
-                }else{
+                if (Objects.equals(execMode, "target")) {
+                    nodeStatusPath += host + "-" + port + ".json";
+                } else {
                     nodeStatusPath += "local-0.json";
                 }
                 FileUtil.deleteDirectoryOrFile(nodeStatusPath);
             });
-        }else{
+        } else {
             //重置整个phase
             Document document = new Document();
             document.put("jobId", jobId.toString());

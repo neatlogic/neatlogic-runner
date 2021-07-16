@@ -67,7 +67,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 //删除db对应的status记录
                 JSONObject node = JSONObject.parseObject(n.toString());
                 String host = node.getString("host");
-                String port = node.getString("port");
+                Integer port = node.getInteger("port");
                 Document document = new Document();
                 document.put("jobId", jobId.toString());
                 document.put("phase", phase);

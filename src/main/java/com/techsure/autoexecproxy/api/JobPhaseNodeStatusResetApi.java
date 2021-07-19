@@ -2,14 +2,9 @@ package com.techsure.autoexecproxy.api;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.ApiParamType;
 import com.techsure.autoexecproxy.core.ExecManager;
-import com.techsure.autoexecproxy.dto.CommandVo;
-import com.techsure.autoexecproxy.dto.job.NodeStatusVo;
-import com.techsure.autoexecproxy.exception.job.ExecuteJobActionException;
 import com.techsure.autoexecproxy.restful.annotation.Input;
 import com.techsure.autoexecproxy.restful.annotation.Output;
 import com.techsure.autoexecproxy.restful.annotation.Param;
@@ -18,21 +13,14 @@ import com.techsure.autoexecproxy.util.FileUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.SimpleMongoClientDbFactory;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import javax.xml.stream.events.Comment;
 
 import java.io.File;
-import java.util.Map;
 import java.util.Objects;
 
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author lvzk
@@ -75,9 +63,6 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("host", host);
                 document.put("port", port == null ? StringUtils.EMPTY : port);
                 Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
-                if (result == null) {
-                    throw new ExecuteJobActionException();
-                }
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Objects.equals(execMode, "target")) {
@@ -93,9 +78,6 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             document.put("jobId", jobId.toString());
             document.put("phase", phase);
             Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
-            if (result == null) {
-                throw new ExecuteJobActionException();
-            }
             //删除对应status文件记录
             String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
             FileUtil.deleteDirectoryOrFile(nodeStatusPath);

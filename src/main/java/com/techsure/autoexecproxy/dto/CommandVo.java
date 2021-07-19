@@ -16,6 +16,7 @@ public class CommandVo {
     private String tenant;
     private String config;
     private Boolean isFirstFire;
+    private Integer exitValue;//执行结果
 
     List<String> commandList;
     Boolean isCancel;
@@ -93,5 +94,13 @@ public class CommandVo {
 
     public void setConfig(String config) {
         this.config = config;
+    }
+
+    public Integer getExitValue() {
+        return exitValue;
+    }
+
+    public void setExitValue(Integer exitValue) {
+        this.exitValue = exitValue;
     }
 }

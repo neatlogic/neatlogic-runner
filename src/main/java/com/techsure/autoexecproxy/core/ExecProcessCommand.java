@@ -60,7 +60,7 @@ public class ExecProcessCommand implements Runnable {
             payload.put("errorMsg", e.getMessage());
             logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage());
         } finally {
-            if (commandVo.getExitValue() == 0 || (Objects.equals(commandVo.getAction(), "abort") && commandVo.getExitValue() == 143)) {
+            if (commandVo.getExitValue() == 143 || commandVo.getExitValue() == 0 && (!Objects.equals(commandVo.getAction(), "abort") && !Objects.equals(commandVo.getAction(), "pause"))) {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
                 String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
                 try {

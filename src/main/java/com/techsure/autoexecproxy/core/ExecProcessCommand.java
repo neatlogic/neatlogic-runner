@@ -47,7 +47,9 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
-                process.waitFor(1, TimeUnit.SECONDS);
+                if(Objects.equals(commandVo.getAction(), "abort")||Objects.equals(commandVo.getAction(), "pause")) {
+                    process.waitFor();
+                }
                 int exitStatus = process.exitValue();
                 commandVo.setExitValue(exitStatus);
                 if (exitStatus != 0 && !(Objects.equals(commandVo.getAction(), "abort") && exitStatus == 143)) {//排除中止已停止的process
@@ -55,12 +57,13 @@ public class ExecProcessCommand implements Runnable {
                 }
             }
         } catch (Exception e) {
+            //TODO 去掉wait for 会抛异常
             logger.error("run command failed.", e);
             payload.put("status", 0);
             payload.put("errorMsg", e.getMessage());
             logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage());
         } finally {
-            if (commandVo.getExitValue() == 143 || commandVo.getExitValue() == 0 && (!Objects.equals(commandVo.getAction(), "abort") && !Objects.equals(commandVo.getAction(), "pause"))) {
+            if (commandVo.getExitValue() == 143 || commandVo.getExitValue() == 0 && (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause"))) {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
                 String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
                 try {

@@ -15,7 +15,8 @@ public class CommandVo {
     private String action;
     private String tenant;
     private String config;
-    private Boolean isFirstFire;
+    private Boolean isFirstFire;//执行判断是不是执行第一个phase
+    private Boolean noFireNext;//执行判断是不是 执行完当前phase后 无需激活下一个phase
     private Integer exitValue;//执行结果
 
     List<String> commandList;
@@ -28,10 +29,13 @@ public class CommandVo {
         this.jobId = jsonObj.getString("jobId");
         this.tenant = jsonObj.getString("tenant");
         this.execUser = jsonObj.getString("execUser");
-        //执行判断是不是执行第一个phase
         Integer isFirstFireTmp = jsonObj.getInteger("isFirstFire");
         if (isFirstFireTmp != null) {
             this.isFirstFire = isFirstFireTmp == 1;
+        }
+        Integer noFireNextTmp = jsonObj.getInteger("noFireNext");
+        if (noFireNextTmp != null) {
+            this.noFireNext = noFireNextTmp == 1;
         }
         this.config = jsonObj.toJSONString();
     }
@@ -46,6 +50,10 @@ public class CommandVo {
 
     public Boolean getFirstFire() {
         return isFirstFire;
+    }
+
+    public Boolean getNoFireNext() {
+        return noFireNext;
     }
 
     public String getAction() {

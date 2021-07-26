@@ -33,9 +33,12 @@ public class ExecManager {
         FileUtil.saveFile(commandVo.getConfig(), filePath, "", "");
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath);
+        commandList = Lists.newArrayList(commandList);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
-            commandList = Lists.newArrayList(commandList);
             commandList.add("--firstfire");
+        }
+        if (commandVo.getNoFireNext() != null && commandVo.getNoFireNext()) {
+            commandList.add("--nonextfire");
         }
         commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);

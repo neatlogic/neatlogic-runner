@@ -60,8 +60,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 Document document = new Document();
                 document.put("jobId", jobId.toString());
                 document.put("phase", phase);
-                document.put("host", host);
-                document.put("port", port == null ? StringUtils.EMPTY : port);
+                document.put("resourceId",node.getString("resourceId"));
                 Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;

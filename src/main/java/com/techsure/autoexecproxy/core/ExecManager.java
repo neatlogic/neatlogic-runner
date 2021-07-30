@@ -75,6 +75,7 @@ public class ExecManager {
         commandVo.setAction(JobAction.PAUSE.getValue());
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--pause");
+        commandList = Lists.newArrayList(commandList);
         if(commandVo.getPassThroughEnv() != null){
             commandList.add("--passthroughenv");
             commandList.add(commandVo.getPassThroughEnv().toString());
@@ -88,6 +89,7 @@ public class ExecManager {
         commandVo.setAction(JobAction.ABORT.getValue());
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--abort");
+        commandList = Lists.newArrayList(commandList);
         if(commandVo.getPassThroughEnv() != null){
             commandList.add("--passthroughenv");
             commandList.add(commandVo.getPassThroughEnv().toString());

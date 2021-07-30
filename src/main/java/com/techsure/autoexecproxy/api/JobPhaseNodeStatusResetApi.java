@@ -38,6 +38,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.STRING, desc = "作业Id", isRequired = true),
+            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
             @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "phaseNodeList", type = ApiParamType.JSONARRAY, desc = "阶段节点列表"),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true)
@@ -66,7 +67,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Objects.equals(execMode, "target")) {
-                    nodeStatusPath += host + "-" + port + ".json";
+                    nodeStatusPath += host + "-" + port + node.getString("id") + ".json";
                 } else {
                     nodeStatusPath += "local-0.json";
                 }

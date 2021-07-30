@@ -30,6 +30,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
+            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "logPos", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
@@ -45,13 +46,13 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String phase = jsonObj.getString("phase");
         Long logPos = jsonObj.getLong("logPos");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port") == null? StringUtils.EMPTY: jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
-        if(Objects.equals(execMode,"target")){
-            logPath +=  ip + "-" + port + ".txt";
-        }else{
+        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        if (Objects.equals(execMode, "target")) {
+            logPath += ip + "-" + port + "-" + jsonObj.getString("nodeId") + ".txt";
+        } else {
             logPath += "local-0.txt";
         }
 

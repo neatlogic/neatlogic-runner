@@ -28,6 +28,7 @@ public class JobPhaseNodeOutputParamGetApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
@@ -43,7 +44,7 @@ public class JobPhaseNodeOutputParamGetApi extends PrivateApiComponentBase {
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "output" + File.separator ;
         if(Objects.equals(execMode,"target")){
-            logPath +=  ip + "-" + port + "-" + jsonObj.getString("nodeId") + ".json";
+            logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
         }else{
             logPath += "local-0.json";
         }

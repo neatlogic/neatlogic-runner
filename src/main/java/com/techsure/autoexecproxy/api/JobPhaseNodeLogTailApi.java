@@ -54,7 +54,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         if (Objects.equals(execMode, "target")) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
         } else {
-            logPath += "local-0.txt";
+            logPath += "local-0-0.txt";
         }
 
         return FileUtil.tailLog(logPath, logPos, direction);

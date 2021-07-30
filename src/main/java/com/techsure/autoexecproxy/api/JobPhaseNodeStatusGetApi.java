@@ -53,7 +53,7 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
         if(Objects.equals(execMode,"target")){
             logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
         }else{
-            logPath += "local-0.json";
+            logPath += "local-0-0.json";
         }
         return FileUtil.getReadFileContent(logPath);
     }

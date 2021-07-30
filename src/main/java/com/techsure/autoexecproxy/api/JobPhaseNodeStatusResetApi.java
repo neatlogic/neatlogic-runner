@@ -67,7 +67,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 if (Objects.equals(execMode, "target")) {
                     nodeStatusPath += host + "-" + port + "-" +node.getString("resourceId") + ".json";
                 } else {
-                    nodeStatusPath += "local-0.json";
+                    nodeStatusPath += "local-0-0.json";
                 }
                 FileUtil.deleteDirectoryOrFile(nodeStatusPath);
             });

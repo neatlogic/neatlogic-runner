@@ -51,7 +51,7 @@ public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentB
         if (Objects.equals(execMode, "target")) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
         } else {
-            logPath += "local-0.txt";
+            logPath += "local-0-0.txt";
         }
         InputStream in = FileUtil.getInputStream(logPath);
         if (in != null) {

@@ -40,6 +40,10 @@ public class ExecManager {
         if (commandVo.getNoFireNext() != null && commandVo.getNoFireNext()) {
             commandList.add("--nonextfire");
         }
+        if(commandVo.getPassThroughEnv() != null){
+            commandList.add("--passthroughenv");
+            commandList.add(commandVo.getPassThroughEnv().toString());
+        }
         commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
@@ -70,7 +74,12 @@ public class ExecManager {
     public static void pause(CommandVo commandVo) {
         commandVo.setAction(JobAction.PAUSE.getValue());
         //set command
-        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--pause"));
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--pause");
+        if(commandVo.getPassThroughEnv() != null){
+            commandList.add("--passthroughenv");
+            commandList.add(commandVo.getPassThroughEnv().toString());
+        }
+        commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }
@@ -78,7 +87,12 @@ public class ExecManager {
     public static void abort(CommandVo commandVo) {
         commandVo.setAction(JobAction.ABORT.getValue());
         //set command
-        commandVo.setCommandList(Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--abort"));
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--abort");
+        if(commandVo.getPassThroughEnv() != null){
+            commandList.add("--passthroughenv");
+            commandList.add(commandVo.getPassThroughEnv().toString());
+        }
+        commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);
     }

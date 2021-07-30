@@ -18,6 +18,7 @@ public class CommandVo {
     private Boolean isFirstFire;//执行判断是不是执行第一个phase
     private Boolean noFireNext;//执行判断是不是 执行完当前phase后 无需激活下一个phase
     private Integer exitValue;//执行结果
+    private JSONObject passThroughEnv;
 
     List<String> commandList;
     Boolean isCancel;
@@ -37,6 +38,7 @@ public class CommandVo {
         if (noFireNextTmp != null) {
             this.noFireNext = noFireNextTmp == 1;
         }
+        this.passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         this.config = jsonObj.toJSONString();
     }
 
@@ -110,5 +112,13 @@ public class CommandVo {
 
     public void setExitValue(Integer exitValue) {
         this.exitValue = exitValue;
+    }
+
+    public JSONObject getPassThroughEnv() {
+        return passThroughEnv;
+    }
+
+    public void setPassThroughEnv(JSONObject passThroughEnv) {
+        this.passThroughEnv = passThroughEnv;
     }
 }

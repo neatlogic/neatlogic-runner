@@ -31,7 +31,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "logPos", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),

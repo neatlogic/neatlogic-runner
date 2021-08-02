@@ -97,7 +97,7 @@ public class FileUtil {
                         if (info.startsWith("ERROR")) {
                             infoClass = "text-danger";
                         } else if (info.startsWith("WARN")) {
-                            infoClass = "text-warn";
+                            infoClass = "text-warning";
                         } else if (info.startsWith("FINEST")) {
                             infoClass = "text-success";
                         }

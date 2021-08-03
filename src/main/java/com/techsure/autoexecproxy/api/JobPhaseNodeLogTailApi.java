@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -51,7 +52,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
-        if (Objects.equals(execMode, "target")) {
+        if (Arrays.asList("target","runner_target").contains(execMode)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
         } else {
             logPath += "local-0-0.txt";

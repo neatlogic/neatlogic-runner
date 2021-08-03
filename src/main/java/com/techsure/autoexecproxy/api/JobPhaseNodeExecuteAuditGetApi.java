@@ -13,6 +13,7 @@ import com.techsure.autoexecproxy.util.FileUtil;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,7 +47,7 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
-        if(Objects.equals(execMode,"target")){
+        if (Arrays.asList("target","runner_target").contains(execMode)) {
             logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".hislog";
         }else{
             logPath += "local-0-0.hislog";

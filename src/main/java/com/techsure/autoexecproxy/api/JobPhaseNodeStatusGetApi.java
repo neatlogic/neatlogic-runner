@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -50,7 +51,7 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator+phase + File.separator ;
-        if(Objects.equals(execMode,"target")){
+        if (Arrays.asList("target","runner_target").contains(execMode)) {
             logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
         }else{
             logPath += "local-0-0.json";

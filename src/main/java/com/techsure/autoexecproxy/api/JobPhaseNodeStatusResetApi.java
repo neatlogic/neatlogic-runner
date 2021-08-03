@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Objects;
 
 
@@ -64,7 +65,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-                if (Objects.equals(execMode, "target")) {
+                if (Arrays.asList("target","runner_target").contains(execMode)) {
                     nodeStatusPath += host + "-" + port + "-" +node.getString("resourceId") + ".json";
                 } else {
                     nodeStatusPath += "local-0-0.json";

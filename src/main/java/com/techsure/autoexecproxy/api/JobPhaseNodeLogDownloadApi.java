@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Objects;
 
 @Component
@@ -48,7 +49,7 @@ public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentB
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
-        if (Objects.equals(execMode, "target")) {
+        if (Arrays.asList("target","runner_target").contains(execMode)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
         } else {
             logPath += "local-0-0.txt";

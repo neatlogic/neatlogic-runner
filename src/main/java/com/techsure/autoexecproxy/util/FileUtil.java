@@ -89,20 +89,22 @@ public class FileUtil {
                         && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
-                    String time = line.substring(0,8);
-                    String infoClass = StringUtils.EMPTY;
-                    String info = StringUtils.EMPTY;
-                    if(line.length() > 9) {
-                        info = line.substring(9);
-                        if (info.startsWith("ERROR")) {
-                            infoClass = "text-danger";
-                        } else if (info.startsWith("WARN")) {
-                            infoClass = "text-warning";
-                        } else if (info.startsWith("FINEST")) {
-                            infoClass = "text-success";
+                    if(StringUtils.isNotBlank(line) && line.length()>8) {
+                        String time = line.substring(0, 8);
+                        String infoClass = StringUtils.EMPTY;
+                        String info = StringUtils.EMPTY;
+                        if (line.length() > 9) {
+                            info = line.substring(9);
+                            if (info.startsWith("ERROR")) {
+                                infoClass = "text-danger";
+                            } else if (info.startsWith("WARN")) {
+                                infoClass = "text-warning";
+                            } else if (info.startsWith("FINEST")) {
+                                infoClass = "text-success";
+                            }
                         }
+                        content.append(String.format("<div><span class='text-tip'>%s</span> <span class='%s'>%s</span></div>", time, infoClass, info));
                     }
-                    content.append(String.format("<div><span class='text-tip'>%s</span> <span class='%s'>%s</span></div>",time,infoClass,info));
                 }
                 fileTailer.setLogPos(fis.getFilePointer());
                 fileTailer.setEndPos(fis.getFilePointer());

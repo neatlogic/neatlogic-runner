@@ -57,6 +57,15 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
                 if(fileVo.getIsDirectory() == 0) {
                     String sqlStatusContent = FileUtil.getReadFileContent(fileVo.getFilePath());
                     JSONObject sqlStatus = JSONObject.parseObject(sqlStatusContent);
+                    sqlStatus.put("sqlName",fileVo.getFileName());
+                    Long startTime = sqlStatus.getLong("startTime");
+                    if(startTime != null) {
+                        sqlStatus.put("startTime", startTime * 1000);
+                    }
+                    Long endTime = sqlStatus.getLong("endTime");
+                    if(endTime != null) {
+                        sqlStatus.put("endTime", endTime * 1000);
+                    }
                     resultArray.add(sqlStatus);
                 }
             }

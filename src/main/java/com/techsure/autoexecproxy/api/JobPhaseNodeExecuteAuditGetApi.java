@@ -47,7 +47,7 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
-        if (Arrays.asList("target","runner_target").contains(execMode)) {
+        if (Arrays.asList("target","runner_target","sqlfile").contains(execMode)) {
             logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".hislog";
         }else{
             logPath += "local-0-0.hislog";

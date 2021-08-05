@@ -10,6 +10,7 @@ import com.techsure.autoexecproxy.restful.annotation.Output;
 import com.techsure.autoexecproxy.restful.annotation.Param;
 import com.techsure.autoexecproxy.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecproxy.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.ServletOutputStream;
@@ -53,12 +54,14 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-        if (Arrays.asList("target", "runner_target").contains(execMode)) {
-            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
-        } else if (Objects.equals(execMode, "sqlfile")) {
+        if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".sql.txt";
         } else {
-            logPath += "local-0-0.json";
+            if (Arrays.asList("target", "runner_target", "sqlfile").contains(execMode)) {
+                logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
+            } else {
+                logPath += "local-0-0.json";
+            }
         }
         return FileUtil.getReadFileContent(logPath);
     }

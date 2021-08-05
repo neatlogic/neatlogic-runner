@@ -54,9 +54,11 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
         JSONArray resultArray = new JSONArray();
         if(CollectionUtils.isNotEmpty(fileVoList)){
             for(FileVo fileVo : fileVoList) {
-                String sqlStatusContent = FileUtil.getReadFileContent(fileVo.getFilePath());
-                JSONObject sqlStatus = JSONObject.parseObject(sqlStatusContent);
-                resultArray.add(sqlStatus);
+                if(fileVo.getIsDirectory() == 0) {
+                    String sqlStatusContent = FileUtil.getReadFileContent(fileVo.getFilePath());
+                    JSONObject sqlStatus = JSONObject.parseObject(sqlStatusContent);
+                    resultArray.add(sqlStatus);
+                }
             }
         }
         return resultArray;

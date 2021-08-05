@@ -195,7 +195,10 @@ public class FileUtil {
                 f.setFileName(readFile.getName());
                 f.setFilePath(readFile.getAbsolutePath());
                 f.setLastModified(TimeUtil.getTimeToDateString(file.lastModified(), TimeUtil.YYYY_MM_DD_HH_MM_SS));
-                f.setIsDirectory(1);
+                f.setIsDirectory(0);
+                if(readFile.isDirectory()) {
+                    f.setIsDirectory(1);
+                }
                 fileVoList.add(f);
             }
         } catch (Exception e) {

@@ -66,6 +66,6 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/job/phase/node/log/tail";
+        return "/job/phase/node/sql/list";
     }
 }

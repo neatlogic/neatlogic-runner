@@ -31,7 +31,8 @@ public class JobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业阶段", isRequired = true),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名", isRequired = true)
     })
     @Output({
     })
@@ -39,7 +40,8 @@ public class JobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String sqlName = jsonObj.getString("sqlName");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "file" + File.separator +sqlName;
+        String phase = jsonObj.getString("phase");
+        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "sqlfile" + File.separator + phase + File.separator + sqlName;
         return FileUtil.getReadFileContent(logPath);
     }
 

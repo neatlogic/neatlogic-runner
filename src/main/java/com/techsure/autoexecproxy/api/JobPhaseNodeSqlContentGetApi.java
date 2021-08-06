@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -41,7 +42,7 @@ public class JobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String sqlName = jsonObj.getString("sqlName");
         String phase = jsonObj.getString("phase");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "sqlfile" + File.separator + phase + File.separator + sqlName;
+        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "sqlfile" + File.separator + phase + File.separator + URLEncoder.encode(sqlName,"UTF-8");
         return FileUtil.getReadFileContent(logPath);
     }
 

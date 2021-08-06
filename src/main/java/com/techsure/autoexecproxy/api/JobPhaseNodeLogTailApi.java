@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -55,7 +56,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
-            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".sql.txt";
+            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + URLEncoder.encode(sqlName,"UTF-8") + ".txt";
         } else {
             if (Arrays.asList("target", "runner_target", "sqlfile").contains(execMode)) {
                 logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";

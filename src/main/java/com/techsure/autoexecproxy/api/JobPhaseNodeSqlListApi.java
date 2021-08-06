@@ -16,9 +16,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.util.Arrays;
+import java.net.URLDecoder;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author lvzk
@@ -49,21 +48,21 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-        logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") ;
+        logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId");
         List<FileVo> fileVoList = FileUtil.readFileList(logPath);
         JSONArray resultArray = new JSONArray();
-        if(CollectionUtils.isNotEmpty(fileVoList)){
-            for(FileVo fileVo : fileVoList) {
-                if(fileVo.getIsDirectory() == 0) {
+        if (CollectionUtils.isNotEmpty(fileVoList)) {
+            for (FileVo fileVo : fileVoList) {
+                if (fileVo.getIsDirectory() == 0) {
                     String sqlStatusContent = FileUtil.getReadFileContent(fileVo.getFilePath());
                     JSONObject sqlStatus = JSONObject.parseObject(sqlStatusContent);
-                    sqlStatus.put("sqlName",fileVo.getFileName().replaceAll(".txt",StringUtils.EMPTY));
+                    sqlStatus.put("sqlName", URLDecoder.decode(fileVo.getFileName().replaceAll(".txt", StringUtils.EMPTY), "UTF-8"));
                     Long startTime = sqlStatus.getLong("startTime");
-                    if(startTime != null) {
+                    if (startTime != null) {
                         sqlStatus.put("startTime", startTime * 1000);
                     }
                     Long endTime = sqlStatus.getLong("endTime");
-                    if(endTime != null) {
+                    if (endTime != null) {
                         sqlStatus.put("endTime", endTime * 1000);
                     }
                     resultArray.add(sqlStatus);

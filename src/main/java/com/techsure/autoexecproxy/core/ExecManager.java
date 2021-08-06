@@ -38,7 +38,7 @@ public class ExecManager {
             commandList.add("--firstfire");
         }
         if (commandVo.getNoFireNext() != null && commandVo.getNoFireNext()) {
-            commandList.add("--nonextfire");
+            commandList.add("--nofirenext");
         }
         if(commandVo.getPassThroughEnv() != null){
             commandList.add("--passthroughenv");

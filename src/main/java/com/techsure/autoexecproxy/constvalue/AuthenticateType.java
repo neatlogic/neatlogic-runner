@@ -10,7 +10,7 @@ package com.techsure.autoexecproxy.constvalue;
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  **/
 public enum AuthenticateType {
-    NOAUTH("", "无需认证"), BASIC("basic", "Basic认证"), BEARER("bearertoken", "Bearer Token");;
+    NOAUTH("", "无需认证"), BASIC("basic", "Basic认证"), BEARER("bearertoken", "Bearer Token"), TOKEN("token" ,"内部jwt token认证");;
     private final String type;
     private final String text;
 

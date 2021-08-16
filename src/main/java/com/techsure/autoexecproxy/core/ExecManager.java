@@ -1,22 +1,16 @@
 package com.techsure.autoexecproxy.core;
 
 import com.google.common.collect.Lists;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.UserContext;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.JobAction;
 import com.techsure.autoexecproxy.dto.CommandVo;
 import com.techsure.autoexecproxy.threadpool.CommonThreadPool;
 import com.techsure.autoexecproxy.util.FileUtil;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,7 +26,7 @@ public class ExecManager {
         String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(), filePath, "", "");
         //set command
-        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--paramsfile", filePath);
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--paramsfile", filePath);
         commandList = Lists.newArrayList(commandList);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
             commandList.add("--firstfire");
@@ -74,7 +68,7 @@ public class ExecManager {
     public static void pause(CommandVo commandVo) {
         commandVo.setAction(JobAction.PAUSE.getValue());
         //set command
-        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--pause");
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--pause");
         commandList = Lists.newArrayList(commandList);
         if(commandVo.getPassThroughEnv() != null){
             commandList.add("--passthroughenv");
@@ -88,7 +82,7 @@ public class ExecManager {
     public static void abort(CommandVo commandVo) {
         commandVo.setAction(JobAction.ABORT.getValue());
         //set command
-        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", commandVo.getExecUser(), "--abort");
+        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--abort");
         commandList = Lists.newArrayList(commandList);
         if(commandVo.getPassThroughEnv() != null){
             commandList.add("--passthroughenv");

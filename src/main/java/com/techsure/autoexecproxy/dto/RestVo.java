@@ -3,7 +3,11 @@ package com.techsure.autoexecproxy.dto;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
+import org.apache.commons.collections4.CollectionUtils;
+import org.yaml.snakeyaml.util.ArrayUtils;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +35,13 @@ public class RestVo {
         this.authType = authType;
         this.password = password;
         this.username = username;
+        this.payload = payload;
+        this.tenant = tenant;
+    }
+
+    public RestVo(String url, JSONObject payload, String authType,String tenant) {
+        this.url = url;
+        this.authType = authType;
         this.payload = payload;
         this.tenant = tenant;
     }
@@ -144,7 +155,7 @@ public class RestVo {
         if (AuthenticateType.BASIC.getValue().equals(this.authType)) {
             authObj.put("username", this.getUsername());
             authObj.put("password", this.getPassword());
-        } else if (AuthenticateType.BEARER.getValue().equals(this.authType)) {
+        } else if (Arrays.asList(AuthenticateType.BEARER.getValue(),AuthenticateType.TOKEN.getValue()).contains(this.authType)) {
             authObj.put("token", this.token);
         }
         return authObj;

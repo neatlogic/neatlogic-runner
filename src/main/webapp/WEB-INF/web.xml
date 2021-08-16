@@ -33,4 +33,17 @@
         <filter-name>CharacterEncodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>JsonWebTokenValidFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+            <param-name>targetFilterLifecycle</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>JsonWebTokenValidFilter</filter-name>
+        <url-pattern>/api/*</url-pattern>
+    </filter-mapping>
 </web-app>

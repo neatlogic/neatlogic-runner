@@ -22,6 +22,7 @@ public class Config {
     @NacosInjected
     private ConfigService configService;
     private static final String CONFIG_FILE = "config.properties";
+    public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
 
     public static final String RC4KEY = "codedriver.key.20200101";
 

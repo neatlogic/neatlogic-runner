@@ -71,18 +71,6 @@ public class ApiDispatcher {
             throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");
         }
 
-        /*认证，如果是查看帮助接口，则不需要认证*/
-        String uri = request.getRequestURI();
-        if (!(uri.contains("/api/help/") && !token.contains("/api/help/"))) {
-            IApiAuth apiAuth = ApiAuthFactory.getApiAuth(Config.AUTH_TYPE());
-            if (apiAuth != null) {
-                int result = apiAuth.auth(interfaceVo, paramObj, request);
-                if (result != 1) {
-                    throw new AuthenticateException(errorMap.get(result));
-                }
-            }
-        }
-
         //param补充 tenant 租户信息
         if(StringUtils.isNotBlank(request.getHeader("Tenant"))){
             paramObj.put("tenant",request.getHeader("Tenant"));

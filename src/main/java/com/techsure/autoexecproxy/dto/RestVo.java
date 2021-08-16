@@ -2,14 +2,13 @@ package com.techsure.autoexecproxy.dto;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.TenantContext;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.UserContext;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.yaml.snakeyaml.util.ArrayUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RestVo {
     private String id;
@@ -30,7 +29,7 @@ public class RestVo {
     private List<Object> paramList;
     private Map<String, Object> paramMap;
 
-    public RestVo(String url, JSONObject payload, String authType, String username, String password,String tenant) {
+    public RestVo(String url, JSONObject payload, String authType, String username, String password, String tenant) {
         this.url = url;
         this.authType = authType;
         this.password = password;
@@ -39,11 +38,12 @@ public class RestVo {
         this.tenant = tenant;
     }
 
-    public RestVo(String url, JSONObject payload, String authType,String tenant) {
+    public RestVo(String url, JSONObject payload, String authType, String tenant) {
         this.url = url;
         this.authType = authType;
         this.payload = payload;
         this.tenant = tenant;
+        this.token = UserContext.get().getToken();
     }
 
     public String getAuthType() {
@@ -155,7 +155,7 @@ public class RestVo {
         if (AuthenticateType.BASIC.getValue().equals(this.authType)) {
             authObj.put("username", this.getUsername());
             authObj.put("password", this.getPassword());
-        } else if (Arrays.asList(AuthenticateType.BEARER.getValue(),AuthenticateType.TOKEN.getValue()).contains(this.authType)) {
+        } else if (Objects.equals(AuthenticateType.BEARER.getValue(), this.authType)) {
             authObj.put("token", this.token);
         }
         return authObj;

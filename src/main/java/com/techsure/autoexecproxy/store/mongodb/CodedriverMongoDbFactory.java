@@ -43,7 +43,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
             String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
             String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
             try {
-                result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.TOKEN.getValue(), TenantContext.get().getTenantUuid()));
+                result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
                 MongoDbVo mongoDbVo = JSONObject.parseObject(result).toJavaObject(MongoDbVo.class);
                 MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase() + "?authSource=admin");
                 return client.getDatabase(mongoDbVo.getDatabase());

@@ -3,6 +3,7 @@ package com.techsure.autoexecproxy.filter.core;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.UserContext;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.dto.UserVo;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +79,7 @@ public class DefaultLoginAuthHandler extends LoginAuthHandlerBase {
                             userVo.setUuid(jwtBodyObj.getString("useruuid"));
                             userVo.setUserId(jwtBodyObj.getString("userid"));
                             userVo.setUserName(jwtBodyObj.getString("username"));
+                            userVo.setAuthorization(authorization);
                             return userVo;
                         }
                     } catch (NoSuchAlgorithmException | InvalidKeyException e) {
@@ -86,7 +88,7 @@ public class DefaultLoginAuthHandler extends LoginAuthHandlerBase {
 
                 }
             }
-
+            UserContext.init(userVo,"");
         }
         return userVo;
     }

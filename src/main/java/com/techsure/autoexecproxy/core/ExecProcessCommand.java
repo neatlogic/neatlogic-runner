@@ -43,6 +43,8 @@ public class ExecProcessCommand implements Runnable {
 
     @Override
     public void run() {
+        TenantContext.init(tenantContext);
+        UserContext.init(userContext);
         JSONObject payload = new JSONObject();
         String result = null;
         try {

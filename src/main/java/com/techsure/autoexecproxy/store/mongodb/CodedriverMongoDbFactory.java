@@ -40,12 +40,12 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
         //TODO 先判断缓存是否存在
         if (1 == 1) {
             String result = StringUtils.EMPTY;
-            String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
+            String CALLBACK_PROCESS_UPDATE_URL = "mongodb/datasource/get";
             String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
             try {
                 result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
-                MongoDbVo mongoDbVo = JSONObject.parseObject(result).toJavaObject(MongoDbVo.class);
-                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase() + "?authSource=admin");
+                MongoDbVo mongoDbVo = JSONObject.parseObject(result).getJSONObject("Return").toJavaObject(MongoDbVo.class);
+                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase() );
                 return client.getDatabase(mongoDbVo.getDatabase());
             } catch (Exception e) {
                 logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);

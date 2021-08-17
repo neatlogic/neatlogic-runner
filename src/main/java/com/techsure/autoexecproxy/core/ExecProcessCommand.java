@@ -67,7 +67,7 @@ public class ExecProcessCommand implements Runnable {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
                 String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
                 try {
-                    result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BASIC.getValue(), "techsure", "x15wDEzSbBL6tV1W", commandVo.getTenant()));
+                    result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BEARER.getValue(), commandVo.getTenant()));
                     JSONObject.parseObject(result);
                 } catch (Exception e) {
                     logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);

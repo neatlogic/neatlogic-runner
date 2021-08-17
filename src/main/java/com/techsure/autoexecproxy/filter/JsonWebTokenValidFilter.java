@@ -64,6 +64,7 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
                     UserContext.init(userVo, timezone, request, response);
                     TenantContext.init();
                     TenantContext.get().switchTenant(tenant);
+                    UserContext.get().setToken(userVo.getAuthorization());
                     //isUnExpired = userExpirationValid(); //没有校验用户登录有效性 可能存在漏洞
                     isUnExpired= true;
                     isAuth = true;

@@ -157,6 +157,7 @@ public class RestVo {
             authObj.put("password", this.getPassword());
         } else if (Objects.equals(AuthenticateType.BEARER.getValue(), this.authType)) {
             authObj.put("token", this.token);
+            authObj.put("Authorization", this.token);
         }
         return authObj;
     }

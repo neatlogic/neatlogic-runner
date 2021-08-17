@@ -1,6 +1,8 @@
 package com.techsure.autoexecproxy.core;
 
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.TenantContext;
+import com.techsure.autoexecproxy.asynchronization.threadlocal.UserContext;
 import com.techsure.autoexecproxy.common.config.Config;
 import com.techsure.autoexecproxy.constvalue.AuthenticateType;
 import com.techsure.autoexecproxy.constvalue.JobAction;
@@ -25,8 +27,12 @@ public class ExecProcessCommand implements Runnable {
     private final ProcessBuilder builder;
     private final CommandVo commandVo;
     private static final File NULL_FILE = new File("/dev/null");
+    protected UserContext userContext;
+    protected TenantContext tenantContext;
 
     public ExecProcessCommand(CommandVo commandVo) {
+        this.userContext = UserContext.get();
+        this.tenantContext = TenantContext.get();
         this.commandVo = commandVo;
         builder = new ProcessBuilder(commandVo.getCommandList());
         builder.redirectOutput(NULL_FILE);

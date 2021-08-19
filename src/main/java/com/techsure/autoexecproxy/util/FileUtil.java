@@ -23,7 +23,7 @@ public class FileUtil {
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     public static void saveFile(String content, String path) throws Exception {
-        InputStream inputStream = IOUtils.toInputStream(content, StandardCharsets.UTF_8.toString());
+        InputStream inputStream = IOUtils.toInputStream(content+System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
         File file = new File(path);
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {

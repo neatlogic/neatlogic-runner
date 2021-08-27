@@ -45,7 +45,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
             try {
                 result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
                 MongoDbVo mongoDbVo = JSONObject.parseObject(result).getJSONObject("Return").toJavaObject(MongoDbVo.class);
-                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase() );
+                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase()+"?authSource=admin");
                 return client.getDatabase(mongoDbVo.getDatabase());
             } catch (Exception e) {
                 logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);

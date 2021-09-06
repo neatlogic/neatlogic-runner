@@ -47,7 +47,7 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
             if (StringUtils.isNotBlank(tenant)) {
                 hasTenant = true;
                 //先按 default 认证，不存在才根据具体 AuthType 认证用户
-                loginAuth = LoginAuthFactory.getLoginAuth("default");
+                loginAuth = LoginAuthFactory.getLoginAuth("token");
                 userVo = loginAuth.auth(request, response);
                 if (userVo == null || StringUtils.isBlank(userVo.getUuid())) {
                     authType = request.getHeader("AuthType");

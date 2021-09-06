@@ -27,7 +27,7 @@ public class DefaultLoginAuthHandler extends LoginAuthHandlerBase {
 
     @Override
     public String getType() {
-        return "default";
+        return "token";
     }
 
     @Override

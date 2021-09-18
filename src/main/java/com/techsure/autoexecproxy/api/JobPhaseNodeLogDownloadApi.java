@@ -16,6 +16,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -35,7 +37,7 @@ public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentB
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id"),
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
@@ -45,7 +47,7 @@ public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentB
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String phase = jsonObj.getString("phase");
+        String phase = URLDecoder.decode(jsonObj.getString("phase"), StandardCharsets.UTF_8.name());
         String sqlName = jsonObj.getString("sqlName");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port");

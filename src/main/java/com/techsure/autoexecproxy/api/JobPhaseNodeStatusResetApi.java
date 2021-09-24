@@ -62,7 +62,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("jobId", jobId.toString());
                 document.put("phase", phase);
                 document.put("resourceId",node.getLong("resourceId"));
-                Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
+                Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Arrays.asList("target","runner_target").contains(execMode)) {
@@ -77,7 +77,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             Document document = new Document();
             document.put("jobId", jobId.toString());
             document.put("phase", phase);
-            Document result = mongoTemplate.getCollection("node_status").findOneAndDelete(document);
+            Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
             //删除对应status文件记录
             String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
             FileUtil.deleteDirectoryOrFile(nodeStatusPath);

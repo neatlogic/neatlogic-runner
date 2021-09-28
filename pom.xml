@@ -234,5 +234,11 @@
             <artifactId>mongo-java-driver</artifactId>
             <version>3.12.7</version>
         </dependency>
+        <dependency>
+            <groupId>com.techsure</groupId>
+            <artifactId>tagent</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
     </dependencies>
 </project>

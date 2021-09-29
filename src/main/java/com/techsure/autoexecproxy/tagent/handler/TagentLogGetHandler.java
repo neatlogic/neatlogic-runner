@@ -24,7 +24,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
-            String credential = RC4Util.decrypt(param.getString("credential"));
+            String credential = RC4Util.decrypt(param.getString("credential").substring(4));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.valueOf(param.getString("port")), credential, 3000, 30000);
 
             TagentResultHandler handler = new TagentResultHandler();

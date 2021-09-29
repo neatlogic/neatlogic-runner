@@ -23,8 +23,8 @@ public class TagentLogGetApi extends PrivateBinaryStreamApiComponentBase {
     }
 
     @Input({
-            @Param(name = "ip", type = ApiParamType.STRING, desc = "ip", isRequired = true),
-            @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口", isRequired = true),
+            @Param(name = "ip", type = ApiParamType.STRING, desc = "tagent ip", isRequired = true),
+            @Param(name = "port", type = ApiParamType.INTEGER, desc = "tagent 端口", isRequired = true),
             @Param(name = "credential", type = ApiParamType.STRING, desc = "tagent 密码", isRequired = true),
     })
     @Output({

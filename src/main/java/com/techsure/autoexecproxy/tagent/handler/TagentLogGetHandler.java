@@ -21,6 +21,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
     @Override
     public JSONObject execute(JSONObject param) {
         boolean status = true;
+        String data = "";
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
@@ -41,7 +42,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             }
             if (execStatus == 0) {
                 status = true;
-                result = JSONObject.parseObject(listHandler.getContent());
+                data = listHandler.getContent();
             } else {
                 status = false;
                 execInfo.append("get log list falied");
@@ -52,9 +53,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
         }
 
-        result.put("Status", status ? "OK" : "ERROR");
-        result.put("Data", result);
-        result.put("Message", execInfo.toString());
+        result.put("Data", data);
         return result;
     }
 }

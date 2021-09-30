@@ -13,36 +13,37 @@ import com.techsure.autoexecproxy.tagent.TagentHandlerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TagentLogGetApi extends PrivateApiComponentBase {
+public class TagentConfigSaveApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "tagent 获取日志";
+        return null;
     }
 
     @Input({
             @Param(name = "ip", type = ApiParamType.STRING, desc = "tagent ip", isRequired = true),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "tagent 端口", isRequired = true),
             @Param(name = "credential", type = ApiParamType.STRING, desc = "tagent 密码", isRequired = true),
+            @Param(name = "data", type = ApiParamType.JSONARRAY, desc = "tagent 配置", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "tagent 获取日志")
+    @Description(desc = "tagent 保存配置")
     @Override
-    public Object myDoService(JSONObject paramObj) throws Exception {
+    public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         try {
-            TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETLOGS.getValue());
-            result = tagentAction.execute(paramObj);
+            TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.SAVECONFIG.getValue());
+            result = tagentAction.execute(jsonObj);
         } catch (Exception e) {
             result.put("Status", "ERROR");
             result.put("Data", "");
-            result.put("Message", "exec tagent getlogs failed ， " + e.getMessage());
+            result.put("Message", "exec tagent saveConfig failed ， " + e.getMessage());
         }
         return result.getJSONObject("Data");
     }
 
     @Override
     public String getToken() {
-        return "/tagent/getlogs";
+        return "tagent/saveConfig";
     }
 }

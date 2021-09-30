@@ -66,7 +66,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 //删除对应status文件记录
                 String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Arrays.asList("target","runner_target").contains(execMode)) {
-                    nodeStatusPath += host + "-" + port + "-" +node.getString("resourceId") + ".json";
+                    nodeStatusPath += host + "-" + (port==null?StringUtils.EMPTY:port) + "-" +node.getString("resourceId") + ".json";
                 } else {
                     nodeStatusPath += "local-0-0.json";
                 }

@@ -44,6 +44,6 @@ public class TagentConfigGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "tagent/getConfig";
+        return "tagent/config/get";
     }
 }

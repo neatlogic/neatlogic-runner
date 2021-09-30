@@ -23,7 +23,7 @@ public class TagentConfigSaveApi extends PrivateApiComponentBase {
             @Param(name = "ip", type = ApiParamType.STRING, desc = "tagent ip", isRequired = true),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "tagent 端口", isRequired = true),
             @Param(name = "credential", type = ApiParamType.STRING, desc = "tagent 密码", isRequired = true),
-            @Param(name = "data", type = ApiParamType.JSONARRAY, desc = "tagent 配置", isRequired = true),
+            @Param(name = "data", type = ApiParamType.STRING, desc = "tagent 配置", isRequired = true),
     })
     @Output({
     })
@@ -44,6 +44,6 @@ public class TagentConfigSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "tagent/saveConfig";
+        return "tagent/config/save";
     }
 }

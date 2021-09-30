@@ -43,6 +43,6 @@ public class TagentLogGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/tagent/getlogs";
+        return "/tagent/log/get";
     }
 }

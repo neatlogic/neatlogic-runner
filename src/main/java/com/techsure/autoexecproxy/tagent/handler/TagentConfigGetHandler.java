@@ -5,17 +5,16 @@ import com.techsure.autoexecproxy.constvalue.TagentAction;
 import com.techsure.autoexecproxy.tagent.TagentHandlerBase;
 import com.techsure.autoexecproxy.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TagentLogGetHandler extends TagentHandlerBase {
+public class TagentConfigGetHandler extends TagentHandlerBase {
 
-    private Logger logger = LoggerFactory.getLogger(TagentLogGetHandler.class);
+    Logger logger = LoggerFactory.getLogger(TagentConfigGetHandler.class);
 
     @Override
     public String getName() {
-        return TagentAction.GETLOGS.getValue();
+        return TagentAction.GETCONFIG.getValue();
     }
 
     @Override
@@ -28,32 +27,32 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             String credential = RC4Util.decrypt(param.getString("credential").substring(4));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
 
-            TagentResultHandler handler = new TagentResultHandler();
             String osType = tagentClient.getAgentOsType();
-            tagentClient.execCmd("echo %TAGENT_HOME%", null, 10000, handler);
-            String path = JSONObject.parseObject(handler.getContent()).getJSONArray("std").getString(0).substring(0, 2);
-
-            TagentResultHandler listHandler = new TagentResultHandler();
-            int execStatus = 0;
+            TagentResultHandler pathHandler = new TagentResultHandler();
+            int execStatus = -1;
+            tagentClient.execCmd("echo %TAGENT_HOME% ", null, 10000, pathHandler);
+            String path = JSONObject.parseObject(pathHandler.getContent()).getJSONArray("std").getString(0).trim().replaceAll("\n", "").replaceAll("\\/", "\\\\");
+            TagentResultHandler handler = new TagentResultHandler();
             if ("windows".equals(osType)) {
-                execStatus = tagentClient.execCmd(path + "&& cd $TAGENT_HOME/logs && dir /B *.log*", null, 10000, listHandler);
+                execStatus = tagentClient.execCmd("type " + path + "/conf/tagent.conf".replaceAll("\\/", "\\\\"), null, 10000, handler);
             } else {
-                execStatus = tagentClient.execCmd("cd $TAGENT_HOME/logs/ && ls *.log*", null, 10000, listHandler);
+                execStatus = tagentClient.execCmd("cat $TAGENT_HOME/conf/tagent.conf", null, 10000, handler);
             }
             if (execStatus == 0) {
-                status = true;
-                data = listHandler.getContent();
+                data = handler.getContent();
             } else {
                 status = false;
-                execInfo.append("get log list falied");
+                execInfo.append("get tagent config failed");
             }
         } catch (Exception e) {
             status = false;
-            execInfo.append("exec getlogs cmd error ,exception :  " + e.getMessage());
-            logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            execInfo.append("执行getconfig命令失败");
+            logger.error("执行config命令失败，请求参数：" + param.toString(), e);
         }
 
+        result.put("Status", status ? "OK" : "ERROR");
         result.put("Data", data);
+        result.put("Message", execInfo.toString());
         return result;
     }
 }

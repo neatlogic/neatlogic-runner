@@ -21,7 +21,7 @@ import java.util.Properties;
 
 public class LocalConfig implements BeanFactoryPostProcessor, EnvironmentAware, PriorityOrdered {
     static Logger logger = LoggerFactory.getLogger(LocalConfig.class);
-    private static final String CONFIG_FILE = "config.properties";
+    private static final String CONFIG_FILE = "application.properties";
     private Properties properties;
     private ConfigurableEnvironment environment;
 

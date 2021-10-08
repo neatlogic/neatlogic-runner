@@ -40,7 +40,7 @@ public class TenantContext implements Serializable {
         return context;
     }
 
-    private TenantContext() {
+    public TenantContext() {
 
     }
 

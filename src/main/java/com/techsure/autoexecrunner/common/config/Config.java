@@ -8,6 +8,7 @@ import com.techsure.autoexecrunner.common.RootConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -21,7 +22,7 @@ public class Config {
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     @NacosInjected
     private ConfigService configService;
-    private static final String CONFIG_FILE = "config.properties";
+    private static final String CONFIG_FILE = "application.properties";
     public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
 
     public static final String RC4KEY = "codedriver.key.20200101";
@@ -37,6 +38,10 @@ public class Config {
     private static String LOG_PATH;//执行日志路径
     private static Long LOGTAIL_BUFLEN;//日志tail buff长度
     private static String WARN_PATTERN;//告警提示关键字
+    //mongodb
+    private static String MONGODB_HOST;
+    private static Integer MONGODB_PORT;
+    private static String MONGODB_DEFAULT_DATABASE;
 
 
     public static String CALLBACK_URL() {
@@ -81,7 +86,15 @@ public class Config {
         }
         return DATA_HOME;
     }
-
+    public static String MONGODB_HOST() {
+        return MONGODB_HOST;
+    }
+    public static Integer MONGODB_PORT() {
+        return MONGODB_PORT;
+    }
+    public static String MONGODB_DEFAULT_DATABASE() {
+        return MONGODB_DEFAULT_DATABASE;
+    }
 
     @PostConstruct
     public void init() {
@@ -127,6 +140,9 @@ public class Config {
             LOG_PATH = prop.getProperty("log.path", "/data/job");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(32 * 1024)));
+            MONGODB_HOST = prop.getProperty("spring.data.mongodb.host", "localhost");
+            MONGODB_PORT = Integer.valueOf(prop.getProperty("spring.data.mongodb.port", "8080"));
+            MONGODB_DEFAULT_DATABASE = prop.getProperty("spring.data.mongodb.database", "autoexec");
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

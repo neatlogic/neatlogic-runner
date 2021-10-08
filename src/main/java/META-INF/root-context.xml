@@ -19,9 +19,9 @@
 
 
     <!-- 本地配置加载器,nacos不可用时加载配置数据 -->
-    <bean class="com.techsure.autoexecproxy.common.config.LocalConfig"/>
+    <bean class="com.techsure.autoexecrunner.common.config.LocalConfig"/>
 
-    <bean class="com.techsure.autoexecproxy.common.config.Config"/>
+    <bean class="com.techsure.autoexecrunner.common.config.Config"/>
 
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/views/"/>
@@ -66,21 +66,21 @@
 
     <!-- 配置需要在rootComponent前加载 -->
     <context:component-scan base-package="com" use-default-filters="false">
-        <context:include-filter type="annotation" expression="com.techsure.autoexecproxy.common.RootConfiguration"/>
+        <context:include-filter type="annotation" expression="com.techsure.autoexecrunner.common.RootConfiguration"/>
     </context:component-scan>
 
     <context:component-scan base-package="com" use-default-filters="false">
-        <context:include-filter type="annotation" expression="com.techsure.autoexecproxy.common.RootComponent"/>
+        <context:include-filter type="annotation" expression="com.techsure.autoexecrunner.common.RootComponent"/>
     </context:component-scan>
 
-    <bean id="JsonWebTokenValidFilter" class="com.techsure.autoexecproxy.filter.JsonWebTokenValidFilter"/>
+    <bean id="JsonWebTokenValidFilter" class="com.techsure.autoexecrunner.filter.JsonWebTokenValidFilter"/>
     <mongo:mongo-client id="mongoClient" host="${mongo.host}" port="${mongo.port}" credential="${mongo.userName}:${mongo.password}@${mongo.dbname}">
 
     </mongo:mongo-client>
 
    <!-- <mongo:db-factory id="mongoDbFactory" dbname="autoexec" mongo-client-ref="mongoClient" />-->
 
-    <bean id="mongoDbFactory" class="com.techsure.autoexecproxy.store.mongodb.CodedriverMongoDbFactory">
+    <bean id="mongoDbFactory" class="com.techsure.autoexecrunner.store.mongodb.CodedriverMongoDbFactory">
         <constructor-arg name="mongoClient" ref="mongoClient"/>
         <constructor-arg name="databaseName" value="codedriver"/>
     </bean>

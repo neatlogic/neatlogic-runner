@@ -14,6 +14,7 @@ import com.techsure.autoexecrunner.restful.core.IApiComponent;
 import com.techsure.autoexecrunner.restful.core.IBinaryStreamApiComponent;
 import com.techsure.autoexecrunner.restful.core.IJsonStreamApiComponent;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentFactory;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -197,18 +198,14 @@ public class ApiDispatcher {
     }
 
     @RequestMapping(value = "/rest/**", method = RequestMethod.POST)
-    public void dispatcherForPost(@RequestBody String jsonStr, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void dispatcherForPost(@RequestBody JSONObject json, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
         JSON returnObj;
         try {
             JSONObject paramObj;
-            if (StringUtils.isNotBlank(jsonStr)) {
-                try {
-                    paramObj = JSONObject.parseObject(jsonStr);
-                } catch (Exception e) {
-                    throw new ApiRuntimeException("请求参数需要符合JSON格式");
-                }
+            if (MapUtils.isNotEmpty(json)) {
+                paramObj = json;
             } else {
                 paramObj = new JSONObject();
             }
@@ -224,7 +221,7 @@ public class ApiDispatcher {
                 }
             }
 
-            returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, "doservice");
+            returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, json, "doservice");
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();

@@ -22,10 +22,10 @@ public abstract class LoginAuthHandlerBase implements ILoginAuthHandler {
         String type = this.getType();
         String tenant = request.getHeader("tenant");
         UserVo userVo = myAuth(request);
-        logger.info("loginAuth type: " + type);
+        //logger.info("loginAuth type: " + type);
         if (userVo != null) {
-            logger.info("get userUuId: " + userVo.getUuid());
-            logger.info("get userId: " + userVo.getUserId());
+            //logger.info("get userUuId: " + userVo.getUuid());
+            //logger.info("get userId: " + userVo.getUserId());
         }
         return userVo;
     }

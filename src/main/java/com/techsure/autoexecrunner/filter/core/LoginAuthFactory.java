@@ -7,14 +7,14 @@ package com.techsure.autoexecrunner.filter.core;
 
 
 import com.techsure.autoexecrunner.applicationlistener.ApplicationListenerBase;
-import com.techsure.autoexecrunner.common.RootComponent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@RootComponent
+@Component
 public class LoginAuthFactory extends ApplicationListenerBase {
     private static final Map<String, ILoginAuthHandler> loginAuthMap = new HashMap<>();
 
@@ -39,5 +39,4 @@ public class LoginAuthFactory extends ApplicationListenerBase {
         // TODO Auto-generated method stub
 
     }
-
 }

@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
         if (Arrays.asList("target","runner_target","sqlfile").contains(execMode)) {

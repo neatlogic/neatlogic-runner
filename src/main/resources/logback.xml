@@ -135,7 +135,7 @@
     -->
 
 	<!--FOR DEV-->
-	<root level="${log4j.priority}">
+	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
 
@@ -147,7 +147,7 @@
 	<logger name="jdbc.connection" level="INFO" additivity="false" />
 	<logger name="com.techsure" level="INFO" additivity="false" /> -->
 
-	<logger name="com.techsure.balantflow">
+	<logger name="com.techsure.autoexecrunner">
 		<level value="${log4j.priority}" />
 		<appender-ref ref="STDOUT" />
 	</logger>

@@ -53,7 +53,11 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
         }
 
-        result.put("Data", data);
+        if (status) {
+            result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
+        } else {
+            result.put("Data", execInfo);
+        }
         return result;
     }
 }

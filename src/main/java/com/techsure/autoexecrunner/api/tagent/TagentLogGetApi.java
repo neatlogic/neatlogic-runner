@@ -1,5 +1,6 @@
 package com.techsure.autoexecrunner.api.tagent;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
@@ -32,13 +33,14 @@ public class TagentLogGetApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         try {
             TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETLOGS.getValue());
-            result = tagentAction.execute(paramObj);
+            JSONArray data = tagentAction.execute(paramObj).getJSONArray("Data");
+            result.put("Data", data);
         } catch (Exception e) {
             result.put("Status", "ERROR");
             result.put("Data", "");
             result.put("Message", "exec tagent getlogs failed ， " + e.getMessage());
         }
-        return result.getJSONObject("Data");
+        return result;
     }
 
     @Override

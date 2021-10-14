@@ -8,55 +8,59 @@ import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.techsure.autoexecrunner.util.FileUtil;
+import com.techsure.autoexecrunner.util.TimeUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.Date;
 
 @Component
-public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentBase {
+public class JobPhaseNodeExecuteAuditDownloadApi extends PrivateBinaryStreamApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/job/phase/node/log/download";
+        return "/job/phase/node/execute/audit/download";
     }
 
     @Override
     public String getName() {
-        return "下载剧本节点执行日志";
+        return "下载作业节点执行记录";
     }
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId"),
+            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
+            @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "执行状态", isRequired = true),
+            @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
     })
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String phase = URLDecoder.decode(jsonObj.getString("phase"), StandardCharsets.UTF_8.name());
-        String sqlName = jsonObj.getString("sqlName");
+        String startTime = jsonObj.getString("startTime");
+        String endTime = jsonObj.getString("endTime");
+        String execUser = jsonObj.getString("execUser");
+        String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
+        String status = jsonObj.getString("status");
         String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
-        if (Arrays.asList("target", "runner_target").contains(execMode)) {
-            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
-        } else if (Objects.equals(execMode, "sqlfile")) {
-            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".sql.txt";
+        if (Arrays.asList("target", "runner_target", "sqlfile").contains(execMode)) {
+            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".hislog" + File.separator;
         } else {
-            logPath += "local-0-0.txt";
+            logPath += "local-0-0.hislog" + File.separator;
         }
+        logPath += TimeUtil.convertDateToString(TimeUtil.convertStringToDate(startTime, TimeUtil.YYYY_MM_DD_HH_MM_SS), TimeUtil.YYYYMMDD_HHMMSS) + "." + status + "." + execUser + ".txt";
         FileUtil.downloadFileByPath(logPath, response);
         return null;
     }

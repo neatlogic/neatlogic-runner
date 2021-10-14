@@ -4,11 +4,13 @@ import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.dto.FileTailerVo;
 import com.techsure.autoexecrunner.dto.FileVo;
 import com.techsure.autoexecrunner.exception.MkdirPermissionDeniedException;
+import com.techsure.autoexecrunner.exception.job.ExecuteJobFileNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -210,16 +212,25 @@ public class FileUtil {
     /**
      * 根据文件路径获取输入流
      * @param path 文件路径
-     * @return 输入流
-     * @throws Exception
+     * @throws Exception 异常
      */
-    public static InputStream getInputStream(String path) throws Exception {
+    public static void downloadFileByPath(String path, HttpServletResponse response) throws Exception {
         InputStream in = null;
         File file = new File(path);
         if (file.exists() && file.isFile()) {
             in = new FileInputStream(file);
         }
-        return in;
+        if (in != null) {
+            OutputStream os = response.getOutputStream();
+            IOUtils.copyLarge(in, os);
+            if (os != null) {
+                os.flush();
+                os.close();
+            }
+            in.close();
+        }else{
+            throw new ExecuteJobFileNotFoundException(path);
+        }
     }
 
     /**

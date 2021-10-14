@@ -322,14 +322,14 @@ public class ApiDispatcher {
     }
 
     @RequestMapping(value = "/binary/**", method = RequestMethod.POST, consumes = "application/json")
-    public void dispatcherForPostBinaryJson(@RequestBody String jsonStr, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void dispatcherForPostBinaryJson(@RequestBody JSONObject json, HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 
         JSONObject paramObj;
-        if (StringUtils.isNotBlank(jsonStr)) {
+        if (MapUtils.isNotEmpty(json)) {
             try {
-                paramObj = JSONObject.parseObject(jsonStr);
+                paramObj = json;
             } catch (Exception e) {
                 throw new ApiRuntimeException("请求参数需要符合JSON格式");
             }

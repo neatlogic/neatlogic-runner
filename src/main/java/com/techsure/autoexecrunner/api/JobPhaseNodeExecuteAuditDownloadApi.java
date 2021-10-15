@@ -39,15 +39,14 @@ public class JobPhaseNodeExecuteAuditDownloadApi extends PrivateBinaryStreamApiC
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
-            @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
+            @Param(name = "startTime", type = ApiParamType.LONG, desc = "执行开始时间", isRequired = true),
             @Param(name = "status", type = ApiParamType.STRING, desc = "执行状态", isRequired = true),
             @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
     })
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String startTime = jsonObj.getString("startTime");
-        String endTime = jsonObj.getString("endTime");
+        Long startTime = jsonObj.getLong("startTime");
         String execUser = jsonObj.getString("execUser");
         String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
@@ -60,7 +59,7 @@ public class JobPhaseNodeExecuteAuditDownloadApi extends PrivateBinaryStreamApiC
         } else {
             logPath += "local-0-0.hislog" + File.separator;
         }
-        logPath += TimeUtil.convertDateToString(TimeUtil.convertStringToDate(startTime, TimeUtil.YYYY_MM_DD_HH_MM_SS), TimeUtil.YYYYMMDD_HHMMSS) + "." + status + "." + execUser + ".txt";
+        logPath += TimeUtil.convertDateToString(new Date(startTime), TimeUtil.YYYYMMDD_HHMMSS) + "." + status + "." + execUser + ".txt";
         FileUtil.downloadFileByPath(logPath, response);
         return null;
     }

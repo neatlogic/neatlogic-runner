@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
+import com.techsure.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.techsure.autoexecrunner.constvalue.SystemUser;
 import com.techsure.autoexecrunner.dto.ApiHandlerVo;
@@ -168,6 +169,8 @@ public class PublicApiDispatcher {
                 throw new ComponentNotFoundException("接口组件:" + interfaceVo.getHandler() + "不存在");
             }
         }
+        UserContext.get().release();
+        TenantContext.get().release();
         return new JSONObject();
     }
 

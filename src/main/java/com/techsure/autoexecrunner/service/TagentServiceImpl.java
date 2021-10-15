@@ -31,18 +31,14 @@ public class TagentServiceImpl implements TagentService{
         restVo.setUsername(TagentConfig.ACCESS_KEY);
         restVo.setPassword(TagentConfig.ACCESS_SECRET);
         String httpResult = RestUtil.sendRequest(restVo);
-        JSONObject resultJson = JSONObject.parseObject(httpResult);
         if (StringUtils.isNotBlank(httpResult)) {
-            if ("OK".equals(resultJson.getString("Status"))) {
-                String httpStatus = resultJson.getJSONObject("Return").getString("Status");
-                if ("OK".equals(httpStatus)) {
-                    status = true;
-                    jsonObj.put("data",resultJson.getJSONObject("Return").getJSONObject("Data"));
-                } else {
-                    execInfo.append("Server Error,").append(resultJson.toString());
-                }
+            JSONObject resultJson = JSONObject.parseObject(httpResult);
+            String httpStatus = resultJson.getString("Status");
+            if ("OK".equals(httpStatus)) {
+                status = true;
+                jsonObj.put("data",resultJson);
             } else {
-                execInfo.append("call codedriver failed,http return error,").append(resultJson.toString());
+                execInfo.append("Server Error,").append(httpResult);
             }
         } else {
             execInfo.append("codedriver return message is blank");

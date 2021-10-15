@@ -131,7 +131,8 @@ public class Config {
             }
 
             JWT_SECRET = prop.getProperty("jwt.secret", "techsure#codedriver$secret");
-            CODEDRIVER_ROOT = prop.getProperty("codedriver.root", "http://localhost:8080/codedriver");
+            CODEDRIVER_ROOT = prop.getProperty("codedriver.root", "http://localhost:8083/codedriver");
+            logger.error("---------------------------------- "+CODEDRIVER_ROOT);
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");

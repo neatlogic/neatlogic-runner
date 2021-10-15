@@ -52,7 +52,7 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
                 process = builder.start();
-                if(Objects.equals(commandVo.getAction(), "abort")||Objects.equals(commandVo.getAction(), "pause")) {
+                if (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause")) {
                     process.waitFor();
                 }
                 int exitStatus = process.exitValue();
@@ -70,7 +70,7 @@ public class ExecProcessCommand implements Runnable {
         } finally {
             if (commandVo.getExitValue() == 143 || commandVo.getExitValue() == 0 && (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause"))) {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
-                String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
+                String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
                 try {
                     result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BEARER.getValue(), commandVo.getTenant()));
                     JSONObject.parseObject(result);

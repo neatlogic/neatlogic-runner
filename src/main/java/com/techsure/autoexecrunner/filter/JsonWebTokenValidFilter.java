@@ -19,8 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
-@WebFilter(filterName = "JsonWebTokenValidFilter",urlPatterns = {"/api/*"})
+@WebFilter(filterName = "jsonWebTokenValidFilter",urlPatterns = {"/api/*"})
 public class JsonWebTokenValidFilter extends OncePerRequestFilter {
 
     /**

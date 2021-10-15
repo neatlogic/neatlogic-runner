@@ -12,6 +12,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.techsure.autoexecrunner.common.config.Config;
+import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.MongoDbVo;
 import com.techsure.autoexecrunner.dto.RestVo;
@@ -41,7 +42,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
         if (1 == 1) {
             String result = StringUtils.EMPTY;
             String CALLBACK_PROCESS_UPDATE_URL = "mongodb/datasource/get";
-            String url = Config.CALLBACK_URL() + CALLBACK_PROCESS_UPDATE_URL;
+            String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
             try {
                 result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
                 MongoDbVo mongoDbVo = JSONObject.parseObject(result).getJSONObject("Return").toJavaObject(MongoDbVo.class);

@@ -4,6 +4,7 @@ package com.techsure.autoexecrunner.tagent.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.common.config.TagentConfig;
 import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.common.tagent.NettyUtil;
@@ -81,7 +82,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             Constant.tagentMap.remove(agentIp + ":" + listenPort);
 
             String runnerIp = NettyUtil.getConnectInfo(ctx, "local")[0]; //local ? 本地
-            String root = TagentConfig.AUTOEXEC_CODEDRIVER_ROOT;
             Map<String, String> params = new HashMap<>();
             params.put("ip", agentIp);
             params.put("port", listenPort.toString());
@@ -96,12 +96,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     header.put("x-access-date", Long.toString(System.currentTimeMillis()));
                 }
             }
-//            HttpUtil.post(root + "/" + Constant.ACTION_UPDATE_TAGENT, params, header, true);
             String result = StringUtils.EMPTY;
             JSONObject resultJson = new JSONObject();
             RestVo restVo = null;
             try {
-                restVo = new RestVo(root + "/" + Constant.ACTION_UPDATE_TAGENT, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
+                restVo = new RestVo(String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
@@ -144,52 +143,46 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     Constant.tagentMap.put(agentKey, ctx);
                     log.info("received heartbeat from " + agentKey);
                     if (agentData.getString("type").equals("monitor")) {  //monitor ? 监控
-                        String root = TagentConfig.AUTOEXEC_CODEDRIVER_ROOT;
-                        if (StringUtils.isNotBlank(root)) {
-                            agentData.put("ip", agentIp);
-                            Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
-                            });//jsonObject转为map
-                            params.put("status", "connected");
-                            //String groupId = agentData.getString("runnerGroupId");
-                            //String groupInfo = agentData.getString("runnerGroup");
-                            String tagentId = agentData.getString("agentId");
-                            String ipString = agentData.getString("ipString");
-                            /*
-                             * if (!Constant.runnerGroupMap.containsKey(groupId) ||
-                             * StringUtils.isBlank(Constant.runnerGroupMap.get(groupId)) ||
-                             * !StringUtils.equals(groupInfo, Constant.runnerGroupMap.get(groupId))) {
-                             * params.put("needUpdateGroup", "1"); }
-                             */
+                        agentData.put("ip", agentIp);
+                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
+                        });//jsonObject转为map
+                        params.put("status", "connected");
+                        //String groupId = agentData.getString("runnerGroupId");
+                        //String groupInfo = agentData.getString("runnerGroup");
+                        String tagentId = agentData.getString("agentId");
+                        String ipString = agentData.getString("ipString");
+                        /*
+                         * if (!Constant.runnerGroupMap.containsKey(groupId) ||
+                         * StringUtils.isBlank(Constant.runnerGroupMap.get(groupId)) ||
+                         * !StringUtils.equals(groupInfo, Constant.runnerGroupMap.get(groupId))) {
+                         * params.put("needUpdateGroup", "1"); }
+                         */
 
-                            if (!Constant.tagentIpMap.containsKey(tagentId) || StringUtils.isBlank(Constant.tagentIpMap.get(tagentId)) || !StringUtils.equals(ipString, Constant.tagentIpMap.get(tagentId))) {
-                                params.put("needUpdateTagentIp", "1"); //没懂为什么是1
-                            }
-
-//                            String agentActionExecRes = HttpUtil.post(root + "/" + Constant.ACTION_UPDATE_TAGENT_INFO, params, null, true);
-                            String agentActionExecRes = StringUtils.EMPTY;
-                            JSONObject resultJson = new JSONObject();
-                            RestVo restVo = null;
-                            restVo = new RestVo(root + "/" + Constant.ACTION_UPDATE_TAGENT_INFO, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent信息更新接口
-                            agentActionExecRes = RestUtil.sendRequest(restVo);
-                            resultJson = JSONObject.parseObject(agentActionExecRes);
-                            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                                throw new TagentActionFailedEcexption(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                            }
-                            if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {//判断是否为json数据
-                                JSONObject resObj = JSONObject.parseObject(agentActionExecRes);
-                                JSONObject groupData = resObj.getJSONObject("Return").getJSONObject("Data");
-                                if (groupData != null) {
-                                    // Constant.runnerGroupMap.put(groupId, groupData.optString("groupInfo"));
-                                    result = groupData;
-                                }
-                            } else {
-                                log.error(root + "/" + Constant.ACTION_UPDATE_TAGENT_INFO + "返回的数据不是json格式，参数：" + agentData + "，返回值：" + agentActionExecRes);
-                            }
-
-                            Constant.tagentIpMap.put(tagentId, agentData.getString("ipString"));
-                        } else {
-                            throw new RuntimeException("在配置文件中没有定义 codedriver 访问地址");
+                        if (!Constant.tagentIpMap.containsKey(tagentId) || StringUtils.isBlank(Constant.tagentIpMap.get(tagentId)) || !StringUtils.equals(ipString, Constant.tagentIpMap.get(tagentId))) {
+                            params.put("needUpdateTagentIp", "1"); //没懂为什么是1
                         }
+
+                        String agentActionExecRes = StringUtils.EMPTY;
+                        JSONObject resultJson = new JSONObject();
+                        RestVo restVo = null;
+                        restVo = new RestVo(String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent信息更新接口
+                        agentActionExecRes = RestUtil.sendRequest(restVo);
+                        resultJson = JSONObject.parseObject(agentActionExecRes);
+                        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                            throw new TagentActionFailedEcexption(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                        }
+                        if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {//判断是否为json数据
+                            JSONObject resObj = JSONObject.parseObject(agentActionExecRes);
+                            JSONObject groupData = resObj.getJSONObject("Return").getJSONObject("Data");
+                            if (groupData != null) {
+                                // Constant.runnerGroupMap.put(groupId, groupData.optString("groupInfo"));
+                                result = groupData;
+                            }
+                        } else {
+                            log.error(String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO) + "返回的数据不是json格式，参数：" + agentData + "，返回值：" + agentActionExecRes);
+                        }
+
+                        Constant.tagentIpMap.put(tagentId, agentData.getString("ipString"));
                     }
                 } else {
                     log.error(agentIp + "返回的数据不是json格式");

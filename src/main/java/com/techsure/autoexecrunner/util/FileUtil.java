@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -196,7 +197,7 @@ public class FileUtil {
                 FileVo f = new FileVo();
                 f.setFileName(readFile.getName());
                 f.setFilePath(readFile.getAbsolutePath());
-                f.setLastModified(TimeUtil.getTimeToDateString(file.lastModified(), TimeUtil.YYYY_MM_DD_HH_MM_SS));
+                f.setLastModified(TimeUtil.getTimeToDateString(readFile.lastModified(), TimeUtil.YYYY_MM_DD_HH_MM_SS));
                 f.setIsDirectory(0);
                 if(readFile.isDirectory()) {
                     f.setIsDirectory(1);

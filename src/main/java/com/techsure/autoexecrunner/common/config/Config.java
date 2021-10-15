@@ -24,13 +24,10 @@ public class Config {
     private ConfigService configService;
     private static final String CONFIG_FILE = "application.properties";
     public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
-
     public static final String RC4KEY = "codedriver.key.20200101";
-
     private static String JWT_SECRET = "techsure#codedriver$secret";
     private static String AUTOEXEC_HOME;//脚本目录
     private static String DATA_HOME;// 存储文件路径
-    private static String CALLBACK_URL;//octopus的链接地址，callback时需要使用
     private static String AUTH_TYPE;//autoexecrunner的认证方式
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
@@ -42,11 +39,8 @@ public class Config {
     private static String MONGODB_HOST;
     private static Integer MONGODB_PORT;
     private static String MONGODB_DEFAULT_DATABASE;
-
-
-    public static String CALLBACK_URL() {
-        return CALLBACK_URL;
-    }
+    //codedriver
+    private static String CODEDRIVER_ROOT;
 
     public static String JWT_SECRET() {
         return JWT_SECRET;
@@ -58,6 +52,10 @@ public class Config {
 
     public static String AUTH_TYPE() {
         return AUTH_TYPE;
+    }
+
+    public static String CODEDRIVER_ROOT() {
+        return CODEDRIVER_ROOT;
     }
 
     public static String ACCESS_KEY() {
@@ -131,8 +129,9 @@ public class Config {
             if (StringUtils.isBlank(AUTOEXEC_HOME)) {
                 logger.error("请在配置文件中定义autoexec.home参数");
             }
-            CALLBACK_URL = prop.getProperty("callback.url");
+
             JWT_SECRET = prop.getProperty("jwt.secret", "techsure#codedriver$secret");
+            CODEDRIVER_ROOT = prop.getProperty("codedriver.root", "http://localhost:8080/codedriver");
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");

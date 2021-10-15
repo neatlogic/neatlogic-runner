@@ -3,6 +3,7 @@ package com.techsure.autoexecrunner.api.tagent;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.UserContext;
+import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.common.config.TagentConfig;
 import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.common.tagent.IpUtil;
@@ -39,7 +40,7 @@ public class TagentRegisterApi extends PublicApiComponentBase {
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
-            String url = TagentConfig.AUTOEXEC_CODEDRIVER_ROOT + "/" + Constant.ACTION_REGISTER_TAGENT;
+            String url = String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_REGISTER_TAGENT);
             status = tagentService.forwardCodedriverWeb(jsonObj,url,execInfo);
         } catch (Exception ex) {
             execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));

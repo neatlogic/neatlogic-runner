@@ -8,11 +8,10 @@ import com.alibaba.fastjson.JSONObject;
  **/
 public interface TagentService {
     /**
-     *
-     * @param jsonObj 参数
-     * @param url 请求转发url
+     * @param jsonObj  参数
+     * @param url      请求转发url
      * @param execInfo 执行信息
      * @return 执行转发结果
      */
-    boolean forwardCodedriverWeb(JSONObject jsonObj, String url, StringBuilder execInfo);
+    boolean forwardCodedriverWeb(JSONObject jsonObj, String url, StringBuilder execInfo, boolean isFromTagent);
 }

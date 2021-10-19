@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.util.Objects;
-
 /**
  * @author lvzk
  * @since 2021/10/8 18:10
@@ -23,9 +21,18 @@ public class MongoDbConfig {
     private String port;
     @Value("${spring.data.mongodb.database}")
     private String database;
+    @Value("${spring.data.mongodb.username}")
+    private String username;
+    @Value("${spring.data.mongodb.password}")
+    private String password;
     @Bean
     public MongoClient mongoClient() {
-        return MongoClients.create("mongodb://"+ host +":"+port);
+        String uri = "mongodb://" + username + ":" +
+                password + "@" +
+                host + ":" +
+                port + "/" +
+                database;
+        return MongoClients.create(uri);
     }
     @Bean
     public MongoTemplate mongoTemplate() {

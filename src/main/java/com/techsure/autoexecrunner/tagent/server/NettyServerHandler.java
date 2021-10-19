@@ -81,11 +81,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         if (StringUtils.isNotBlank(agentIp) && listenPort != null) {
             Constant.tagentMap.remove(agentIp + ":" + listenPort);
 
-            String runnerIp = NettyUtil.getConnectInfo(ctx, "local")[0]; //local ? 本地
+            //String runnerIp = NettyUtil.getConnectInfo(ctx, "local")[0];
             Map<String, String> params = new HashMap<>();
             params.put("ip", agentIp);
             params.put("port", listenPort.toString());
-            params.put("runnerIp", runnerIp);
+            //params.put("runnerIp", runnerIp);
             params.put("status", "disconnected");
 
             Map<String, String> header = new HashMap<>();

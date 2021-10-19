@@ -8,10 +8,12 @@ import com.techsure.autoexecrunner.common.RootConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Properties;
@@ -132,7 +134,6 @@ public class Config {
 
             JWT_SECRET = prop.getProperty("jwt.secret", "techsure#codedriver$secret");
             CODEDRIVER_ROOT = prop.getProperty("codedriver.root", "http://localhost:8083/codedriver");
-            logger.error("---------------------------------- "+CODEDRIVER_ROOT);
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");

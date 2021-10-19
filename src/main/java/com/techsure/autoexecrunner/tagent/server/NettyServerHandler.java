@@ -100,7 +100,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             JSONObject resultJson = new JSONObject();
             RestVo restVo = null;
             try {
-                restVo = new RestVo(String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
+                restVo = new RestVo(String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
@@ -165,7 +165,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         String agentActionExecRes = StringUtils.EMPTY;
                         JSONObject resultJson = new JSONObject();
                         RestVo restVo = null;
-                        restVo = new RestVo(String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent信息更新接口
+                        restVo = new RestVo(String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent信息更新接口
                         agentActionExecRes = RestUtil.sendRequest(restVo);
                         resultJson = JSONObject.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {

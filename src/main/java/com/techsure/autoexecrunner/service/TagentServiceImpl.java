@@ -21,9 +21,11 @@ import java.util.Map;
 public class TagentServiceImpl implements TagentService{
 
     @Override
-    public boolean forwardCodedriverWeb(JSONObject jsonObj, String url, StringBuilder execInfo) {
+    public boolean forwardCodedriverWeb(JSONObject jsonObj, String url, StringBuilder execInfo, boolean isFromTagent) {
         boolean status = false;
-        jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
+        if (isFromTagent) {
+            jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
+        }
         Map<String, String> params = (Map<String, String>) JSON.parse(jsonObj.toJSONString());
         RestVo restVo = new RestVo( url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));
         restVo.setTenant(jsonObj.getString("tenant"));

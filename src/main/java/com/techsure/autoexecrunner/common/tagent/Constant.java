@@ -32,7 +32,7 @@ public class Constant {
     public static String ACTION_UPDATE_TAGENT_INFO = "tagent/info/update";
 
     // tagent更新密钥接口
-    public static String ACTION_UPDATE_CRED = "updateTagentCredApi";
+    public static String ACTION_UPDATE_CRED = "tagent/cred/update";
 
     // tagent版本升级
     public static String ACTION_UPGRADE_TAGENT = "upgradeTagentApi";

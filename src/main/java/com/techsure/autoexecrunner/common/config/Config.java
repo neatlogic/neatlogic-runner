@@ -44,6 +44,8 @@ public class Config {
     //codedriver
     private static String CODEDRIVER_ROOT;
 
+    private static String CODEDRIVER_TENANT;
+
     public static String JWT_SECRET() {
         return JWT_SECRET;
     }
@@ -58,6 +60,9 @@ public class Config {
 
     public static String CODEDRIVER_ROOT() {
         return CODEDRIVER_ROOT;
+    }
+    public static String CODEDRIVER_TENANT() {
+        return CODEDRIVER_TENANT;
     }
 
     public static String ACCESS_KEY() {
@@ -134,6 +139,7 @@ public class Config {
 
             JWT_SECRET = prop.getProperty("jwt.secret", "techsure#codedriver$secret");
             CODEDRIVER_ROOT = prop.getProperty("codedriver.root", "http://localhost:8083/codedriver");
+            CODEDRIVER_TENANT = prop.getProperty("codedriver.tenant", "develop");
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");

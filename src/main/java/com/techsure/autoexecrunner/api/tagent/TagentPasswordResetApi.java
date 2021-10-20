@@ -26,7 +26,7 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "tagent/password/reset";
+        return "/tagent/password/reset";
     }
 
     @Override
@@ -38,7 +38,6 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
         TagentClient tagentClient = new TagentClient(jsonObj.getString("ip"), Integer.parseInt(jsonObj.getString("port")), credential, 3000, 30000);
         String newPasswd = RandomUtils.getRandomStr(16);
         int execStatus = tagentClient.updateCred(newPasswd);
-//        int execStatus = 0;
         if (execStatus != 0) {
             throw new RuntimeException("connect tagent reset password failed.");
         } else {
@@ -55,7 +54,6 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
             }
             //!需reload使重置密码生效
             int reloadStatus = tagentClient.reload();
-//            int reloadStatus =1;
             if (reloadStatus != 0) {
                 status = false;
                 execInfo.append("reset password succeed, but reload failed, may should restart tagent service.");

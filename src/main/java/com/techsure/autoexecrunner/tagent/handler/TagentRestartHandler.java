@@ -22,7 +22,6 @@ public class TagentRestartHandler extends TagentHandlerBase {
 
     @Override
     public JSONObject execute(JSONObject param) {
-        boolean status = true;
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
@@ -41,18 +40,13 @@ public class TagentRestartHandler extends TagentHandlerBase {
                     allkeys += keylist.next() + ",";
                 }
                 logger.error("can not find channel for " + tagentKey + ",keylist:" + allkeys);
-                status = false;
                 execInfo.append("can not find channel to send command for " + tagentKey);
             }
         } catch (Exception e) {
-            status = false;
             execInfo.append("exec reload cmd error ,exception :  " + e.getMessage());
             logger.error("exec reload cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
         }
-
-        result.put("Status", status ? "OK" : "ERROR");
-        result.put("Data", "");
-        result.put("Message", execInfo.toString());
+        result.put("Data", execInfo.toString());
         return result;
     }
 }

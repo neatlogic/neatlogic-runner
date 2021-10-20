@@ -26,7 +26,7 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "tagent/password/reset";
+        return "/tagent/password/reset";
     }
 
     @Override

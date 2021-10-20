@@ -34,16 +34,14 @@ public class TagentRestartApi extends PrivateApiComponentBase {
     @Description(desc = "tagent 重启")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject result = new JSONObject();
+        JSONObject result = null;
         try {
             TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.RESTART.getValue());
             result = tagentAction.execute(jsonObj);
         } catch (Exception e) {
-            result.put("Status", "ERROR");
-            result.put("Data", "");
-            result.put("Message", "exec tagent saveConfig failed ， " + e.getMessage());
+            result.put("Data", "exec tagent saveConfig failed ， " + e.getMessage());
         }
-        return result.getJSONObject("Data");
+        return result;
 
     }
 

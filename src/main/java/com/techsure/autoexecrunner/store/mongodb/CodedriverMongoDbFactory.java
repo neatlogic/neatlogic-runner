@@ -12,7 +12,6 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.techsure.autoexecrunner.common.config.Config;
-import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.MongoDbVo;
 import com.techsure.autoexecrunner.dto.RestVo;
@@ -46,7 +45,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
             try {
                 result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
                 MongoDbVo mongoDbVo = JSONObject.parseObject(result).getJSONObject("Return").toJavaObject(MongoDbVo.class);
-                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase()+"?authSource=admin");
+                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + ":" + mongoDbVo.getPort() + "/" + mongoDbVo.getDatabase() + "?authSource=admin");
                 return client.getDatabase(mongoDbVo.getDatabase());
             } catch (Exception e) {
                 logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+    <mongo:mongo-client  id="mongoClient" connection-string="${spring.data.mongodb.uri}">
+    </mongo:mongo-client>
+
+    <bean id="mongoDbFactory" class="com.techsure.autoexecrunner.store.mongodb.CodedriverMongoDbFactory">
+        <constructor-arg name="mongoClient" ref="mongoClient"/>
+        <constructor-arg name="databaseName" value="codedriver"/>
+    </bean>
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg name="mongoDbFactory" ref="mongoDbFactory"/>
+    </bean>
+</beans>

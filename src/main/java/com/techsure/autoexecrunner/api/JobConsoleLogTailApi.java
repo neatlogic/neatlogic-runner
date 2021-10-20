@@ -36,7 +36,7 @@ public class JobConsoleLogTailApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         Long logPos = jsonObj.getLong("logPos");
         String direction = jsonObj.getString("direction");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
         return FileUtil.tailLog(logPath, logPos, direction);
     }
 

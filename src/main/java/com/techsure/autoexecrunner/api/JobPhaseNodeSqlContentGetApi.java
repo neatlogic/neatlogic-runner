@@ -37,7 +37,7 @@ public class JobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String sqlName = jsonObj.getString("sqlName");
         String phase = jsonObj.getString("phase");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "sqlfile" + File.separator + phase + File.separator + URLEncoder.encode(sqlName,"UTF-8");
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "sqlfile" + File.separator + phase + File.separator + URLEncoder.encode(sqlName,"UTF-8");
         return FileUtil.getReadFileContent(logPath);
     }
 

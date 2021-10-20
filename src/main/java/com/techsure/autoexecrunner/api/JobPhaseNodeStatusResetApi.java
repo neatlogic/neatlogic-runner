@@ -63,7 +63,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("resourceId",node.getLong("resourceId"));
                 Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
                 //删除对应status文件记录
-                String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+                String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Arrays.asList("target","runner_target").contains(execMode)) {
                     nodeStatusPath += host + "-" + (port==null?StringUtils.EMPTY:port) + "-" +node.getString("resourceId") + ".json";
                 } else {
@@ -78,7 +78,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             document.put("phase", phase);
             Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
             //删除对应status文件记录
-            String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
+            String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
             FileUtil.deleteDirectoryOrFile(nodeStatusPath);
         }
         return null;

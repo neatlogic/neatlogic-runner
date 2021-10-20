@@ -47,7 +47,7 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".sql.txt";
         } else {

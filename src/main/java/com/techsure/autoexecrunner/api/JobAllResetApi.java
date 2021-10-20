@@ -43,7 +43,7 @@ public class JobAllResetApi extends PrivateApiComponentBase {
         document.put("jobId", jobId.toString());
         mongoTemplate.getCollection("_node_status").deleteMany(document);
         //删除对应status文件记录
-        String nodeStatusPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
+        String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
         FileUtil.deleteDirectoryOrFile(nodeStatusPath);
         return null;
     }

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -29,12 +28,9 @@ public class Config {
     public static final String RC4KEY = "codedriver.key.20200101";
     private static String JWT_SECRET = "techsure#codedriver$secret";
     private static String AUTOEXEC_HOME;//脚本目录
-    private static String DATA_HOME;// 存储文件路径
     private static String AUTH_TYPE;//autoexecrunner的认证方式
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
-    private static String PARAM_PATH;//参数保存路径
-    private static String LOG_PATH;//执行日志路径
     private static Long LOGTAIL_BUFLEN;//日志tail buff长度
     private static String WARN_PATTERN;//告警提示关键字
     //mongodb
@@ -72,12 +68,6 @@ public class Config {
     public static String ACCESS_SECRET() {
         return ACCESS_SECRET;
     }
-    public static String PARAM_PATH() {
-        return PARAM_PATH;
-    }
-    public static String LOG_PATH() {
-        return LOG_PATH;
-    }
     public static Long LOGTAIL_BUFLEN() {
         return LOGTAIL_BUFLEN;
     }
@@ -85,12 +75,6 @@ public class Config {
         return WARN_PATTERN;
     }
 
-    public static String DATA_HOME() {
-        if (!DATA_HOME.endsWith(File.separator)) {
-            DATA_HOME += File.separator;
-        }
-        return DATA_HOME;
-    }
     public static String MONGODB_HOST() {
         return MONGODB_HOST;
     }
@@ -131,7 +115,6 @@ public class Config {
                 // 如果从nacos中读不出配置，则使用本地配置文件配置
                 prop.load(new InputStreamReader(Objects.requireNonNull(Config.class.getClassLoader().getResourceAsStream(CONFIG_FILE)), StandardCharsets.UTF_8));
             }
-            DATA_HOME = prop.getProperty("data.home", "/app/data");
             AUTOEXEC_HOME = prop.getProperty("autoexec.home");
             if (StringUtils.isBlank(AUTOEXEC_HOME)) {
                 logger.error("请在配置文件中定义autoexec.home参数");
@@ -143,8 +126,6 @@ public class Config {
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
-            PARAM_PATH = prop.getProperty("param.path", "/data/job");
-            LOG_PATH = prop.getProperty("log.path", "/data/job");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(32 * 1024)));
             MONGODB_HOST = prop.getProperty("spring.data.mongodb.host", "localhost");

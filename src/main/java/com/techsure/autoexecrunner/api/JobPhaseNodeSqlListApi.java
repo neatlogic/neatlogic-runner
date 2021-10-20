@@ -47,7 +47,7 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
         String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
         logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId");
         List<FileVo> fileVoList = FileUtil.readFileList(logPath);
         JSONArray resultArray = new JSONArray();

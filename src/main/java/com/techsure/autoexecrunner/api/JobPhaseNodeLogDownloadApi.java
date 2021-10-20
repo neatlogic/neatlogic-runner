@@ -8,6 +8,7 @@ import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.techsure.autoexecrunner.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,9 +48,9 @@ public class JobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentB
         String phase = URLDecoder.decode(jsonObj.getString("phase"), StandardCharsets.UTF_8.name());
         String sqlName = jsonObj.getString("sqlName");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
         if (Arrays.asList("target", "runner_target").contains(execMode)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
         } else if (Objects.equals(execMode, "sqlfile")) {

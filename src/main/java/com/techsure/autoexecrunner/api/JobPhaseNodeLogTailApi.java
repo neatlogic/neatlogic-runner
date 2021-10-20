@@ -44,6 +44,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("phase");
         String sqlName = jsonObj.getString("sqlName");
@@ -52,7 +53,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.LOG_PATH() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + URLEncoder.encode(sqlName,"UTF-8") + ".txt";
         } else {

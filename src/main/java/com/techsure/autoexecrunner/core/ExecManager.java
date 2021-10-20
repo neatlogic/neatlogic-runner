@@ -23,7 +23,7 @@ public class ExecManager {
     public static void exec(CommandVo commandVo) throws Exception {
         commandVo.setAction(JobAction.EXEC.getValue());
         //save params.json
-        String filePath = Config.PARAM_PATH() + File.separator + getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
+        String filePath = Config.AUTOEXEC_HOME() + File.separator + getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
         FileUtil.saveFile(commandVo.getConfig(), filePath);
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--paramsfile", filePath);

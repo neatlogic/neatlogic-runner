@@ -1,5 +1,6 @@
 package com.techsure.autoexecrunner.common.config;
 
+import com.techsure.autoexecrunner.util.RC4Util;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,14 +57,14 @@ public class LocalConfig implements BeanFactoryPostProcessor, EnvironmentAware, 
         MutablePropertySources propertySources = environment.getPropertySources();
         Map<String, Object> paramMap = new HashMap<>();
         //如果有需要在xml中加载的配置，可以在下面设置
-		/*paramMap.put("db.driverClassName", this.getProperty("db.driverClassName", "com.mysql.cj.jdbc.Driver"));
-		paramMap.put("db.url", this.getProperty("db.url", "jdbc:mysql://localhost:3306/codedriver?characterEncoding=UTF-8&jdbcCompliantTruncation=false"));
-		paramMap.put("db.username", this.getProperty("db.username", "root"));
-		paramMap.put("db.password", this.getProperty("db.password", "root"));
-		paramMap.put("conn.validationQuery", this.getProperty("conn.validationQuery", "select 1"));
-		paramMap.put("conn.testOnBorrow", this.getProperty("conn.testOnBorrow", "true"));
-		paramMap.put("conn.maxIdle", this.getProperty("conn.maxIdle", "16"));
-		paramMap.put("conn.initialSize", this.getProperty("conn.initialSize", "4"));*/
+        String mongoHost = this.getProperty("mongo.host", "localhost:27017");
+        String mongoUser = this.getProperty("mongo.username", "root");
+        String mongoPwd = this.getProperty("mongo.password", "root");
+        String mongoDb = this.getProperty("mongo.database", "admin");
+        if (mongoPwd.startsWith("RC4:")) {
+            mongoPwd = RC4Util.decrypt(mongoPwd.substring(4));
+        }
+        paramMap.put("mongo.url", "mongodb://" + mongoUser + ":" + mongoPwd + "@" + mongoHost + "/" + mongoDb);
         propertySources.addLast(new MapPropertySource("localconfig", paramMap));
     }
 

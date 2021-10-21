@@ -25,7 +25,6 @@ public class Config {
     private ConfigService configService;
     private static final String CONFIG_FILE = "application.properties";
     public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
-    public static final String RC4KEY = "codedriver.key.20200101";
     private static String JWT_SECRET = "techsure#codedriver$secret";
     private static String AUTOEXEC_HOME;//脚本目录
     private static String AUTH_TYPE;//autoexecrunner的认证方式
@@ -33,11 +32,7 @@ public class Config {
     private static String ACCESS_SECRET;//访问密码
     private static Long LOGTAIL_BUFLEN;//日志tail buff长度
     private static String WARN_PATTERN;//告警提示关键字
-    //mongodb
-    private static String MONGODB_CONNECTION;
-    private static String MONGODB_HOST;
-    private static Integer MONGODB_PORT;
-    private static String MONGODB_DEFAULT_DATABASE;
+
     //codedriver
     private static String CODEDRIVER_ROOT;
 
@@ -76,18 +71,6 @@ public class Config {
         return WARN_PATTERN;
     }
 
-    public static String MONGODB_CONNECTION() {
-        return MONGODB_CONNECTION;
-    }
-    public static String MONGODB_HOST() {
-        return MONGODB_HOST;
-    }
-    public static Integer MONGODB_PORT() {
-        return MONGODB_PORT;
-    }
-    public static String MONGODB_DEFAULT_DATABASE() {
-        return MONGODB_DEFAULT_DATABASE;
-    }
 
     @PostConstruct
     public void init() {
@@ -132,10 +115,6 @@ public class Config {
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(32 * 1024)));
-            MONGODB_CONNECTION = prop.getProperty("spring.data.mongodb.uri", "");
-            MONGODB_HOST = prop.getProperty("spring.data.mongodb.host", "localhost");
-            MONGODB_PORT = Integer.valueOf(prop.getProperty("spring.data.mongodb.port", "8080"));
-            MONGODB_DEFAULT_DATABASE = prop.getProperty("spring.data.mongodb.database", "autoexec");
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

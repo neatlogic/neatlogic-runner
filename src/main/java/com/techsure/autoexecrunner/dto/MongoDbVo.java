@@ -5,7 +5,6 @@
 
 package com.techsure.autoexecrunner.dto;
 
-import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.util.RC4Util;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,11 +14,11 @@ public class MongoDbVo {
     private Long tenantId;
     private String tenantUuid;
     private String host;
-    private int port;
     private String database;
     private String username;
     private String passwordPlain;
     private String passwordCipher;
+    private String option;
 
     public MongoDbVo() {
 
@@ -41,6 +40,14 @@ public class MongoDbVo {
             }
             this.passwordPlain = password.toString();
         }
+    }
+
+    public String getOption() {
+        return option;
+    }
+
+    public void setOption(String option) {
+        this.option = option;
     }
 
     public String getDatabase() {
@@ -75,7 +82,7 @@ public class MongoDbVo {
         if (StringUtils.isBlank(passwordPlain)) {
             if (StringUtils.isNotBlank(passwordCipher)) {
                 if (passwordCipher.startsWith("RC4:")) {
-                    this.passwordPlain = RC4Util.decrypt(Config.RC4KEY, this.passwordCipher.substring(4));
+                    this.passwordPlain = RC4Util.decrypt(this.passwordCipher.substring(4));
                 } else {
                     this.passwordPlain = this.passwordCipher;
                 }
@@ -91,7 +98,7 @@ public class MongoDbVo {
     public String getPasswordCipher() {
         if (StringUtils.isBlank(passwordCipher)) {
             if (StringUtils.isNotBlank(passwordPlain)) {
-                this.passwordCipher = "RC4:" + RC4Util.encrypt(Config.RC4KEY, passwordPlain);
+                this.passwordCipher = "RC4:" + RC4Util.encrypt(passwordPlain);
             }
         }
         return passwordCipher;
@@ -117,13 +124,4 @@ public class MongoDbVo {
     public void setHost(String host) {
         this.host = host;
     }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
 }

@@ -2,6 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
+import com.techsure.autoexecrunner.exception.tagent.TagentLogGetFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -20,10 +21,8 @@ public class TagentLogGetHandler extends TagentHandlerBase {
 
     @Override
     public JSONObject execute(JSONObject param) {
-        boolean status = true;
         String data = "";
         JSONObject result = new JSONObject();
-        StringBuilder execInfo = new StringBuilder();
         try {
             String credential = RC4Util.decrypt(param.getString("credential").substring(4));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
@@ -41,23 +40,15 @@ public class TagentLogGetHandler extends TagentHandlerBase {
                 execStatus = tagentClient.execCmd("cd $TAGENT_HOME/logs/ && ls *.log*", null, 10000, listHandler);
             }
             if (execStatus == 0) {
-                status = true;
                 data = listHandler.getContent();
             } else {
-                status = false;
-                execInfo.append("get log list falied");
+                throw new TagentLogGetFailedException();
             }
         } catch (Exception e) {
-            status = false;
-            execInfo.append("exec getlogs cmd error ,exception :  " + e.getMessage());
             logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            throw new TagentLogGetFailedException(e.getMessage());
         }
-
-        if (status) {
-            result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
-        } else {
-            result.put("Data", execInfo);
-        }
+        result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
         return result;
     }
 }

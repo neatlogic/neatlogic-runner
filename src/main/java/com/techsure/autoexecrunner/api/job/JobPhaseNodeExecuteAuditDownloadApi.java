@@ -1,9 +1,13 @@
-package com.techsure.autoexecrunner.api;
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+package com.techsure.autoexecrunner.api.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.core.ExecManager;
+import com.techsure.autoexecrunner.util.JobUtil;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -53,7 +57,7 @@ public class JobPhaseNodeExecuteAuditDownloadApi extends PrivateBinaryStreamApiC
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String status = jsonObj.getString("status");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
         if (Arrays.asList("target", "runner_target", "sqlfile").contains(execMode)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".hislog" + File.separator;
         } else {

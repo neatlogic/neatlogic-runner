@@ -1,9 +1,13 @@
-package com.techsure.autoexecrunner.api;
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+package com.techsure.autoexecrunner.api.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.core.ExecManager;
+import com.techsure.autoexecrunner.util.JobUtil;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -43,7 +47,7 @@ public class JobAllResetApi extends PrivateApiComponentBase {
         document.put("jobId", jobId.toString());
         mongoTemplate.getCollection("_node_status").deleteMany(document);
         //删除对应status文件记录
-        String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
+        String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
         FileUtil.deleteDirectoryOrFile(nodeStatusPath);
         return null;
     }

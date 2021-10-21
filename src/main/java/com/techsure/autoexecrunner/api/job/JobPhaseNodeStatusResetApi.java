@@ -1,10 +1,14 @@
-package com.techsure.autoexecrunner.api;
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+package com.techsure.autoexecrunner.api.job;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.core.ExecManager;
+import com.techsure.autoexecrunner.util.JobUtil;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -63,7 +67,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("resourceId",node.getLong("resourceId"));
                 Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
                 //删除对应status文件记录
-                String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+                String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
                 if (Arrays.asList("target","runner_target").contains(execMode)) {
                     nodeStatusPath += host + "-" + (port==null?StringUtils.EMPTY:port) + "-" +node.getString("resourceId") + ".json";
                 } else {
@@ -78,7 +82,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             document.put("phase", phase);
             Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
             //删除对应status文件记录
-            String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
+            String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
             FileUtil.deleteDirectoryOrFile(nodeStatusPath);
         }
         return null;

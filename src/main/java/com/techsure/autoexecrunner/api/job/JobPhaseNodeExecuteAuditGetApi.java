@@ -1,9 +1,13 @@
-package com.techsure.autoexecrunner.api;
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+package com.techsure.autoexecrunner.api.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.core.ExecManager;
+import com.techsure.autoexecrunner.util.JobUtil;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -13,62 +17,48 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author lvzk
- * @since 2021/5/13 14:31
+ * @since 2021/5/28 10:31
  **/
 @Component
-public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
+public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "实时获取剧本节点执行日志";
+        return "获取作业节点执行记录";
     }
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "nodeId", type = ApiParamType.LONG, desc = "作业nodeId", isRequired = true),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "logPos", type = ApiParamType.LONG, desc = "读取下标", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
             @Param(name = "execMode", type = ApiParamType.STRING, desc = "执行方式", isRequired = true),
-            @Param(name = "direction", type = ApiParamType.STRING, desc = "读取方向", isRequired = true)
     })
     @Output({
     })
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("phase");
-        String sqlName = jsonObj.getString("sqlName");
-        Long logPos = jsonObj.getLong("logPos");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
-        String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + ExecManager.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
-        if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
-            logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + URLEncoder.encode(sqlName,"UTF-8") + ".txt";
-        } else {
-            if (Arrays.asList("target", "runner_target", "sqlfile").contains(execMode)) {
-                logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".txt";
-            } else {
-                logPath += "local-0-0.txt";
-            }
+        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator+phase + File.separator ;
+        if (Arrays.asList("target","runner_target","sqlfile").contains(execMode)) {
+            logPath +=  ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".hislog";
+        }else{
+            logPath += "local-0-0.hislog";
         }
-
-        return FileUtil.tailLog(logPath, logPos, direction);
+        return FileUtil.readFileList(logPath);
     }
 
     @Override
     public String getToken() {
-        return "/job/phase/node/log/tail";
+        return "/job/phase/node/execute/audit/get";
     }
 }

@@ -10,7 +10,7 @@ import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.common.tagent.NettyUtil;
 import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.RestVo;
-import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedEcexption;
+import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.techsure.autoexecrunner.exception.tagent.TagentRunnerConnectRefusedException;
 import com.techsure.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.techsure.autoexecrunner.util.RestUtil;
@@ -107,7 +107,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new TagentActionFailedEcexption(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    throw new TagentActionFailedException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                 }
             } catch (Exception ex) {
                 assert restVo != null;
@@ -175,7 +175,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         agentActionExecRes = RestUtil.sendRequest(restVo);
                         resultJson = JSONObject.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                            throw new TagentActionFailedEcexption(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                            throw new TagentActionFailedException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                         }
                         if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {//判断是否为json数据
                             JSONObject resObj = JSONObject.parseObject(agentActionExecRes);

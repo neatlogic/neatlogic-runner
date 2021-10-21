@@ -10,6 +10,7 @@ import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.tagent.TagentHandlerFactory;
+import com.techsure.autoexecrunner.util.RC4Util;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,19 +32,19 @@ public class TagentConfigGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        try {
-            TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETCONFIG.getValue());
-            result = tagentAction.execute(jsonObj);
-        } catch (Exception e) {
-            result.put("Status", "ERROR");
-            result.put("Data", "");
-            result.put("Message", "exec tagent getConfig failed ， " + e.getMessage());
-        }
+        TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETCONFIG.getValue());
+        result = tagentAction.execute(jsonObj);
         return result.getJSONObject("Data");
     }
 
     @Override
     public String getToken() {
         return "tagent/config/get";
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println(RC4Util.encrypt("yNCzaavDaSKRiErf"));
+        System.out.println(RC4Util.decrypt("5ba3030913aa35727baa9c0a0fc9af5d"));
     }
 }

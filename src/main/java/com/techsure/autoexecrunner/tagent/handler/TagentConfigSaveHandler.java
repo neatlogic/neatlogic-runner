@@ -3,6 +3,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
+import com.techsure.autoexecrunner.exception.tagent.TagentConfigSaveFailException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -26,7 +27,6 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
 
     @Override
     public JSONObject execute(JSONObject param) {
-        boolean status = false;
         String data = "";
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
@@ -40,21 +40,14 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.valueOf(param.getString("port")), credential, 3000, 30000);
 
             InputStream input = new ByteArrayInputStream(tagentData.trim().getBytes(StandardCharsets.UTF_8));
-            int execStatus = tagentClient.upload(input, "tagent.conf", "$TAGENT_HOME/conf/", null, false);
-            int reloadStatus = tagentClient.reload();
-            if (execStatus == 0 && reloadStatus == 0) {
-                status = true;
-            } else {
-                execInfo.append("update tagent config failed");
-            }
+            tagentClient.upload(input, "tagent.conf", "$TAGENT_HOME/conf/", null, false);
+            tagentClient.reload();
         } catch (Exception e) {
             execInfo.append("exec saveconfig cmd error ,exception :  " + e.getMessage());
             logger.error("exec saveconfig cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            throw new TagentConfigSaveFailException(e.getMessage());
         }
-
-        result.put("Status", status ? "OK" : "ERROR");
         result.put("Data", data);
-        result.put("Message", execInfo.toString());
         return result;
     }
 }

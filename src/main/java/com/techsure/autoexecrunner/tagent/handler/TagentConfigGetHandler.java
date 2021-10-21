@@ -2,6 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
+import com.techsure.autoexecrunner.exception.tagent.TagentConfigGetFailException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -19,7 +20,6 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
 
     @Override
     public JSONObject execute(JSONObject param) {
-        boolean status = true;
         String data = "";
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
@@ -40,19 +40,13 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
             }
             if (execStatus == 0) {
                 data = handler.getContent();
-            } else {
-                status = false;
-                execInfo.append("get tagent config failed");
             }
         } catch (Exception e) {
-            status = false;
             execInfo.append("执行getconfig命令失败");
             logger.error("执行config命令失败，请求参数：" + param.toString(), e);
+            throw new TagentConfigGetFailException(e.getMessage());
         }
-
-        result.put("Status", status ? "OK" : "ERROR");
         result.put("Data", data);
-        result.put("Message", execInfo.toString());
         return result;
     }
 }

@@ -31,20 +31,14 @@ public class TagentLogGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject result = new JSONObject();
-        try {
-            TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETLOGS.getValue());
-            JSONArray data = tagentAction.execute(paramObj).getJSONArray("Data");
-            result.put("Data", data);
-        } catch (Exception e) {
-            result.put("Status", "ERROR");
-            result.put("Data", "");
-            result.put("Message", "exec tagent getlogs failed ， " + e.getMessage());
-        }
+        TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.GETLOGS.getValue());
+        JSONArray data = tagentAction.execute(paramObj).getJSONArray("Data");
+        result.put("Data", data);
         return result;
     }
 
     @Override
     public String getToken() {
-        return "/tagent/log/get";
+        return "tagent/log/get";
     }
 }

@@ -10,7 +10,6 @@ import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.tagent.TagentHandlerFactory;
-import com.techsure.autoexecrunner.util.RC4Util;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -42,9 +41,4 @@ public class TagentConfigGetApi extends PrivateApiComponentBase {
         return "tagent/config/get";
     }
 
-
-    public static void main(String[] args) {
-        System.out.println(RC4Util.encrypt("yNCzaavDaSKRiErf"));
-        System.out.println(RC4Util.decrypt("5ba3030913aa35727baa9c0a0fc9af5d"));
-    }
 }

@@ -2,7 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
-import com.techsure.autoexecrunner.exception.tagent.TagentConfigGetFailException;
+import com.techsure.autoexecrunner.exception.tagent.TagentConfigGetFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -22,7 +22,6 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
     public JSONObject execute(JSONObject param) {
         String data = "";
         JSONObject result = new JSONObject();
-        StringBuilder execInfo = new StringBuilder();
         try {
             String credential = RC4Util.decrypt(param.getString("credential").substring(4));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
@@ -40,11 +39,12 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
             }
             if (execStatus == 0) {
                 data = handler.getContent();
+            } else {
+                throw new TagentConfigGetFailedException();
             }
         } catch (Exception e) {
-            execInfo.append("执行getconfig命令失败");
             logger.error("执行config命令失败，请求参数：" + param.toString(), e);
-            throw new TagentConfigGetFailException(e.getMessage());
+            throw new TagentConfigGetFailedException(e.getMessage());
         }
         result.put("Data", data);
         return result;

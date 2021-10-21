@@ -3,7 +3,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
-import com.techsure.autoexecrunner.exception.tagent.TagentNotFindChannelException;
+import com.techsure.autoexecrunner.exception.tagent.TagentNotFoundChannelException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +41,7 @@ public class TagentRestartHandler extends TagentHandlerBase {
                 allkeys += keylist.next() + ",";
             }
             logger.error("can not find channel for " + tagentKey + ",keylist:" + allkeys);
-            throw new TagentNotFindChannelException(tagentKey);
+            throw new TagentNotFoundChannelException(tagentKey);
         }
         result.put("Data", execInfo.toString());
         return result;

@@ -3,7 +3,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
-import com.techsure.autoexecrunner.exception.tagent.TagentConfigSaveFailException;
+import com.techsure.autoexecrunner.exception.tagent.TagentConfigSaveFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -29,7 +29,6 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
     public JSONObject execute(JSONObject param) {
         String data = "";
         JSONObject result = new JSONObject();
-        StringBuilder execInfo = new StringBuilder();
         JSONArray dataArray = param.getJSONArray("data");
         String tagentData = StringUtils.EMPTY;
         for (int i = 0; i < dataArray.size(); i++) {
@@ -43,9 +42,8 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
             tagentClient.upload(input, "tagent.conf", "$TAGENT_HOME/conf/", null, false);
             tagentClient.reload();
         } catch (Exception e) {
-            execInfo.append("exec saveconfig cmd error ,exception :  " + e.getMessage());
             logger.error("exec saveconfig cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
-            throw new TagentConfigSaveFailException(e.getMessage());
+            throw new TagentConfigSaveFailedException(e.getMessage());
         }
         result.put("Data", data);
         return result;

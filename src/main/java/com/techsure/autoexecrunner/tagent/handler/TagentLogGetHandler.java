@@ -2,7 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
-import com.techsure.autoexecrunner.exception.tagent.TagentLogGetFailException;
+import com.techsure.autoexecrunner.exception.tagent.TagentLogGetFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -23,7 +23,6 @@ public class TagentLogGetHandler extends TagentHandlerBase {
     public JSONObject execute(JSONObject param) {
         String data = "";
         JSONObject result = new JSONObject();
-        StringBuilder execInfo = new StringBuilder();
         try {
             String credential = RC4Util.decrypt(param.getString("credential").substring(4));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
@@ -42,11 +41,12 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             }
             if (execStatus == 0) {
                 data = listHandler.getContent();
+            } else {
+                throw new TagentLogGetFailedException();
             }
         } catch (Exception e) {
-            execInfo.append("exec getlogs cmd error ,exception :  " + e.getMessage());
             logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
-            throw new TagentLogGetFailException(e.getMessage());
+            throw new TagentLogGetFailedException(e.getMessage());
         }
         result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
         return result;

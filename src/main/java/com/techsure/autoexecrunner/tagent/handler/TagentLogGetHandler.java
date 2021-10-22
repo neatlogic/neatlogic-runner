@@ -16,7 +16,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
 
     @Override
     public String getName() {
-        return TagentAction.GETLOGS.getValue();
+        return TagentAction.GET_LOGS.getValue();
     }
 
     @Override

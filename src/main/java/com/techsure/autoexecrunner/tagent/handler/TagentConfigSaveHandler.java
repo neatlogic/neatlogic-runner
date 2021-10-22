@@ -22,7 +22,7 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
 
     @Override
     public String getName() {
-        return TagentAction.SAVECONFIG.getValue();
+        return TagentAction.SAVE_CONFIG.getValue();
     }
 
     @Override

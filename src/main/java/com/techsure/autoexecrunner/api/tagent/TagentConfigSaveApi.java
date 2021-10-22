@@ -31,7 +31,7 @@ public class TagentConfigSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.SAVECONFIG.getValue());
+        TagentHandlerBase tagentAction = TagentHandlerFactory.getAction(TagentAction.SAVE_CONFIG.getValue());
         result = tagentAction.execute(jsonObj);
         return result.getJSONObject("Data");
     }

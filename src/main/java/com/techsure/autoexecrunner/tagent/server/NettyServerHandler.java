@@ -2,6 +2,7 @@ package com.techsure.autoexecrunner.tagent.server;
 
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.techsure.autoexecrunner.common.config.Config;
@@ -99,19 +100,19 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             String result = StringUtils.EMPTY;
             JSONObject resultJson = new JSONObject();
             RestVo restVo = null;
+            String url = String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             try {
-                restVo = new RestVo(String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
+                restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
                 restVo.setTenant(Config.CODEDRIVER_TENANT());
                 restVo.setUsername(Config.ACCESS_KEY());
                 restVo.setPassword(Config.ACCESS_SECRET());
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new TagentActionFailedException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    throw new TagentActionFailedException(url + ":" + resultJson.getString("Message"));
                 }
-            } catch (Exception ex) {
-                assert restVo != null;
-                throw new TagentRunnerConnectRefusedException(restVo.getUrl() + " " + result);
+            } catch (JSONException ex) {
+                throw new TagentRunnerConnectRefusedException(url + " " + result);
             }
         }
     }

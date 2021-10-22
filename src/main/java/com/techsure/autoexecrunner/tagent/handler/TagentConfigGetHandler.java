@@ -15,7 +15,7 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
 
     @Override
     public String getName() {
-        return TagentAction.GETCONFIG.getValue();
+        return TagentAction.GET_CONFIG.getValue();
     }
 
     @Override

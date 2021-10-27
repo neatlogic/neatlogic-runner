@@ -10,6 +10,7 @@ public enum TagentAction {
     DOWNLOAD_LOG("downloadLog", "下载日志"),
     GET_CONFIG("getConfig", "获取配置"),
     SAVE_CONFIG("saveConfig", "保存日志"),
+    STATUS_CHECK("statusCheck", "状态检查"),
     RESTART("restart", "重启");
     private final String value;
     private final String text;

@@ -10,6 +10,8 @@ import com.techsure.autoexecrunner.service.TagentService;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.autoexecrunner.util.tagent.RandomUtils;
 import com.techsure.tagent.client.TagentClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -32,6 +34,7 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
 
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        Logger logger = LoggerFactory.getLogger(TagentPasswordResetApi.class);
         boolean status = false;
         StringBuilder execInfo = new StringBuilder();
         String credential = RC4Util.decrypt(jsonObj.getString("credential").substring(4));
@@ -45,6 +48,7 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
             //同步未成功则回滚密码
             if (!status) {
                 tagentClient.updateCred(credential);
+                logger.error(execInfo.toString());
             }
         } catch (Exception e) {
             throw new TagentCredUpdateFailedException(e.getMessage());

@@ -1,5 +1,6 @@
 package com.techsure.autoexecrunner.core;
 
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.UserContext;
@@ -11,9 +12,10 @@ import com.techsure.autoexecrunner.util.RestUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lvzk
@@ -50,31 +52,38 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("jobId", commandVo.getJobId());
                 payload.put("status", 1);
                 payload.put("command", commandVo);
-                //builder.redirectOutput(new File("C:\\Users\\89770\\Desktop\\codedriver项目\\logs\\log.txt"));
+                payload.put("passThroughEnv",commandVo.getPassThroughEnv().toJSONString());
                 process = builder.start();
                 if (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause")) {
                     process.waitFor();
+                }else{
+                    process.waitFor(1, TimeUnit.SECONDS);
                 }
                 int exitStatus = process.exitValue();
                 commandVo.setExitValue(exitStatus);
-                if (exitStatus != 0 && !(Objects.equals(commandVo.getAction(), "abort") && exitStatus == 143)) {//排除中止已停止的process
-                    logger.error("execute " + commandVo.toString() + "exit status:" + exitStatus + ", failed.");
-                }
+                /*if (exitStatus != 0) {//排除中止已停止的process
+                    InputStreamReader reader = new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8);
+                    StringWriter writer = new StringWriter();
+                    IOUtils.copy(reader, writer);
+                    result = writer.toString();
+                    logger.error("execute " + commandVo.toString() + "exit status:" + exitStatus + ", failed: "+result);
+                }*/
             }
-        } catch (Exception e) {
-            //TODO 去掉wait for 会抛异常
-            logger.error("run command failed.", e);
+        }catch(IllegalThreadStateException e) {
+            //不wait for子进程正常结束返回，就一定会抛 IllegalThreadStateException 异常
+            logger.info("execute " + commandVo.toString() + " failed. " + e.getMessage(),e);
+        }catch (Exception e) {
             payload.put("status", 0);
             payload.put("errorMsg", e.getMessage());
-            logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage());
+            logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage(),e);
         } finally {
-            if (commandVo.getExitValue() == 143 || commandVo.getExitValue() == 0 && (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause"))) {
+            if (commandVo.getExitValue() == 143) {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
                 String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
                 try {
                     result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.BEARER.getValue(), commandVo.getTenant()));
                     JSONObject.parseObject(result);
-                } catch (Exception e) {
+                } catch (JSONException e) {
                     logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);
                 }
             }

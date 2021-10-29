@@ -23,6 +23,11 @@ public class CommandVo {
     List<String> commandList;
     Boolean isCancel;
 
+    @Override
+    public String toString(){
+        return JSONObject.toJSONString(this);
+    }
+
     public CommandVo() {
     }
 

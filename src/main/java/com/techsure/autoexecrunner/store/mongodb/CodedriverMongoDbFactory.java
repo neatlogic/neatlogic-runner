@@ -6,6 +6,7 @@
 package com.techsure.autoexecrunner.store.mongodb;
 
 
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -16,6 +17,7 @@ import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.MongoDbVo;
 import com.techsure.autoexecrunner.dto.RestVo;
 import com.techsure.autoexecrunner.exception.MongoDataSourceNotFoundException;
+import com.techsure.autoexecrunner.exception.tagent.TagentRunnerConnectRefusedException;
 import com.techsure.autoexecrunner.util.RestUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,17 +43,21 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
             String CALLBACK_PROCESS_UPDATE_URL = "mongodb/datasource/get";
             String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
             result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
-            JSONObject resultJson = JSONObject.parseObject(result);
-            if (MapUtils.isNotEmpty(resultJson) && Objects.equals(resultJson.getString("Status"), "ERROR")) {
-                throw new RuntimeException(resultJson.getString("Message"));
+            try {
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if (MapUtils.isNotEmpty(resultJson) && Objects.equals(resultJson.getString("Status"), "ERROR")) {
+                    throw new RuntimeException(resultJson.getString("Message"));
+                }
+                JSONObject returnJson = resultJson.getJSONObject("Return");
+                if (MapUtils.isEmpty(returnJson)) {
+                    throw new MongoDataSourceNotFoundException(TenantContext.get().getTenantUuid());
+                }
+                MongoDbVo mongoDbVo = returnJson.toJavaObject(MongoDbVo.class);
+                MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + "/" + mongoDbVo.getDatabase() + (StringUtils.isNotBlank(mongoDbVo.getOption()) ? "?" + mongoDbVo.getOption() : ""));
+                return client.getDatabase(mongoDbVo.getDatabase());
+            }catch (JSONException ex){
+                throw new TagentRunnerConnectRefusedException(result);
             }
-            JSONObject returnJson = JSONObject.parseObject(result).getJSONObject("Return");
-            if (MapUtils.isEmpty(returnJson)) {
-                throw new MongoDataSourceNotFoundException(TenantContext.get().getTenantUuid());
-            }
-            MongoDbVo mongoDbVo = returnJson.toJavaObject(MongoDbVo.class);
-            MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + "/" + mongoDbVo.getDatabase() + (StringUtils.isNotBlank(mongoDbVo.getOption()) ? "?" + mongoDbVo.getOption() : ""));
-            return client.getDatabase(mongoDbVo.getDatabase());
         }
         return null;
     }

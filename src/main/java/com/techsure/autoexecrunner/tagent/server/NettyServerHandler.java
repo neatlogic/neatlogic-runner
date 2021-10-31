@@ -12,7 +12,7 @@ import com.techsure.autoexecrunner.common.tagent.NettyUtil;
 import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.RestVo;
 import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
-import com.techsure.autoexecrunner.exception.tagent.TagentRunnerConnectRefusedException;
+import com.techsure.autoexecrunner.exception.ConnectRefusedException;
 import com.techsure.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.techsure.autoexecrunner.util.RestUtil;
 import io.netty.channel.ChannelHandler;
@@ -112,7 +112,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     throw new TagentActionFailedException(url + ":" + resultJson.getString("Message"));
                 }
             } catch (JSONException ex) {
-                throw new TagentRunnerConnectRefusedException(url + " " + result);
+                throw new ConnectRefusedException(url + " " + result);
             }
         }
     }

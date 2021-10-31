@@ -17,7 +17,7 @@ import com.techsure.autoexecrunner.constvalue.AuthenticateType;
 import com.techsure.autoexecrunner.dto.MongoDbVo;
 import com.techsure.autoexecrunner.dto.RestVo;
 import com.techsure.autoexecrunner.exception.MongoDataSourceNotFoundException;
-import com.techsure.autoexecrunner.exception.tagent.TagentRunnerConnectRefusedException;
+import com.techsure.autoexecrunner.exception.ConnectRefusedException;
 import com.techsure.autoexecrunner.util.RestUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +61,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
                 mongoDatabaseMap.put(TenantContext.get().getTenantUuid(), mongoDbVo.getDatabase());
                 return client.getDatabase(mongoDbVo.getDatabase());
             }catch (JSONException ex){
-                throw new TagentRunnerConnectRefusedException(result);
+                throw new ConnectRefusedException(url+":"+result);
             }
         }else{
             return mongoDbMap.get(TenantContext.get().getTenantUuid()).getDatabase(mongoDatabaseMap.get(TenantContext.get().getTenantUuid()));

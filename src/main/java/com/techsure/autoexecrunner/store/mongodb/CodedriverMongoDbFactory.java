@@ -25,11 +25,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 //@Configuration
 public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
     Logger logger = LoggerFactory.getLogger(CodedriverMongoDbFactory.class);
+    private static final Map<String, MongoClient> mongoDbMap = new HashMap<>();
+    private static final Map<String, String> mongoDatabaseMap = new HashMap<>();
 
     public CodedriverMongoDbFactory(String connectionString) {
         super(connectionString);
@@ -37,8 +41,7 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
 
     @Override
     protected MongoDatabase doGetMongoDatabase(String dbName) {
-        //TODO 先判断缓存是否存在
-        if (1 == 1) {
+        if (!mongoDbMap.containsKey(TenantContext.get().getTenantUuid())) {
             String result = StringUtils.EMPTY;
             String CALLBACK_PROCESS_UPDATE_URL = "mongodb/datasource/get";
             String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
@@ -54,11 +57,14 @@ public class CodedriverMongoDbFactory extends SimpleMongoClientDatabaseFactory {
                 }
                 MongoDbVo mongoDbVo = returnJson.toJavaObject(MongoDbVo.class);
                 MongoClient client = MongoClients.create("mongodb://" + mongoDbVo.getUsername() + ":" + mongoDbVo.getPasswordPlain() + "@" + mongoDbVo.getHost() + "/" + mongoDbVo.getDatabase() + (StringUtils.isNotBlank(mongoDbVo.getOption()) ? "?" + mongoDbVo.getOption() : ""));
+                mongoDbMap.put(TenantContext.get().getTenantUuid(), client);
+                mongoDatabaseMap.put(TenantContext.get().getTenantUuid(), mongoDbVo.getDatabase());
                 return client.getDatabase(mongoDbVo.getDatabase());
             }catch (JSONException ex){
                 throw new TagentRunnerConnectRefusedException(result);
             }
+        }else{
+            return mongoDbMap.get(TenantContext.get().getTenantUuid()).getDatabase(mongoDatabaseMap.get(TenantContext.get().getTenantUuid()));
         }
-        return null;
     }
 }

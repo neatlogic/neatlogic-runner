@@ -120,6 +120,8 @@ public class PublicApiComponentFactory implements ApplicationListener<ContextRef
     public void onApplicationEvent(ContextRefreshedEvent event) {
         ApplicationContext context = event.getApplicationContext();
         Map<String, IPublicApiComponent> myMap = context.getBeansOfType(IPublicApiComponent.class);
+        Map<String, IPublicBinaryStreamApiComponent> myBinaryMap = context.getBeansOfType(IPublicBinaryStreamApiComponent.class);
+
         for (Map.Entry<String, IPublicApiComponent> entry : myMap.entrySet()) {
             IPublicApiComponent component = entry.getValue();
             if (component.getClassName() != null) {
@@ -152,6 +154,57 @@ public class PublicApiComponentFactory implements ApplicationListener<ContextRef
                             apiVo.addPathVariable(m.group(1));
                             m.appendReplacement(temp, "([^\\/]+)");
                             i++;
+                        }
+                        m.appendTail(temp);
+                        String regexToken = "^" + temp.toString() + "$";
+                        if (!regexApiMap.containsKey(regexToken)) {
+                            regexApiMap.put(regexToken, apiVo);
+                        } else {
+                            throw new RuntimeException("路径匹配接口：" + regexToken + "  " + token + "已存在，请重新定义访问路径");
+                        }
+                    }
+                    // 即使是regex path也需要存到apiMap里，这样才能获取帮助信息
+                    if (!apiMap.containsKey(token)) {
+                        apiList.add(apiVo);
+                        apiMap.put(token, apiVo);
+                    } else {
+                        throw new RuntimeException("接口：" + token + "已存在，请重新定义访问路径");
+                    }
+
+                }
+            }
+        }
+
+        for (Map.Entry<String, IPublicBinaryStreamApiComponent> entry : myBinaryMap.entrySet()) {
+            IPublicBinaryStreamApiComponent component= entry.getValue();
+            if (component.getId() != null) {
+                binaryComponentMap.put(component.getId(), component);
+                ApiHandlerVo restComponentVo = new ApiHandlerVo();
+                restComponentVo.setHandler(component.getId());
+                restComponentVo.setName(component.getName());
+                restComponentVo.setType(ApiVo.Type.BINARY.getValue());
+                apiHandlerList.add(restComponentVo);
+                apiHandlerMap.put(component.getId(), restComponentVo);
+                String token = component.getToken();
+                if (StringUtils.isNotBlank(token)) {
+                    if (token.startsWith("/")) {
+                        token = token.substring(1);
+                    }
+                    if (token.endsWith("/")) {
+                        token = token.substring(0, token.length() - 1);
+                    }
+                    ApiVo apiVo = new ApiVo();
+                    apiVo.setToken(token);
+                    apiVo.setHandler(component.getId());
+                    apiVo.setHandlerName(component.getName());
+                    apiVo.setName(component.getName());
+                    apiVo.setType(ApiVo.Type.OBJECT.getValue());
+                    if (token.contains("{")) {
+                        Matcher m = p.matcher(token);
+                        StringBuffer temp = new StringBuffer();
+                        while (m.find()) {
+                            apiVo.addPathVariable(m.group(1));
+                            m.appendReplacement(temp, "([^\\/]+)");
                         }
                         m.appendTail(temp);
                         String regexToken = "^" + temp.toString() + "$";

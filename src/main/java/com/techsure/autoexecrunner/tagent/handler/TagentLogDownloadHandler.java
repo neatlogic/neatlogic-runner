@@ -1,6 +1,7 @@
 package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
 import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
@@ -29,8 +30,7 @@ public class TagentLogDownloadHandler extends TagentHandlerBase {
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
             TagentResultHandler handler = new TagentResultHandler();
             String path = param.getString("path").replaceAll("\n", "");
-            String tmpPath = new File("").getAbsolutePath();
-            int execStatus = tagentClient.download("$TAGENT_HOME/logs/" + path, tmpPath + "\\" + path, null, false, false, handler);
+            int execStatus = tagentClient.download("$TAGENT_HOME/logs/" + path,  Config.AUTOEXEC_HOME() + File.separator + path, null, false, false, handler);
             if (execStatus == 0) {
                 byte[] fileCharArray = handler.getFileByteArray();
                 result.put("Data", new String(fileCharArray));

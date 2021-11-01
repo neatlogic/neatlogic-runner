@@ -40,7 +40,9 @@ public class RestVo {
         this.authType = authType;
         this.payload = payload;
         this.tenant = tenant;
-        this.token = UserContext.get().getToken();
+        if( UserContext.get() != null) {
+            this.token = UserContext.get().getToken();
+        }
     }
 
     public RestVo(String url, String authType, JSONObject payload) {

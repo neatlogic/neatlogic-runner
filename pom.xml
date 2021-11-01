@@ -29,7 +29,29 @@
     </properties>
 
     <build>
+        <!--指定打成的jar包名称-->
+        <finalName>autoexecrunner</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <!--不打包资源文件-->
+                    <excludes>
+                        <exclude>*.properties</exclude>
+                        <exclude>logback-spring.xml</exclude>
+                    </excludes>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!--MANIFEST.MF 中 Class-Path 加入前缀-->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <!--jar包不包含唯一版本标识-->
+                            <useUniqueVersions>false</useUniqueVersions>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

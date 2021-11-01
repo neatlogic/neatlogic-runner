@@ -75,9 +75,9 @@ public class Config {
     @PostConstruct
     public void init() {
         try {
-            String propertiesString = configService.getConfig("config", "codedriver.autoexecrunner", 3000);
+            String propertiesString = configService.getConfig("config", "com.techsure", 3000);
             loadNacosProperties(propertiesString);
-            configService.addListener("config", "codedriver.autoexecrunner", new Listener() {
+            configService.addListener("config", "com.techsure", new Listener() {
                 @Override
                 public void receiveConfigInfo(String configInfo) {
                     loadNacosProperties(configInfo);

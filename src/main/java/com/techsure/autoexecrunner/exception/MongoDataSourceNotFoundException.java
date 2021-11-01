@@ -9,4 +9,7 @@ public class MongoDataSourceNotFoundException extends ApiRuntimeException {
         super("找不到租户：'"+tenant + "' mongodb 数据源，请检查codedriver库mongodb表后，重试");
     }
 
+    public MongoDataSourceNotFoundException() {
+        super("找不到 mongodb 数据源，请检查codedriver库mongodb表后，重试");
+    }
 }

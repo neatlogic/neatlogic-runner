@@ -7,19 +7,17 @@ package com.techsure.autoexecrunner.api.job;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.techsure.autoexecrunner.asynchronization.threadlocal.UserContext;
-import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.JobAction;
-import com.techsure.autoexecrunner.util.JobUtil;
 import com.techsure.autoexecrunner.core.ExecProcessCommand;
 import com.techsure.autoexecrunner.dto.CommandVo;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.threadpool.CommonThreadPool;
-import com.techsure.autoexecrunner.util.FileUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -37,10 +35,12 @@ public class JobExecApi extends PrivateApiComponentBase {
         CommandVo commandVo = new CommandVo(jsonObj);
         commandVo.setAction(JobAction.EXEC.getValue());
         //save params.json
-        String filePath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
-        FileUtil.saveFile(commandVo.getConfig(), filePath);
+        /*String filePath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(commandVo.getJobId(), new StringBuilder()) + File.separator + "params.json";
+        FileUtil.saveFile(commandVo.getConfig(), filePath);*/
         //set command
-        List<String> commandList = Arrays.asList("autoexec", "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--paramsfile", filePath);
+        List<String> commandList = Arrays.asList("autoexec",
+                "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid()
+        );//--paramsfile 参数 仅用于测试
         commandList = Lists.newArrayList(commandList);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
             commandList.add("--firstfire");
@@ -48,9 +48,17 @@ public class JobExecApi extends PrivateApiComponentBase {
         if (commandVo.getNoFireNext() != null && commandVo.getNoFireNext()) {
             commandList.add("--nofirenext");
         }
-        if(commandVo.getPassThroughEnv() != null){
+        if (commandVo.getPassThroughEnv() != null) {
             commandList.add("--passthroughenv");
             commandList.add(commandVo.getPassThroughEnv().toString());
+        }
+        if(CollectionUtils.isNotEmpty(commandVo.getJobPhaseNameList())){
+            commandList.add("--phases");
+            commandList.add(commandVo.getJobPhaseNameList().stream().map(Object::toString).collect(Collectors.joining("','")));
+        }
+        if(CollectionUtils.isNotEmpty(commandVo.getJobPhaseNodeIdList())){
+            commandList.add("--nodes");
+            commandList.add(commandVo.getJobPhaseNodeIdList().stream().map(Object::toString).collect(Collectors.joining("','")));
         }
         commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);

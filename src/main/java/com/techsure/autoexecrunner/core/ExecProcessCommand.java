@@ -77,7 +77,7 @@ public class ExecProcessCommand implements Runnable {
             payload.put("errorMsg", e.getMessage());
             logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage(),e);
         } finally {
-            if (commandVo.getExitValue() == 143) {
+            if (commandVo.getExitValue() == 2) {
                 String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
                 String url = String.format("%s/api/rest/%s", Config.CODEDRIVER_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
                 try {

@@ -7,6 +7,9 @@ import com.techsure.autoexecrunner.tagent.handler.TagentResultHandler;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -17,6 +20,9 @@ import java.io.InputStream;
 
 @Service
 public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(TagentUpgradeApi.class);
+
     @Override
     public String getName() {
         return "tagent升级接口";
@@ -93,7 +99,8 @@ public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
                 throw new TagentRestartFailedException();
             }
         } catch (Exception e) {
-            throw new TagentUpgradeFailedException(e.getMessage());//待改
+            logger.error("upgrade tagent failed, exception: " + ExceptionUtils.getStackTrace(e));
+            throw new TagentUpgradeFailedException(e.getMessage());
         }
         return null;
     }

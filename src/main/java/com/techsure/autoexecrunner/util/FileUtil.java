@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -26,7 +25,7 @@ public class FileUtil {
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     public static void saveFile(String content, String path) throws Exception {
-        InputStream inputStream = IOUtils.toInputStream(content+System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
+        InputStream inputStream = IOUtils.toInputStream(content + System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
         File file = new File(path);
         if (!file.getParentFile().exists()) {
             if (!file.getParentFile().mkdirs()) {
@@ -92,7 +91,7 @@ public class FileUtil {
                         && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
-                    if(StringUtils.isNotBlank(line) && line.length()>8) {
+                    if (StringUtils.isNotBlank(line) && line.length() > 8) {
                         String time = line.substring(0, 8);
                         String infoClass = StringUtils.EMPTY;
                         String info = StringUtils.EMPTY;
@@ -184,6 +183,7 @@ public class FileUtil {
 
     /**
      * 根据文件夹路径读取文件列表
+     *
      * @param filepath 文件夹路径
      * @return 文件列表
      */
@@ -199,19 +199,20 @@ public class FileUtil {
                 f.setFilePath(readFile.getAbsolutePath());
                 f.setLastModified(TimeUtil.getTimeToDateString(readFile.lastModified(), TimeUtil.YYYY_MM_DD_HH_MM_SS));
                 f.setIsDirectory(0);
-                if(readFile.isDirectory()) {
+                if (readFile.isDirectory()) {
                     f.setIsDirectory(1);
                 }
                 fileVoList.add(f);
             }
         } catch (Exception e) {
-            logger.error("read file Exception:" + e.getMessage());
+            logger.error("show path : " + filepath + " file list Exception: " + e.getMessage(), e);
         }
         return fileVoList;
     }
 
     /**
      * 根据文件路径获取输入流
+     *
      * @param path 文件路径
      * @throws Exception 异常
      */
@@ -229,13 +230,14 @@ public class FileUtil {
                 os.close();
             }
             in.close();
-        }else{
+        } else {
             throw new ExecuteJobFileNotFoundException(path);
         }
     }
 
     /**
-     *  删除文件夹或文件
+     * 删除文件夹或文件
+     *
      * @param path 文件路径
      */
     public static void deleteDirectoryOrFile(String path) {

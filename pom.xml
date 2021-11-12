@@ -194,7 +194,7 @@
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>tagent</artifactId>
-            <version>1.2.1</version>
+            <version>[1.0.0,)</version>
             <exclusions>
                 <exclusion>
                     <artifactId>fastjson</artifactId>

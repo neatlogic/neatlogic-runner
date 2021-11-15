@@ -24,7 +24,7 @@ import java.util.Arrays;
  * @since 2021/5/28 10:31
  **/
 @Component
-public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
+public class JobPhaseNodeExecuteAuditListApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
         return "获取作业节点执行记录";
@@ -59,6 +59,6 @@ public class JobPhaseNodeExecuteAuditGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/job/phase/node/execute/audit/get";
+        return "/job/phase/node/execute/audit/list";
     }
 }

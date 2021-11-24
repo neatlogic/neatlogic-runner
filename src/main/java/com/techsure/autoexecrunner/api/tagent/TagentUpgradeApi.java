@@ -51,7 +51,11 @@ public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
             //获得os类型
             TagentClient tagentClient = new TagentClient(paramObj.getString("ip"), Integer.parseInt(paramObj.getString("port")), RC4Util.decrypt(paramObj.getString("credential").substring(4)));
             String osType = tagentClient.getAgentOsType();
-
+            //创建tmp，无论是否存在都创建，则不抓异常
+            try {
+                tagentClient.execCmd("cd \"$TAGENT_BASE\" && mkdir tmp", paramObj.getString("user"), 10000, handler);
+            } catch (Exception e) {
+            }
             int uploadStatus = tagentClient.upload(input, fileName, "$TAGENT_BASE/tmp", null);
 
             //兼容老版本的tagent的upload不支持路径中的环境变量的情况

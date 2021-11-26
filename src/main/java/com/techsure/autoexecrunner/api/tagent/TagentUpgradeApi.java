@@ -44,10 +44,6 @@ public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
             //获得升级文件
             MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
             multipartFile = multipartRequest.getFile(fileName);
-        } catch (Exception e) {
-            throw new TagentPkgNotFoundException(fileName);
-        }
-        try {
             InputStream input = multipartFile.getInputStream();
 
             //获得os类型

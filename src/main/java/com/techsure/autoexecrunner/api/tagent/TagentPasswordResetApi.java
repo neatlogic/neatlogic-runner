@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.common.tagent.Constant;
 import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
+import com.techsure.autoexecrunner.exception.tagent.TagentRestartFailedButRestartSuccessException;
 import com.techsure.autoexecrunner.exception.tagent.TagentRestartFailedException;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.service.TagentService;
@@ -56,7 +57,7 @@ public class TagentPasswordResetApi extends PrivateApiComponentBase {
         //!需reload使重置密码生效
         int reloadStatus = tagentClient.reload();
         if (reloadStatus != 0) {
-            throw new TagentActionFailedException("重置密码成功，但是重启失败，可能需要重启tagent服务");
+            throw new TagentRestartFailedButRestartSuccessException();
         }
 
         return jsonObj.get("data");

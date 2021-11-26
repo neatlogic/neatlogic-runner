@@ -192,6 +192,9 @@ public class FileUtil {
         try {
             File file = new File(filepath);
             String[] fileList = file.list();
+            if(fileList == null || fileList.length == 0){
+                return  fileVoList;
+            }
             for (int i = 0; i < Objects.requireNonNull(fileList).length; i++) {
                 File readFile = new File(filepath + System.getProperty("file.separator") + fileList[i]);
                 FileVo f = new FileVo();

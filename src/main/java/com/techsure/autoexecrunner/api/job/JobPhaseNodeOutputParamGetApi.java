@@ -13,6 +13,7 @@ import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.techsure.autoexecrunner.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class JobPhaseNodeOutputParamGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String ip = jsonObj.getString("ip");
-        String port = jsonObj.getString("port");
+        String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
         String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "output" + File.separator ;
         if (Arrays.asList("target","runner_target").contains(execMode)) {

@@ -3,7 +3,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
-import com.techsure.autoexecrunner.exception.tagent.TagentConfigSaveFailedException;
+import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -43,7 +43,7 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
             tagentClient.reload();
         } catch (Exception e) {
             logger.error("exec saveconfig cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
-            throw new TagentConfigSaveFailedException(e.getMessage());
+            throw new TagentActionFailedException(e.getMessage());
         }
         result.put("Data", data);
         return result;

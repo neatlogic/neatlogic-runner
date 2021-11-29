@@ -36,16 +36,14 @@ public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        try {
-            TagentResultHandler handler = new TagentResultHandler();
+        String fileName = paramObj.getString("fileName");
+        MultipartFile multipartFile = null;
+        TagentResultHandler handler = new TagentResultHandler();
 
+        try {
             //获得升级文件
-            String fileName = paramObj.getString("fileName");
             MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-            MultipartFile multipartFile = multipartRequest.getFile(fileName);
-            if (multipartFile == null) {
-                throw new TagentPkgNotFoundException(fileName);
-            }
+            multipartFile = multipartRequest.getFile(fileName);
             InputStream input = multipartFile.getInputStream();
 
             //获得os类型
@@ -91,9 +89,9 @@ public class TagentUpgradeApi extends PublicBinaryStreamApiComponentBase {
             } else {
                 // 切换至agent目录解压升级文件
                 cmdExecStatus = tagentClient.execCmd("cd \"$TAGENT_BASE\" && tar xvf \"$TAGENT_BASE/tmp/" + fileName + "\" bin lib tools mod ", paramObj.getString("user"), 10000, handler);
-            }
-            if (cmdExecStatus != 0) {
-                throw new TagentDecompressionFailedException();
+                if (cmdExecStatus != 0) {
+                    throw new TagentDecompressionFailedException();
+                }
             }
 
             //重启

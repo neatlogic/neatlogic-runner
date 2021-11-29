@@ -2,6 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
+import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.techsure.autoexecrunner.exception.tagent.TagentConfigGetFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
@@ -44,7 +45,7 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
             }
         } catch (Exception e) {
             logger.error("执行config命令失败，请求参数：" + param.toString(), e);
-            throw new TagentConfigGetFailedException(e.getMessage());
+            throw new TagentActionFailedException(e.getMessage());
         }
         result.put("Data", data);
         return result;

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
 import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
+import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
+import com.techsure.autoexecrunner.exception.tagent.TagentDownloadFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
 import com.techsure.tagent.client.TagentClient;
@@ -35,12 +37,13 @@ public class TagentLogDownloadHandler extends TagentHandlerBase {
                 byte[] fileCharArray = handler.getFileByteArray();
                 result.put("Data", new String(fileCharArray));
             } else {
-                throw new ApiRuntimeException("download file failed");
+                throw new TagentDownloadFailedException();
             }
         } catch (ApiRuntimeException ex) {
             throw ex;
         } catch (Exception e) {
             logger.error("exec download cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            throw new TagentActionFailedException(e.getMessage());
         }
         return result;
     }

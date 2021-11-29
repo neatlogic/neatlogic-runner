@@ -2,6 +2,7 @@ package com.techsure.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.TagentAction;
+import com.techsure.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.techsure.autoexecrunner.exception.tagent.TagentLogGetFailedException;
 import com.techsure.autoexecrunner.tagent.TagentHandlerBase;
 import com.techsure.autoexecrunner.util.RC4Util;
@@ -46,7 +47,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             }
         } catch (Exception e) {
             logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
-            throw new TagentLogGetFailedException(e.getMessage());
+            throw new TagentActionFailedException(e.getMessage());
         }
         result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
         return result;

@@ -39,6 +39,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     private static final Logger log = LoggerFactory.getLogger(NettyServerHandler.class);
 
     private static final AttributeKey<Integer> AGENT_LISTEN_PORT_KEY = AttributeKey.valueOf("listenPort");
+    private static final AttributeKey<String> AGENT_LISTEN_TENANT_KEY = AttributeKey.valueOf("tenant");
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {//用户事件触发
@@ -71,9 +72,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         log.error(cause.getMessage());
     }
 
-    private void agentInactive(ChannelHandlerContext ctx) {  //实例化？
-        String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0]; // remote？远程
+    private void agentInactive(ChannelHandlerContext ctx) {
+        String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
+        String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
 
         ctx.flush();
         ctx.channel().close();
@@ -103,7 +105,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             String url = String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             try {
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent状态更新接口
-                restVo.setTenant(Config.CODEDRIVER_TENANT());
+                restVo.setTenant(tenant);
                 restVo.setUsername(Config.ACCESS_KEY());
                 restVo.setPassword(Config.ACCESS_SECRET());
                 result = RestUtil.sendRequest(restVo);
@@ -148,8 +150,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     log.info("received heartbeat from " + agentKey);
                     if (agentData.getString("type").equals("monitor")) {  //monitor ? 监控
                         agentData.put("ip", agentIp);
-                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
-                        });//jsonObject转为map
+                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {});
+                        ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).set(params.get("tenant"));
                         params.put("status", "connected");
                         //String groupId = agentData.getString("runnerGroupId");
                         //String groupInfo = agentData.getString("runnerGroup");
@@ -170,7 +172,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         JSONObject resultJson = new JSONObject();
                         RestVo restVo = null;
                         restVo = new RestVo(String.format("%s/public/api/rest/%s", Config.CODEDRIVER_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用codedriver的Tagent信息更新接口
-                        restVo.setTenant(Config.CODEDRIVER_TENANT());
+                        restVo.setTenant(params.get("tenant"));
                         restVo.setUsername(Config.ACCESS_KEY());
                         restVo.setPassword(Config.ACCESS_SECRET());
                         agentActionExecRes = RestUtil.sendRequest(restVo);

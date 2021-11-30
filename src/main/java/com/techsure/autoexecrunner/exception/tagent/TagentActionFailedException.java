@@ -1,6 +1,8 @@
 package com.techsure.autoexecrunner.exception.tagent;
 
-public class TagentActionFailedException extends RuntimeException {
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
+
+public class TagentActionFailedException extends ApiRuntimeException {
     public TagentActionFailedException(String message) {
         super("tagent报错信息：" + message);
     }

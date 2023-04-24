@@ -1,0 +1,13 @@
+target
+*.iml
+bin
+build
+.class
+.svn
+.project
+.settings
+.classpath
+.externalToolBuilders
+.idea
+logs
+.DS_Store

@@ -18,6 +18,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -45,6 +46,10 @@ public class MergeApi extends PrivateApiComponentBase {
 		return "codehub/merge";
 	}
 
+	@Override
+	public String getName() {
+		return "合并接口";
+	}
 
 	@Input({
 			@Param(name = "repoType", type = ApiParamType.STRING, desc = "仓库类型"),
@@ -62,6 +67,7 @@ public class MergeApi extends PrivateApiComponentBase {
 			@Param(name = "mergeBase", type = ApiParamType.STRING, desc = "mergeBase commitId"),
 			@Param(name = "isFirstIssue", type = ApiParamType.BOOLEAN, desc = "")
 	})
+	@Description(desc = "合并接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();
@@ -547,10 +553,6 @@ public class MergeApi extends PrivateApiComponentBase {
 		}
 	}
 
-	@Override
-	public String getName() {
-		return null;
-	}
 
 /*	@Override
 	public JSONArray help() {

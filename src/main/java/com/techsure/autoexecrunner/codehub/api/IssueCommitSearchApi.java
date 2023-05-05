@@ -18,6 +18,7 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -69,6 +70,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 			@Param(name = "forceFlush", type = ApiParamType.BOOLEAN, desc = "强制刷新"),
 			@Param(name = "onlyOpenStatusCommit", type = ApiParamType.BOOLEAN, desc = "是否只展示开启的commit")
 	})
+	@Description(desc = "查看提交issue接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

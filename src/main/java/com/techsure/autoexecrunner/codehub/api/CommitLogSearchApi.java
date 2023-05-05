@@ -7,6 +7,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -35,49 +36,6 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 		return "根据分支名称或者标签名称查询commitlog列表";
 	}
 
-/*	@Override
-	public JSONArray help() {
-		JSONArray jsonArray = new JSONArray();
-
-		ApiHelpUtils.addRepoAuthJsonObj(jsonArray);
-
-		JSONObject jsonObj = new JSONObject();
-		jsonObj.put("name", "queryType");
-		jsonObj.put("type", "String");
-		jsonObj.put("desc", "查询类型：只能填写branch或者tag");
-		jsonArray.add(jsonObj);
-		
-		jsonObj = new JSONObject();
-		jsonObj.put("name", "jqueryName");
-		jsonObj.put("type", "String");
-		jsonObj.put("desc", "查询字段名称：分支名称或者标签名称");
-		jsonArray.add(jsonObj);
-
-		jsonObj = new JSONObject();
-		jsonObj.put("name", "startCommitId");
-		jsonObj.put("type", "String");
-		jsonObj.put("desc", "获取日志的启始提交ID， null代表从头部开始");
-		jsonArray.add(jsonObj);
-
-		jsonObj = new JSONObject();
-		jsonObj.put("name", "pageSize");
-		jsonObj.put("type", "Int");
-		jsonObj.put("desc", "每页查询条数,默认是10");
-		jsonArray.add(jsonObj);
-
-		jsonObj = new JSONObject();
-		jsonObj.put("name", "startTime");
-		jsonObj.put("type", "Long");
-		jsonObj.put("desc", "开始时间（单位：秒，默认是前一天）：查询的结果是大于等于这个开始时间的");
-		jsonArray.add(jsonObj);
-
-		ApiHelpUtils.addSVNWorkingCopyPathJsonObj(jsonArray);
-
-		return jsonArray;
-	}*/
-
-
-
 	@Input({
 			@Param(name = "repoType", type = ApiParamType.STRING, desc = "仓库类型"),
 			@Param(name = "url", type = ApiParamType.STRING, desc = "url"),
@@ -92,6 +50,7 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 	})
 	@Output({
 	})
+	@Description(desc = "查询commitlog列表接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

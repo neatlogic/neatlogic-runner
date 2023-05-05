@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -46,6 +47,7 @@ public class TagApi extends PrivateApiComponentBase {
             @Param(name = "hasCommit", type = ApiParamType.STRING, desc = "是否提交"),
             @Param(name = "method", type = ApiParamType.STRING, desc = "标签操作方法")
     })
+    @Description(desc = "标签接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String repoType = JSONUtils.optString(jsonObj, "repoType", "").trim().toLowerCase();

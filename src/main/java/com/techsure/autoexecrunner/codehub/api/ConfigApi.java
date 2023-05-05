@@ -5,6 +5,7 @@ package com.techsure.autoexecrunner.codehub.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.common.config.Config;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,7 @@ public class ConfigApi extends PrivateApiComponentBase {
 
 
 	@Override
+	@Description(desc = "获取配置文件接口")
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		JSONObject retObj = new JSONObject();
 

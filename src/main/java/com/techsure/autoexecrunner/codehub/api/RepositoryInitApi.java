@@ -14,6 +14,7 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.SvnAgentUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -51,6 +52,7 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 			@Param(name = "branchesPath", type = ApiParamType.STRING, desc = "分支路径"),
 			@Param(name = "tagsPath", type = ApiParamType.STRING, desc = "标签路径")
 	})
+	@Description(desc = "仓库初始化接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String createMode = JSONUtils.optString(jsonObj,"createMode", "").trim();

@@ -11,6 +11,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -38,41 +39,6 @@ public class DownloadApi extends PrivateBinaryStreamApiComponentBase {
         return "仓库文件下载";
     }
 
-/*    @Override
-    public JSONArray help() {
-        JSONArray jsonArray = new JSONArray();
-
-        ApiHelpUtils.addRepoAuthJsonObj(jsonArray);
-
-        JSONObject jsonObj = new JSONObject();
-        jsonObj.put("name", "branchName");
-        jsonObj.put("type", "String");
-        jsonObj.put("desc", "分支名称");
-        jsonArray.add(jsonObj);
-
-        jsonObj = new JSONObject();
-        jsonObj.put("name", "commitId");
-        jsonObj.put("type", "String");
-        jsonObj.put("desc", "commitId");
-        jsonArray.add(jsonObj);
-
-        jsonObj = new JSONObject();
-        jsonObj.put("name", "filePath");
-        jsonObj.put("type", "String");
-        jsonObj.put("desc", "需要下载的文件路径");
-        jsonArray.add(jsonObj);
-
-        jsonObj = new JSONObject();
-        jsonObj.put("name", "filePathType");
-        jsonObj.put("type", "String");
-        jsonObj.put("desc", "需要下载的文件类型(file:文件，dir：目录)");
-        jsonArray.add(jsonObj);
-
-        ApiHelpUtils.addSVNWorkingCopyPathJsonObj(jsonArray);
-
-        return jsonArray;
-    }*/
-
     @Input({
             @Param(name = "repoType", type = ApiParamType.STRING, desc = "仓库类型"),
             @Param(name = "url", type = ApiParamType.STRING, desc = "url"),
@@ -86,6 +52,7 @@ public class DownloadApi extends PrivateBinaryStreamApiComponentBase {
             @Param(name = "branchesPath", type = ApiParamType.STRING, desc = "分支路径"),
             @Param(name = "tagsPath", type = ApiParamType.STRING, desc = "标签路径")
     })
+    @Description(desc = "仓库文件下载接口")
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

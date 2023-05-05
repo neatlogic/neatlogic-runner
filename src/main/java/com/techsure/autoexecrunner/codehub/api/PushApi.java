@@ -5,6 +5,7 @@ import com.techsure.autoexecrunner.codehub.git.GitWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -27,7 +28,7 @@ public class PushApi extends PrivateApiComponentBase {
 
 	@Override
 	public String getName() {
-		return null;
+		return "推送接口";
 	}
 
 	@Input({
@@ -37,6 +38,7 @@ public class PushApi extends PrivateApiComponentBase {
 			@Param(name = "password", type = ApiParamType.STRING, desc = "密码"),
 			@Param(name = "targetBranch", type = ApiParamType.STRING, desc = "目标分支")
 	})
+	@Description(desc = "推送接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

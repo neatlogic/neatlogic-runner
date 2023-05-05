@@ -12,6 +12,7 @@ import javax.net.ssl.X509TrustManager;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -52,6 +53,7 @@ public class RepositoryServiceCheckApi extends PrivateApiComponentBase {
 			@Param(name = "type", type = ApiParamType.STRING, desc = "仓库类型"),
 			@Param(name = "address", type = ApiParamType.STRING, desc = "地址")
 	})
+	@Description(desc = "仓库服务校验接口")
 	@Override
 	public Object myDoService(JSONObject config) {
 		String type = JSONUtils.optString(config,"type", "").trim();

@@ -10,6 +10,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -49,6 +50,7 @@ public class RevertCheckApi extends PrivateApiComponentBase {
 			@Param(name = "commitMergerEmail", type = ApiParamType.STRING, desc = "提交合并人邮箱"),
 			@Param(name = "commitMergerComment", type = ApiParamType.STRING, desc = "合并信息")
 	})
+	@Description(desc = "检查是否可以revert接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

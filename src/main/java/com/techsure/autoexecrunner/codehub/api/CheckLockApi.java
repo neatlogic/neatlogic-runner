@@ -7,6 +7,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -47,6 +48,7 @@ public class CheckLockApi extends PrivateApiComponentBase {
     })
     @Output({
     })
+    @Description(desc = "校验文件是否上锁接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -49,6 +50,7 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
 			@Param(name = "skipCount", type = ApiParamType.INTEGER, desc = "略过的数量，当skipCount=0时，代表不略过"),
 			@Param(name = "limitCount", type = ApiParamType.INTEGER, desc = "查询的最大数量，当limitCount=0是，代表查询全部,默认是1000")
 	})
+	@Description(desc = "仓库文件搜索接口")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
 		String repoType = JSONUtils.optString(jsonObj,"repoType", "").trim().toLowerCase();

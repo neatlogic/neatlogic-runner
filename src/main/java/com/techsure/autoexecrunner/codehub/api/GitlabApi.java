@@ -6,6 +6,7 @@ import java.util.Set;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
 import com.techsure.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
@@ -38,6 +39,7 @@ public class GitlabApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "method", type = ApiParamType.STRING, desc = "gitlab具体要调用的方法")
     })
+    @Description(desc = "外部系统调用的GitlabAPI接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String method = jsonObj.getString("method");

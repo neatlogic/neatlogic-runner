@@ -118,7 +118,7 @@ public class Config {
                 logger.error("请在配置文件中定义autoexec.home参数");
             }
             DEPLOY_HOME = prop.getProperty("deploy.home");
-            JWT_SECRET = prop.getProperty("jwt.secret", "techsure#neatlogic$secret");
+            JWT_SECRET = prop.getProperty("jwt.secret", "neatlogic#neatlogic$secret");
             NEATLOGIC_ROOT = prop.getProperty("neatlogic.root", "http://localhost:8083/neatlogic");
             AUTH_TYPE = prop.getProperty("auth.type", "");
             ACCESS_KEY = prop.getProperty("access.key", "admin");

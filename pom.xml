@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>com.techsure</groupId>
-    <artifactId>autoexecrunner</artifactId>
+    <artifactId>neatlogic-runner</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0.0-SNAPSHOT</version>
      <properties>
@@ -30,7 +30,7 @@
 
     <build>
         <!--指定打成的jar包名称-->
-        <finalName>autoexecrunner</finalName>
+        <finalName>neatlogic-runner</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

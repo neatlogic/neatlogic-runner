@@ -48,8 +48,8 @@ public class WorkingCopyUtils {
 		// e.g. : /app/data/workingcopy/0000b3be43802000/.cache/0000b3be43803000/zouye_src_branch
 		return String.format("%s/%s/.cache/%s/%s",
 				Config.WORKING_COPY_PATH,
-				arg.getString("repoServiceUuid"),
-				arg.getString("repoUuid"),
+				arg.getString("repositoryServiceId"),
+				arg.getString("repositoryId"),
 				StringUtils.replaceChars(arg.getString("srcBranch"), INVALID_CHARS, StringUtils.repeat("_", INVALID_CHARS.length())));
 	}
 
@@ -106,14 +106,14 @@ public class WorkingCopyUtils {
 
 	public static void checkWcArgs(JSONObject jsonObj) {
 		String repoType = jsonObj.getString("repoType").trim().toLowerCase();
-		String repoServiceUuid = jsonObj.getString("repoServiceUuid");
+		String repositoryServiceId = jsonObj.getString("repositoryServiceId");
 		String repoPath = jsonObj.getString("repoPath");
 
 		if (StringUtils.isBlank(repoType) || (!"svn".equalsIgnoreCase(repoType) && !"gitlab".equalsIgnoreCase(repoType))) {
 			throw new RuntimeException("请指定仓库服务类型repoType, 支持的类型为 svn、gitlab");
 		}
 
-		if (StringUtils.isBlank(repoServiceUuid)) {
+		if (StringUtils.isBlank(repositoryServiceId)) {
 			throw new RuntimeException("仓库服务repoServiceUuid不能为空");
 		}
 

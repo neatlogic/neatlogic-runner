@@ -65,8 +65,8 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 			@Param(name = "groupByIssue", type = ApiParamType.BOOLEAN, desc = ""),
 			@Param(name = "srcStartCommit", type = ApiParamType.STRING, desc = "开始提交源"),
 			@Param(name = "srcEndCommit", type = ApiParamType.STRING, desc = "结束提交源"),
-			@Param(name = "repoServiceUuid", type = ApiParamType.STRING, desc = "仓库服务id"),
-			@Param(name = "repoUuid", type = ApiParamType.STRING, desc = "仓库id"),
+			@Param(name = "repositoryServiceId", type = ApiParamType.LONG, desc = "仓库服务id"),
+			@Param(name = "repositoryId", type = ApiParamType.LONG, desc = "仓库id"),
 			@Param(name = "forceFlush", type = ApiParamType.BOOLEAN, desc = "强制刷新"),
 			@Param(name = "onlyOpenStatusCommit", type = ApiParamType.BOOLEAN, desc = "是否只展示开启的commit")
 	})
@@ -89,8 +89,8 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 		String srcStartCommit = JSONUtils.optString(jsonObj,"srcStartCommit", null);
 		String srcEndCommit = JSONUtils.optString(jsonObj,"srcEndCommit", null);
 		
-		String repoServiceUuid = jsonObj.getString("repoServiceUuid");
-		String repoUuid = jsonObj.getString("repoUuid");
+		Long repositoryServiceId = jsonObj.getLong("repositoryServiceId");
+		Long repositoryId = jsonObj.getLong("repositoryId");
 		boolean forceFlush = JSONUtils.optBoolean(jsonObj,"forceFlush", false);
 		
 		// MR创建页面 搜索commit只展示未合并过的commit
@@ -104,7 +104,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 	            List<CommitInfo> commitInfoList = new ArrayList<>();
 	            
 	            if (Config.CACHE_ENABLE) {
- 	            	Cache cache = new Cache(repoServiceUuid, repoUuid, srcBranch);
+ 	            	Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
  	            	
  	                // --bug=1008004 --user=邹叶 【代码中心】码线上有提交，创建MR时却提示需求无效 https://www.tapd.cn/54247054/s/1154320
  	            	// srcEndCommit 为空，说明请求来自创建MR，此时走强制刷新：从远程取提交并更新本地缓存。
@@ -319,7 +319,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 				wc = new GitWorkingCopy(wcPath, url, username, pwd);
 				wc.update();
 //				wc.checkout(targetBranch, true);
-				Cache cache = new Cache(repoServiceUuid, repoUuid, srcBranch);
+				Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
 				
 				String targetStartCommit = JSONUtils.optString(jsonObj,"targetStartCommit", "");
 				List<String> commitIdList = null;

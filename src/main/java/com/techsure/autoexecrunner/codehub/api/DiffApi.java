@@ -63,7 +63,7 @@ public class DiffApi extends PrivateApiComponentBase {
 			@Param(name = "leftCommitId", type = ApiParamType.STRING, desc = ""),
 			@Param(name = "rightCommitId", type = ApiParamType.STRING, desc = ""),
 			@Param(name = "filePath", type = ApiParamType.STRING, desc = "文件路径"),
-			@Param(name = "srcBranch", type = ApiParamType.STRING, desc = "源分支",isRequired = true),
+			@Param(name = "srcBranch", type = ApiParamType.STRING, desc = "源分支"),
 			@Param(name = "targetBranch", type = ApiParamType.STRING, desc = "目标分支"),
 			@Param(name = "srcStartCommit", type = ApiParamType.STRING, desc = "起始提交源"),
 			@Param(name = "maxChangeCount", type = ApiParamType.INTEGER, desc = "最大变更数"),
@@ -72,8 +72,8 @@ public class DiffApi extends PrivateApiComponentBase {
 			@Param(name = "branchesPath", type = ApiParamType.STRING, desc = "分支路径"),
 			@Param(name = "tagsPath", type = ApiParamType.STRING, desc = "标签路径"),
 			@Param(name = "forceFlush", type = ApiParamType.BOOLEAN, desc = "强制刷新"),
-			@Param(name = "repoServiceUuid", type = ApiParamType.STRING, desc = "仓库服务id",isRequired = true),
-			@Param(name = "repoUuid", type = ApiParamType.STRING, desc = "仓库id",isRequired = true),
+			@Param(name = "repositoryServiceId", type = ApiParamType.LONG, desc = "仓库服务id",isRequired = true),
+			@Param(name = "repositoryId", type = ApiParamType.LONG, desc = "仓库id",isRequired = true),
 			@Param(name = "isMrDiff", type = ApiParamType.BOOLEAN, desc = "是否合并差异")
 	})
 	@Output({
@@ -94,8 +94,8 @@ public class DiffApi extends PrivateApiComponentBase {
 		int maxChangeCount = JSONUtils.optInt(jsonObj,"maxChangeCount", -1);
 		int maxSearchCount = JSONUtils.optInt(jsonObj,"maxSearchCount", 300);
 		boolean forceFlush = JSONUtils.optBoolean(jsonObj,"forceFlush", false);
-		String repoServiceUuid = jsonObj.getString("repoServiceUuid");
-		String repoUuid = jsonObj.getString("repoUuid");
+		Long repositoryServiceId = jsonObj.getLong("repositoryServiceId");
+		Long repositoryId = jsonObj.getLong("repositoryId");
 		boolean isMrDiff = JSONUtils.optBoolean(jsonObj,"isMrDiff", false);
 
 		String wcPath = WorkingCopyUtils.getWcPath(jsonObj);
@@ -115,7 +115,7 @@ public class DiffApi extends PrivateApiComponentBase {
 				if (isMrDiff) {
 					JSONArray commitList = new JSONArray();
 					List<CommitInfo> newCommitList = null;
-					Cache cache = new Cache(repoServiceUuid, repoUuid, srcBranch);
+					Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
 
 					newCommitList = getCommitInfoList(wc, cache, jsonObj);
 
@@ -209,7 +209,7 @@ public class DiffApi extends PrivateApiComponentBase {
 						}
 					}
 
-					Cache cache = new Cache(repoServiceUuid, repoUuid, srcBranch);
+					Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
 					if (Config.CACHE_ENABLE && !forceFlush) {
 						if (StringUtils.isBlank(filePath)) {
 							fileDiffInfos = cache.readGitDiffFromCache(leftCommitId, rightCommitId);

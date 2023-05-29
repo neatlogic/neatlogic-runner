@@ -6,14 +6,6 @@
 <img src="https://img.shields.io/badge/Slack-Neatlogic-orange" /></a>
 </p>
 
-中文 / [English](README.en.md)
-<p align="left">
-    <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
-        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
-<a target="_blank" href="https://join.slack.com/t/neatlogichome/shared_invite/zt-1w037axf8-r_i2y4pPQ1Z8FxOkAbb64w">
-<img src="https://img.shields.io/badge/Slack-Neatlogic-orange" /></a>
-</p>
-
 ## 关于
 neatlogic-runner(执行器)是一个纯后端应用,部署上主要是为了解决跨网段安全策略问题,功能上用于代理执行自动化本地或远程作业任务场景(包括[neatlogic-tagent](../../../neatlogic-tagent/blob/develop3.0.0/README.md)注册、日志查询,以及衔接代理[neatlogic-autoexec](../../../neatlogic-autoexec/blob/develop3.0.0/README.md)和[neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.MD)逻辑)<br>
 实现自动化作业、巡检、发布、自动发现采集数据存放在[neatlogic-cmdb](../../../neatlogic-cmdb/blob/develop3.0.0/README.md)，配合[neatlogic-itsm](../../../neatlogic-itsm/blob/develop3.0.0/README.md)支持在流程中实现流程自动化

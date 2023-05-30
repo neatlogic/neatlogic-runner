@@ -115,7 +115,7 @@ public class DiffApi extends PrivateApiComponentBase {
 				if (isMrDiff) {
 					JSONArray commitList = new JSONArray();
 					List<CommitInfo> newCommitList = null;
-					Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
+					Cache cache = new Cache(repositoryServiceId, repositoryId, srcBranch);
 
 					newCommitList = getCommitInfoList(wc, cache, jsonObj);
 
@@ -209,7 +209,7 @@ public class DiffApi extends PrivateApiComponentBase {
 						}
 					}
 
-					Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
+					Cache cache = new Cache(repositoryServiceId, repositoryId, srcBranch);
 					if (Config.CACHE_ENABLE && !forceFlush) {
 						if (StringUtils.isBlank(filePath)) {
 							fileDiffInfos = cache.readGitDiffFromCache(leftCommitId, rightCommitId);

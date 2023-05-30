@@ -66,8 +66,8 @@ public class Cache {
 	
 	private File headFile = null;
 	
-	public Cache(String repoServiceUuid, String repositoryUuid, String branchName) {
-		this.repositoryPathStr = String.format("%s/%s/.cache/%s/", Config.WORKING_COPY_PATH, repoServiceUuid, repositoryUuid);
+	public Cache(Long repositoryServiceId, Long repositoryId, String branchName) {
+		this.repositoryPathStr = String.format("%s/%s/.cache/%s/", Config.WORKING_COPY_PATH, repositoryServiceId, repositoryId);
 		
 		this.cachePathStr = repositoryPathStr + 
 			StringUtils.replaceChars(branchName, INVALID_CHARS, StringUtils.repeat("_", INVALID_CHARS.length())) + "/";

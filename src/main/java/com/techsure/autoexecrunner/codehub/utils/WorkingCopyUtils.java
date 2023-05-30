@@ -38,13 +38,13 @@ public class WorkingCopyUtils {
 	public static String getWcPath(JSONObject arg) {
 		checkWcArgs(arg);
 
-		return Config.WORKING_COPY_PATH + File.separator + arg.getString("repoServiceUuid") + File.separator + arg.getString("repoPath");
+		return Config.WORKING_COPY_PATH + File.separator + arg.getString("repositoryServiceId") + File.separator + arg.getString("repoPath");
 	}
 
 	public static String getCachePath(JSONObject arg) {
 		checkWcArgs(arg);
 
-		// cache file path: wcpath/repositoryServiceUuid/.cache/repositoryUuid/srcBranch
+		// cache file path: wcpath/repositoryServiceId/.cache/repositoryId/srcBranch
 		// e.g. : /app/data/workingcopy/0000b3be43802000/.cache/0000b3be43803000/zouye_src_branch
 		return String.format("%s/%s/.cache/%s/%s",
 				Config.WORKING_COPY_PATH,
@@ -114,7 +114,7 @@ public class WorkingCopyUtils {
 		}
 
 		if (StringUtils.isBlank(repositoryServiceId)) {
-			throw new RuntimeException("仓库服务repoServiceUuid不能为空");
+			throw new RuntimeException("仓库服务repositoryServiceId不能为空");
 		}
 
 		if (StringUtils.isBlank(repoPath)) {

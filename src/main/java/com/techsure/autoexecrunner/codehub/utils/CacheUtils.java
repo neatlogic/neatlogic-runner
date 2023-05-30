@@ -22,11 +22,11 @@ public class CacheUtils {
 
 	public static String INVALID_CHARS = "\\/:*?\"<>|.";
 	
-	public static String readCache(boolean forceFlush, String repoServiceUuid, String repoUuid, String srcBranch, String targetBranch) {
+	public static String readCache(boolean forceFlush, Long repositoryServiceId, Long repositoryId, String srcBranch, String targetBranch) {
 		if (forceFlush) {
 			return null;
 		} else {
-			String cachePath = getCachePath(repoServiceUuid, repoUuid, srcBranch, targetBranch);			
+			String cachePath = getCachePath(repositoryServiceId, repositoryId, srcBranch, targetBranch);
 			File cacheFilePath = new File(cachePath);
 			if (cacheFilePath.exists()) {
 				File headFile = new File(cachePath + "/HEAD");
@@ -42,10 +42,10 @@ public class CacheUtils {
 	}
 	
 	
-	public static String getCommitsFromCache(String repoServiceUuid, String repoUuid, String repoType, 
+	public static String getCommitsFromCache(Long repositoryServiceId, Long repositoryId, String repoType,
 			String srcBranch, String targetBranch, String srcCommitId, String mergeBase) {
 		
-		String cachePath = getCachePath(repoServiceUuid, repoUuid, srcBranch, targetBranch);
+		String cachePath = getCachePath(repositoryServiceId, repositoryId, srcBranch, targetBranch);
 		
 		// SVN 需求型
 		if (RepoType.SVN.myEquals(repoType)) {
@@ -73,16 +73,16 @@ public class CacheUtils {
 		return null;
 	}
 	
-	public static String getCachePath(String repoServiceUuid, String repoUuid, String srcBranch, String targetBranch) {
+	public static String getCachePath(Long repositoryServiceId, Long repositoryId, String srcBranch, String targetBranch) {
 		return String.format("%s/%s/.cache/%s/%s.%s",
 			Config.WORKING_COPY_PATH,
-			repoServiceUuid,
-			repoUuid,
+				repositoryServiceId,
+				repositoryId,
 			StringUtils.replaceChars(srcBranch, INVALID_CHARS, StringUtils.repeat("_", INVALID_CHARS.length())),
 			StringUtils.replaceChars(targetBranch, INVALID_CHARS, StringUtils.repeat("_", INVALID_CHARS.length())));
 	}
 	
-	public static String getCommitCachePath(String repoServiceUuid, String repoUuid, String repoType,
+	public static String getCommitCachePath(Long repositoryServiceId, Long repositoryId, String repoType,
 			String srcBranch, String targetBranch, String srcCommitId, String mergeBase) {
 		
 		if (RepoType.SVN.myEquals(repoType)) {

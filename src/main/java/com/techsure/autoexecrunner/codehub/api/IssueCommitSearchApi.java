@@ -104,7 +104,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 	            List<CommitInfo> commitInfoList = new ArrayList<>();
 	            
 	            if (Config.CACHE_ENABLE) {
- 	            	Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
+ 	            	Cache cache = new Cache(repositoryServiceId, repositoryId, srcBranch);
  	            	
  	                // --bug=1008004 --user=邹叶 【代码中心】码线上有提交，创建MR时却提示需求无效 https://www.tapd.cn/54247054/s/1154320
  	            	// srcEndCommit 为空，说明请求来自创建MR，此时走强制刷新：从远程取提交并更新本地缓存。
@@ -319,7 +319,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 				wc = new GitWorkingCopy(wcPath, url, username, pwd);
 				wc.update();
 //				wc.checkout(targetBranch, true);
-				Cache cache = new Cache(repositoryServiceId.toString(), repositoryId.toString(), srcBranch);
+				Cache cache = new Cache(repositoryServiceId, repositoryId, srcBranch);
 				
 				String targetStartCommit = JSONUtils.optString(jsonObj,"targetStartCommit", "");
 				List<String> commitIdList = null;

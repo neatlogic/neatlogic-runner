@@ -30,9 +30,9 @@ import com.techsure.autoexecrunner.codehub.dto.merge.MergeFileEntry;
 import com.techsure.autoexecrunner.codehub.dto.merge.MergeResultInfo;
 import com.techsure.autoexecrunner.codehub.exception.GitOpsException;
 import com.techsure.autoexecrunner.codehub.exception.LockFailedException;
-import com.techsure.autoexecrunner.codehub.utils.FileUtils;
 import com.techsure.autoexecrunner.codehub.utils.RegexUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
+import com.techsure.autoexecrunner.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CherryPickCommand;
@@ -112,7 +112,7 @@ public class GitWorkingCopy {
 			wcGit = Git.open(localPath);
 		} catch (IOException e) {
 			try {
-				FileUtils.deleteDirectory(repoLocalDir);
+				FileUtil.deleteDirectoryOrFile(repoLocalDir);
 				cloneRepo();
 				wcGit = Git.open(localPath);
 			} catch (GitOpsException e1) {

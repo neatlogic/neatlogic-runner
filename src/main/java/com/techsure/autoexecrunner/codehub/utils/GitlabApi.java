@@ -620,7 +620,4 @@ public class GitlabApi {
             retObj.put(name, x);
         }
     }
-
-    
-
 }

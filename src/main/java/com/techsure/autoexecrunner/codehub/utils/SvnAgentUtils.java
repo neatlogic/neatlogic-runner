@@ -9,6 +9,9 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
+import com.techsure.autoexecrunner.util.HttpRequestUtil;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,19 +40,19 @@ public class SvnAgentUtils {
         String repoPath = jsonObj.getString("repoPath");
 
         if(StringUtils.isEmpty(createRepoUserId)){
-            throw new RuntimeException("参数userId不能为空");
+            throw new ApiRuntimeException("参数userId不能为空");
         }
         if(StringUtils.isEmpty(agentUrl)){
-            throw new RuntimeException("参数agentUrl不能为空");
+            throw new ApiRuntimeException("参数agentUrl不能为空");
         }
         if(StringUtils.isEmpty(username)){
-            throw new RuntimeException("参数agentUsername不能为空");
+            throw new ApiRuntimeException("参数agentUsername不能为空");
         }
         if(StringUtils.isEmpty(password)){
-            throw new RuntimeException("参数agentPassword不能为空");
+            throw new ApiRuntimeException("参数agentPassword不能为空");
         }
         if(StringUtils.isEmpty(repoPath)){
-            throw new RuntimeException("参数repoPath不能为空");
+            throw new ApiRuntimeException("参数repoPath不能为空");
         }
         String url = "";
         if(StringUtils.endsWith(agentUrl,"/")){
@@ -92,12 +95,12 @@ public class SvnAgentUtils {
             }
             else{
                 logger.error("仓库授权失败，错误信息：" + putAuthReturnJsonObject);
-                throw new RuntimeException("仓库授权失败，错误信息：" + putAuthReturnJsonObject);
+                throw new ApiRuntimeException("仓库授权失败，错误信息：" + putAuthReturnJsonObject);
             }
         }
         else{
             logger.error("创建仓库失败，错误信息：" + createRepoReturnJsonObj);
-            throw new RuntimeException("创建仓库失败，错误信息：" + createRepoReturnJsonObj);
+            throw new ApiRuntimeException("创建仓库失败，错误信息：" + createRepoReturnJsonObj);
         }
     }
 
@@ -121,7 +124,17 @@ public class SvnAgentUtils {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("groupid",groupid);
 
-        return (JSONObject) JSONObject.toJSON(RestHandler.post(url, jsonObject, getAuthHeader(username, password)));
+        Map<String,String> headers = getAuthHeader(username, password);
+        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url);
+        if (MapUtils.isNotEmpty(headers)) {
+            for (String key : headers.keySet()) {
+                httpRequestUtil.addHeader(key, headers.get(key));
+            }
+        }
+        httpRequestUtil.setPayload(jsonObject.toJSONString());
+        HttpRequestUtil requestPost = httpRequestUtil.sendRequest();
+        return requestPost.getResultJson();
+        //return (JSONObject) JSONObject.toJSON(RestHandler.post(url, jsonObject, getAuthHeader(username, password)));
     }
 
     /**
@@ -145,7 +158,17 @@ public class SvnAgentUtils {
         jsonObject.put("groupid", groupid);
         jsonObject.put("keyword", keyword);
 
-        return (JSONObject) JSONObject.toJSON(RestHandler.post(url, jsonObject, getAuthHeader(username, password)));
+        Map<String,String> headers = getAuthHeader(username, password);
+        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url);
+        if (MapUtils.isNotEmpty(headers)) {
+            for (String key : headers.keySet()) {
+                httpRequestUtil.addHeader(key, headers.get(key));
+            }
+        }
+        httpRequestUtil.setPayload(jsonObject.toJSONString());
+        HttpRequestUtil requestPost = httpRequestUtil.sendRequest();
+        return requestPost.getResultJson();
+        //return (JSONObject) JSONObject.toJSON(RestHandler.post(url, jsonObject, getAuthHeader(username, password)));
     }
 
 
@@ -180,16 +203,16 @@ public class SvnAgentUtils {
         String repo = jsonObj.getString("repo");
         
         if(StringUtils.isEmpty(userId)){
-            throw new RuntimeException("参数userId不能为空");
+            throw new ApiRuntimeException("参数userId不能为空");
         }
         if(StringUtils.isEmpty(agentUrl)){
-            throw new RuntimeException("参数agentUrl不能为空");
+            throw new ApiRuntimeException("参数agentUrl不能为空");
         }
         if(StringUtils.isEmpty(username)){
-            throw new RuntimeException("参数agentUsername不能为空");
+            throw new ApiRuntimeException("参数agentUsername不能为空");
         }
         if(StringUtils.isEmpty(password)){
-            throw new RuntimeException("参数agentPassword不能为空");
+            throw new ApiRuntimeException("参数agentPassword不能为空");
         }
         String url = "";
         if(StringUtils.endsWith(agentUrl,"/")){
@@ -208,7 +231,7 @@ public class SvnAgentUtils {
                 return jsonObject.getBoolean("content");
             }
         } else {
-            throw new RuntimeException("调用svn代理出错：" + jsonObject.toString());
+            throw new ApiRuntimeException("调用svn代理出错：" + jsonObject.toString());
         }
         return false;
     }
@@ -299,7 +322,15 @@ public class SvnAgentUtils {
     public static String get(String url, Map<String, String> headers) {
         JSONObject retObj;
         try {
-            return (String)RestHandler.get(url, headers);
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.get(url);
+            if (MapUtils.isNotEmpty(headers)) {
+                for (String key : headers.keySet()) {
+                    httpRequestUtil.addHeader(key, headers.get(key));
+                }
+            }
+            HttpRequestUtil requestGet = httpRequestUtil.sendRequest();
+            return requestGet.getResult();
+            //return (String)RestHandler.get(url, headers);
         } catch (Exception e) {
             String message = encodeHtml(e.getMessage());
 
@@ -307,20 +338,31 @@ public class SvnAgentUtils {
                 try {
                     retObj = JSONObject.parseObject(StringUtils.removeStart(message, "Server response "));
                 } catch (Exception e2) {
-                    throw new RuntimeException(message);
+                    throw new ApiRuntimeException(message);
                 }
                 if (retObj.containsKey("message")) {
-                    throw new RuntimeException(retObj.getString("message") + " ");
+                    throw new ApiRuntimeException(retObj.getString("message") + " ");
                 }
             }
-            throw new RuntimeException(message);
+            throw new ApiRuntimeException(message);
         }
     }
 
     public static String post(String url, JSONObject jsonObject, Map<String, String> headers) {
         JSONObject retObj;
         try {
-            return (String)RestHandler.post(url, jsonObject, headers);
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url);
+            if (MapUtils.isNotEmpty(headers)) {
+                for (String key : headers.keySet()) {
+                    httpRequestUtil.addHeader(key, headers.get(key));
+                }
+            }
+            if(jsonObject != null){
+                httpRequestUtil.setPayload(jsonObject.toJSONString());
+            }
+            HttpRequestUtil requestPost = httpRequestUtil.sendRequest();
+            return requestPost.getResult();
+            //return (String)RestHandler.post(url, jsonObject, headers);
         } catch (Exception e) {
             String message = encodeHtml(e.getMessage());
 
@@ -328,13 +370,13 @@ public class SvnAgentUtils {
                 try {
                     retObj = JSONObject.parseObject(StringUtils.removeStart(message, "Server response "));
                 } catch (Exception e2) {
-                    throw new RuntimeException(message);
+                    throw new ApiRuntimeException(message);
                 }
                 if (retObj.containsKey("message")) {
-                    throw new RuntimeException(retObj.getString("message") + " ");
+                    throw new ApiRuntimeException(retObj.getString("message") + " ");
                 }
             }
-            throw new RuntimeException(message);
+            throw new ApiRuntimeException(message);
         }
     }
 

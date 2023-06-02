@@ -3,6 +3,7 @@ package com.techsure.autoexecrunner.codehub.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class GitlabUtils {
 
         // 没有所属组则会在当前用户的命名空间下创建, 但是会导致仓库地址不正确
         if (!path.contains("/")) {
-            throw new RuntimeException("仓库地址的所属组不能为空");
+            throw new ApiRuntimeException("仓库地址的所属组不能为空");
         }
 
         if (gitlabApi.existsProject(path)) {
@@ -49,7 +50,7 @@ public class GitlabUtils {
             }
         }
         if (!isMatch) {
-            throw new RuntimeException("无法找到仓库地址上的项目组");
+            throw new ApiRuntimeException("无法找到仓库地址上的项目组");
         }
         JSONObject obj = new JSONObject();
         obj.put("name", name);

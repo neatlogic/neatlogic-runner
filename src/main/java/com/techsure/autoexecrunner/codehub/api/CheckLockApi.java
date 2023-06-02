@@ -7,6 +7,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -83,7 +84,7 @@ public class CheckLockApi extends PrivateApiComponentBase {
 
                     if (checkBranchPathExists) {
                         if (!new File(branchRealPath).exists()) {
-                            throw new RuntimeException(String.format("当前仓库 '%s' 的分支 '%s' 目录不存在，请先同步仓库分支", url, checkBranch));
+                            throw new ApiRuntimeException(String.format("当前仓库 '%s' 的分支 '%s' 目录不存在，请先同步仓库分支", url, checkBranch));
                         }
                         if (!new File(branchRealPath, ".svn").exists()) {
                             // 虽然分支目录下没有.svn但是可能上级目录存在, 此时单纯判断.svn不准确
@@ -92,7 +93,7 @@ public class CheckLockApi extends PrivateApiComponentBase {
                                 wc.getStatus(checkBranch);
                             } catch (Exception e) {
                                 if (StringUtils.contains(ExceptionUtils.getRootCauseMessage(e), "is not a working copy")) {
-                                    throw new RuntimeException(String.format("当前仓库 '%s' 的分支 '%s' 目录不存在，请先同步仓库分支", url, checkBranch));
+                                    throw new ApiRuntimeException(String.format("当前仓库 '%s' 的分支 '%s' 目录不存在，请先同步仓库分支", url, checkBranch));
                                 }
                                 logger.error(e.getMessage(), e);
                             }

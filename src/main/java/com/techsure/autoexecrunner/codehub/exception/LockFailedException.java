@@ -1,6 +1,8 @@
 package com.techsure.autoexecrunner.codehub.exception;
 
-public class LockFailedException extends RuntimeException {
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
+
+public class LockFailedException extends ApiRuntimeException {
     
     public LockFailedException(String message) {
         super(message);

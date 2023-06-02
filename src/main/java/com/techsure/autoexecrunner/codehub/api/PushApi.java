@@ -5,6 +5,7 @@ import com.techsure.autoexecrunner.codehub.git.GitWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -52,7 +53,7 @@ public class PushApi extends PrivateApiComponentBase {
 		JSONObject ret = new JSONObject();
 		
 		if (repoType.equals("svn")) {
-			throw new RuntimeException("此功能暂未实现");
+			throw new ApiRuntimeException("此功能暂未实现");
 		} else if (repoType.equals("gitlab")) {
 			GitWorkingCopy wc = new GitWorkingCopy(wcPath, url, username, pwd);
             wc.checkout(targetBranch, true);

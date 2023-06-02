@@ -10,6 +10,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -87,7 +88,7 @@ public class RevertCheckApi extends PrivateApiComponentBase {
 				wc = new GitWorkingCopy(wcPath, url, username, pwd);
 				
 				if (!wc.hasBranch(branch)) {
-					throw new RuntimeException(String.format("branch '%s' not exist", branch));
+					throw new ApiRuntimeException(String.format("branch '%s' not exist", branch));
 				}
 				wc.lock();
 				

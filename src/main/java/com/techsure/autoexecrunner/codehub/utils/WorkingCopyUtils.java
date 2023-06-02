@@ -21,6 +21,7 @@ import com.techsure.autoexecrunner.codehub.git.GitWorkingCopy;
 
 import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.common.config.Config;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -55,7 +56,7 @@ public class WorkingCopyUtils {
 
 	public static String getBranchRealPath(JSONObject jsonObj, String branchName) {
 		if (StringUtils.isBlank(branchName)) {
-			throw new RuntimeException("请指定分支名称");
+			throw new ApiRuntimeException("请指定分支名称");
 		}
 
 		if (jsonObj.getString("repoType").equalsIgnoreCase("svn")) {
@@ -78,12 +79,12 @@ public class WorkingCopyUtils {
 
 	public static String getRemoteRealUrl(JSONObject jsonObj, String branchName) {
 		if (StringUtils.isBlank(branchName)) {
-			throw new RuntimeException("请指定分支名称");
+			throw new ApiRuntimeException("请指定分支名称");
 		}
 
 		String url = jsonObj.getString("url").trim();
 		if (StringUtils.isBlank(url)) {
-			throw new RuntimeException("请指定仓库地址");
+			throw new ApiRuntimeException("请指定仓库地址");
 		}
 
 		if ("svn".equalsIgnoreCase(jsonObj.getString("repoType"))) {
@@ -110,15 +111,15 @@ public class WorkingCopyUtils {
 		String repoPath = jsonObj.getString("repoPath");
 
 		if (StringUtils.isBlank(repoType) || (!"svn".equalsIgnoreCase(repoType) && !"gitlab".equalsIgnoreCase(repoType))) {
-			throw new RuntimeException("请指定仓库服务类型repoType, 支持的类型为 svn、gitlab");
+			throw new ApiRuntimeException("请指定仓库服务类型repoType, 支持的类型为 svn、gitlab");
 		}
 
 		if (StringUtils.isBlank(repositoryServiceId)) {
-			throw new RuntimeException("仓库服务repositoryServiceId不能为空");
+			throw new ApiRuntimeException("仓库服务repositoryServiceId不能为空");
 		}
 
 		if (StringUtils.isBlank(repoPath)) {
-			throw new RuntimeException("仓库路径repoPath不能为空");
+			throw new ApiRuntimeException("仓库路径repoPath不能为空");
 		}
 	}
 

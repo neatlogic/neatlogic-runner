@@ -18,7 +18,6 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -308,7 +307,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 				}
             } catch (Exception ex) {
             	logger.error(ex.getMessage(), ex);
-            	throw new ApiRuntimeException(ex);
+            	throw new RuntimeException(ex);
             } finally {
             	if (wc != null) {
             		wc.close();
@@ -331,11 +330,11 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 					srcStartCommit = wc.resolveBranch(srcBranch);
 					
 					if (StringUtils.isBlank(targetStartCommit)) {
-						throw new ApiRuntimeException(String.format("branch '%s' is not exist", targetBranch));
+						throw new RuntimeException(String.format("branch '%s' is not exist", targetBranch));
 					}
 					
 					if (StringUtils.isBlank(srcStartCommit)) {
-						throw new ApiRuntimeException(String.format("branch '%s' is not exist", srcBranch));
+						throw new RuntimeException(String.format("branch '%s' is not exist", srcBranch));
 					}
 				}
 				
@@ -422,7 +421,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
 				}
 			} catch (Exception ex) {
 				logger.error(ex.getMessage(), ex);
-				throw new ApiRuntimeException(ex);
+				throw new RuntimeException(ex);
 			} finally {
 				if (wc != null) {
 					wc.close();

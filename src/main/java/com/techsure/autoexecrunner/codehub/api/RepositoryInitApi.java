@@ -14,7 +14,6 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.SvnAgentUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -69,7 +68,7 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 		if (repoType.equals("svn")) {
 			if (createMode.equals("manual")) {
 				if (!SvnAgentUtils.getDelegation(jsonObj)) {
-					throw new ApiRuntimeException("没有权限创建仓库");
+					throw new RuntimeException("没有权限创建仓库");
 				}
 				SvnAgentUtils.createRepo(jsonObj);
 			}
@@ -84,14 +83,14 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 					wc.getCommit(SVNRevision.HEAD.getNumber());
 				} catch (SVNOpsException e) {
 					wc.close();
-					throw new ApiRuntimeException(e.getMessage(), e);
+					throw new RuntimeException(e.getMessage(), e);
 				}
 				
 				// getRepositoryRoot返回域名是小写的
 				int idx = wc.getRepositoryRoot().lastIndexOf('/');
 				String baseUrl = wc.getRepositoryRoot().substring(0, idx);
 				if (!url.startsWith(baseUrl)) {
-					throw new ApiRuntimeException(String.format("仓库地址'%s'与远程地址'%s'域名不匹配", url , baseUrl));
+					throw new RuntimeException(String.format("仓库地址'%s'与远程地址'%s'域名不匹配", url , baseUrl));
 				}
 
 				if (createMode.equals("manual")){
@@ -111,18 +110,18 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 					// 验证分支和标签输入是否合法
 					if (StringUtils.isNotEmpty(mainBranch) && !wc.hasBranch(mainBranch)) {
 						wc.close();
-						throw new ApiRuntimeException("主干分支 '" + mainBranch + "' 不存在");
+						throw new RuntimeException("主干分支 '" + mainBranch + "' 不存在");
 					}
 
 					// hasBranch 默认会取branchesPath路径验证
 					if (StringUtils.isNotEmpty(branchesPath) && !wc.hasBranch("")) {
 						wc.close();
-						throw new ApiRuntimeException("分支路径 '" + branchesPath + "' 不存在");
+						throw new RuntimeException("分支路径 '" + branchesPath + "' 不存在");
 					}
 
 					if (StringUtils.isNotEmpty(tagsPath) && !wc.hasTag("")) {
 						wc.close();
-						throw new ApiRuntimeException("标签路径 '" + tagsPath + "' 不存在");
+						throw new RuntimeException("标签路径 '" + tagsPath + "' 不存在");
 					}
 				}
 				
@@ -183,7 +182,7 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 						}
 					} catch (Exception e) {
 						wc.close();
-						throw new ApiRuntimeException(e.getMessage(), e);
+						throw new RuntimeException(e.getMessage(), e);
 					}
 				}
 				wc.close();

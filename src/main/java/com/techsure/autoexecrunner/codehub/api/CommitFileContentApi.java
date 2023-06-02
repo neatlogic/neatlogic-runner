@@ -7,7 +7,6 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -77,15 +76,15 @@ public class CommitFileContentApi extends PrivateApiComponentBase {
         String url = jsonObj.getString("url");
 
         if (StringUtils.isEmpty(filePath)) {
-            throw new ApiRuntimeException("文件路径不能为空");
+            throw new RuntimeException("文件路径不能为空");
         }
         if (StringUtils.isEmpty(commitId)) {
-            throw new ApiRuntimeException("commitId不能为空");
+            throw new RuntimeException("commitId不能为空");
         }
 
         boolean returnArray = CONTENT_FORMAT_STRING.equals(contentFormat) ? false : true;
         if (returnArray && (lineStart < 0 || lineEnd < 0 || lineStart > lineEnd)) {
-            throw new ApiRuntimeException("行数控制参数非法");
+            throw new RuntimeException("行数控制参数非法");
         }
 
         Object ret = null;
@@ -100,7 +99,7 @@ public class CommitFileContentApi extends PrivateApiComponentBase {
                     ret = wc.getFileContent(Long.parseLong(commitId), filePath, Config.FILE_CONTENT_SHOW_MAX_SIZE);
                 }
             } catch (Exception e) {
-                throw new ApiRuntimeException(e);
+                throw new RuntimeException(e);
             } finally {
                 wc.close();
             }
@@ -118,7 +117,7 @@ public class CommitFileContentApi extends PrivateApiComponentBase {
                     ret = wc.getFileContent(commitId, filePath, Config.FILE_CONTENT_SHOW_MAX_SIZE);
                 }
             } catch (Exception e) {
-                throw new ApiRuntimeException(e);
+                throw new RuntimeException(e);
             } finally {
                 wc.close();
             }

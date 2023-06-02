@@ -1,15 +1,8 @@
 package com.techsure.autoexecrunner.codehub.utils;
 
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
-import com.techsure.autoexecrunner.util.HttpRequestUtil;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -58,17 +50,17 @@ public class GitlabApi {
         this.gitLabServerUrl = gitlabUrl;
         if ("password".equalsIgnoreCase(credentialType)) {
             if (username.isEmpty()) {
-                throw new ApiRuntimeException("gitlab用户名不能为空");
+                throw new RuntimeException("gitlab用户名不能为空");
             }
             if (password.isEmpty()) {
-                throw new ApiRuntimeException("gitlab密码不能为空");
+                throw new RuntimeException("gitlab密码不能为空");
             }
             JSONObject resObj = getGitLabAccessToken(username, password);
             this.token = resObj.getString("access_token");
             this.tokenType = "access_token";
         } else {
             if (password.isEmpty()) {
-                throw new ApiRuntimeException("gitlab token不能为空");
+                throw new RuntimeException("gitlab token不能为空");
             }
             this.token = password;
             this.tokenType = "private_token";
@@ -104,16 +96,7 @@ public class GitlabApi {
     }
     
     public JSONObject httpGet(String api, Map<String, Object> params) {
-        JSONObject param = new JSONObject();
-        HttpRequestUtil httpRequestUtil = HttpRequestUtil.get(formatQueryParams(this.gitLabServerUrl + api, params));
-        if (MapUtils.isNotEmpty(this.headers)) {
-            for (String key : this.headers.keySet()) {
-                httpRequestUtil.addHeader(key, this.headers.get(key));
-            }
-        }
-        HttpRequestUtil requestGet = httpRequestUtil.sendRequest();
-        //return RestHandler.httpRest("GET", formatQueryParams(this.gitLabServerUrl + api, params), headers, null);
-        return handleGitLabResult(requestGet.getResponseHeadersMap(),requestGet.getResult());
+        return RestHandler.httpRest("GET", formatQueryParams(this.gitLabServerUrl + api, params), headers, null);
     }
 
     /**
@@ -143,48 +126,15 @@ public class GitlabApi {
     }
     
     public JSONObject httpPost(String api, Map<String, Object> params, JSONObject json) {
-        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(formatQueryParams(this.gitLabServerUrl + api, params));
-        if (MapUtils.isNotEmpty(this.headers)) {
-            for (String key : this.headers.keySet()) {
-                httpRequestUtil.addHeader(key, this.headers.get(key));
-            }
-        }
-        if(json != null){
-            httpRequestUtil.setPayload(json.toJSONString());
-        }
-        HttpRequestUtil requestPost = httpRequestUtil.sendRequest();
-        //return RestHandler.httpRest("POST", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        return handleGitLabResult(requestPost.getResponseHeadersMap(),requestPost.getResult());
+        return RestHandler.httpRest("POST", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
     }
 
     public JSONObject httpPut(String api, Map<String, Object> params, JSONObject json) {
-        HttpRequestUtil httpRequestUtil = HttpRequestUtil.put(formatQueryParams(this.gitLabServerUrl + api, params));
-        if (MapUtils.isNotEmpty(this.headers)) {
-            for (String key : this.headers.keySet()) {
-                httpRequestUtil.addHeader(key, this.headers.get(key));
-            }
-        }
-        if(json != null){
-            httpRequestUtil.setPayload(json.toJSONString());
-        }
-        HttpRequestUtil requestPut = httpRequestUtil.sendRequest();
-        //return RestHandler.httpRest("PUT", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        return handleGitLabResult(requestPut.getResponseHeadersMap(),requestPut.getResult());
+        return RestHandler.httpRest("PUT", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
     }
 
     public void httpDelete(String api, Map<String, Object> params, JSONObject json) {
-        HttpRequestUtil httpRequestUtil = HttpRequestUtil.delete(formatQueryParams(this.gitLabServerUrl + api, params));
-        if (MapUtils.isNotEmpty(this.headers)) {
-            for (String key : this.headers.keySet()) {
-                httpRequestUtil.addHeader(key, this.headers.get(key));
-            }
-        }
-        if(json != null){
-            httpRequestUtil.setPayload(json.toJSONString());
-        }
-        HttpRequestUtil requestDelete = httpRequestUtil.sendRequest();
-        //RestHandler.httpRest("DELETE", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        handleGitLabResult(requestDelete.getResponseHeadersMap(),requestDelete.getResult());
+        RestHandler.httpRest("DELETE", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
     }
 
     public String formatQueryParams(String url, Map<String, Object> map) {
@@ -574,53 +524,6 @@ public class GitlabApi {
         }
         return groups;
     }
-
-
-    //统一处理返回结果
-    public static JSONObject handleGitLabResult(Map<String, List<String>> headers, String result) {
-        JSONObject retObj;
-        if (StringUtils.isEmpty(result)) {
-            retObj = new JSONObject();
-        } else {
-            Object object = JSON.parse(result);
-            if (object instanceof JSONObject) {
-                retObj = (JSONObject) object;
-            } else if (object instanceof JSONArray) {
-
-                retObj = new JSONObject();
-                retObj.put("list", object);
-
-                // 如果是带分页的接口, 需要把总页数等返回, gitlab是存在header里面的, 在这里直接也用header不太方便
-                savePaginationHeader(headers, "X-Total", retObj, "total");
-                savePaginationHeader(headers, "X-Total-Pages", retObj, "totalPages");
-                savePaginationHeader(headers, "X-Per-Page", retObj, "perPage");
-                savePaginationHeader(headers, "X-Page", retObj, "page");
-                savePaginationHeader(headers, "X-Next-Page", retObj, "nextPage");
-                savePaginationHeader(headers, "X-Prev-Page", retObj, "prevPage");
-
-            } else {
-                logger.error(result);
-                throw new JSONException(result);
-            }
-        }
-        return retObj;
-    }
-
-
-    //分页相关参数如果没返回 统一默认都是-1
-    public static void savePaginationHeader(Map<String,List<String>> headers, String headerKey, JSONObject retObj, String name) {
-        int x = -1;
-        if(MapUtils.isNotEmpty(headers)){
-            List<String> headerValueList = headers.get(headerKey);
-            if(CollectionUtils.isNotEmpty(headerValueList)){
-                x = Integer.parseInt(StringUtils.isNotBlank(headerValueList.get(0)) ? headerValueList.get(0) : "-1");
-            }
-        }
-        if (x != -1) {
-            retObj.put(name, x);
-        }
-    }
-
     
 
 }

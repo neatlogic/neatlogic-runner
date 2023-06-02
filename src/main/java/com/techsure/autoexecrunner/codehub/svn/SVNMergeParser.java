@@ -5,7 +5,6 @@ package com.techsure.autoexecrunner.codehub.svn;
 import com.techsure.autoexecrunner.codehub.constvalue.MergeFileStatus;
 import com.techsure.autoexecrunner.codehub.dto.merge.MergeFileEntry;
 import com.techsure.autoexecrunner.codehub.dto.merge.MergeResultInfo;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ public class SVNMergeParser {
                     processGetSummary(line);
                 } else {
                     System.err.println(line);
-                    throw new ApiRuntimeException("parse command failed," + logStr);
+                    throw new RuntimeException("parse command failed," + logStr);
                 }
             }
 

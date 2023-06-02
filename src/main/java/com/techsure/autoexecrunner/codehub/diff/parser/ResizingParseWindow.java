@@ -3,8 +3,6 @@
  */
 package com.techsure.autoexecrunner.codehub.diff.parser;
 
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -73,7 +71,7 @@ public class ResizingParseWindow implements ParseWindow {
 				}
 			}
 		} catch (IOException e) {
-			throw new ApiRuntimeException(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -93,7 +91,7 @@ public class ResizingParseWindow implements ParseWindow {
 				return lineQueue.peekFirst();
 			}
 		} catch (IOException e) {
-			throw new ApiRuntimeException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

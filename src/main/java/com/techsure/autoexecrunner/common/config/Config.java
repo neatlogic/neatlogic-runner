@@ -46,7 +46,7 @@ public class Config {
 
 
     //codehub
-    public static String NEATLOGIC_HOME;
+    public static String TECHSURE_HOME;
 
     public static FileNameMap FILE_NAME_MAP;
 
@@ -201,12 +201,12 @@ public class Config {
             GITLAB_PASSWORD = prop.getProperty("gitlab.password");
 
             //codehub
-            NEATLOGIC_HOME = System.getenv("NEATLOGIC_HOME");
-            if (NEATLOGIC_HOME == null || "".equals(NEATLOGIC_HOME)) {
-                NEATLOGIC_HOME = "/app";
+            TECHSURE_HOME = System.getenv("TECHSURE_HOME");
+            if (TECHSURE_HOME == null || "".equals(TECHSURE_HOME)) {
+                TECHSURE_HOME = "/app";
             }
 
-            WORKING_COPY_PATH = NEATLOGIC_HOME + prop.getProperty("repo.workingcopy.path", "/data/workingcopy");
+            WORKING_COPY_PATH = TECHSURE_HOME + prop.getProperty("repo.workingcopy.path", "/data/workingcopy");
             ISSUE_PATTERN = Pattern.compile(prop.getProperty("issue.pattern", "^\\s*([a-zA-Z]+-\\d+)"), 0);
 
             String issueSeparator = prop.getProperty("issue.separator", ",，\\s");

@@ -9,7 +9,6 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.SvnAgentUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -89,17 +88,17 @@ public class SvnApi extends PrivateApiComponentBase {
             int idx = wc.getRepositoryRoot().lastIndexOf('/');
             String baseUrl = wc.getRepositoryRoot().substring(0, idx);
             if (!url.startsWith(baseUrl)) {
-                throw new ApiRuntimeException(String.format("仓库地址'%s'与远程地址'%s'域名不匹配", url , baseUrl));
+                throw new RuntimeException(String.format("仓库地址'%s'与远程地址'%s'域名不匹配", url , baseUrl));
             }
 	        JSONObject jsonObject;
 	        if ("putauth".equals(method)) {
 	        	if (paramJsonObj == null) {
-	        		throw new ApiRuntimeException("请指定权限列表");
+	        		throw new RuntimeException("请指定权限列表");
 	        	}
 	        	String repoName = wc.getRepositoryRoot().substring(idx + 1);
                 jsonObj.put("repo", repoName);
 	        	if (!SvnAgentUtils.getDelegation(jsonObj)) {
-	        		throw new ApiRuntimeException("禁止修改仓库权限");
+	        		throw new RuntimeException("禁止修改仓库权限");
                 }
 	        	
 	        	if (StringUtils.equals(StringUtils.stripEnd(wc.getRepositoryRoot(), "/"), StringUtils.stripEnd(url, "/"))) {
@@ -198,7 +197,7 @@ public class SvnApi extends PrivateApiComponentBase {
                 jsonObj.put("repo", repoName);
 	        	return SvnAgentUtils.getDelegation(jsonObj);
 	        } else {
-	            throw new ApiRuntimeException("method error: " + method);
+	            throw new RuntimeException("method error: " + method);
 	        }
 	
 	        String status = jsonObject.getString("status");
@@ -209,10 +208,10 @@ public class SvnApi extends PrivateApiComponentBase {
 	                return jsonObject;
 	            }
 	        } else {
-	            throw new ApiRuntimeException("调用svn代理出错：" + jsonObject.toString());
+	            throw new RuntimeException("调用svn代理出错：" + jsonObject.toString());
 	        }
         } catch (Exception e) {
-        	throw new ApiRuntimeException(e);
+        	throw new RuntimeException(e);
         } finally {
         	if (wc != null) {
         		wc.close();

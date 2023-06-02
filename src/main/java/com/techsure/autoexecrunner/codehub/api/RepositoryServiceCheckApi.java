@@ -12,7 +12,6 @@ import javax.net.ssl.X509TrustManager;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
-import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -61,11 +60,11 @@ public class RepositoryServiceCheckApi extends PrivateApiComponentBase {
 		String address = JSONUtils.optString(config,"address", "").trim();
 
 		if (StringUtils.isBlank(type) || (!"svn".equalsIgnoreCase(type) && !"gitlab".equalsIgnoreCase(type))) {
-			throw new ApiRuntimeException("请指定仓库服务类型, 支持的类型为 svn、gitlab");
+			throw new RuntimeException("请指定仓库服务类型, 支持的类型为 svn、gitlab");
 		}
 
 		if (StringUtils.isBlank(address)) {
-			throw new ApiRuntimeException("请指定仓库服务地址");
+			throw new RuntimeException("请指定仓库服务地址");
 		}
 
 		String errMsg = "";
@@ -150,7 +149,7 @@ public class RepositoryServiceCheckApi extends PrivateApiComponentBase {
 			CloseableHttpClient closeableHttpClient = HttpClients.custom().setConnectionManager(connectionManager).setDefaultRequestConfig(requestConfig).build();
 			return closeableHttpClient;
 		} catch (Exception ex) {
-			throw new ApiRuntimeException(ex);
+			throw new RuntimeException(ex);
 		} 
 	}
 

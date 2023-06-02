@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -73,10 +74,10 @@ public class BranchApi extends PrivateApiComponentBase {
             switch (method) {
                 case "save":
                     if (!wc.hasBranch(startBranchName)) {
-                        throw new RuntimeException(String.format("源分支\"%s\"不存在", startBranchName));
+                        throw new ApiRuntimeException(String.format("源分支\"%s\"不存在", startBranchName));
                     }
                     if (wc.hasBranch(branchName)) {
-                        throw new RuntimeException(String.format("分支\"%s\"已经存在", branchName));
+                        throw new ApiRuntimeException(String.format("分支\"%s\"已经存在", branchName));
                     }
                     wc.createBranch(branchName, startBranchName);
                     break;
@@ -97,7 +98,7 @@ public class BranchApi extends PrivateApiComponentBase {
                         }
                         wc.deleteBranch(branchName);
                     } else {
-                        throw new RuntimeException("分支\"" + branchName + "\"不存在");
+                        throw new ApiRuntimeException("分支\"" + branchName + "\"不存在");
                     }
                     break;
                 case "search":
@@ -133,10 +134,10 @@ public class BranchApi extends PrivateApiComponentBase {
             switch (method) {
                 case "save":
                     if (!wc.hasBranch(startBranchName)) {
-                        throw new RuntimeException(String.format("源分支\"%s\"不存在", startBranchName));
+                        throw new ApiRuntimeException(String.format("源分支\"%s\"不存在", startBranchName));
                     }
                     if (wc.hasBranch(branchName)) {
-                        throw new RuntimeException(String.format("分支\"%s\"已经存在", branchName));
+                        throw new ApiRuntimeException(String.format("分支\"%s\"已经存在", branchName));
                     }
                     wc.createBranch(branchName, startBranchName);
                     break;
@@ -144,7 +145,7 @@ public class BranchApi extends PrivateApiComponentBase {
                     if (wc.hasBranch(branchName)) {
                         wc.deleteBranch(branchName);
                     } else {
-                        throw new RuntimeException("分支\"" + branchName + "\"不存在");
+                        throw new ApiRuntimeException("分支\"" + branchName + "\"不存在");
                     }
                     break;
                 case "search":

@@ -7,6 +7,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -65,7 +66,7 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 		long startTime = JSONUtils.optLong(jsonObj,"startTime", 0L);
 
 		if (StringUtils.isBlank(queryName)) {
-			throw new RuntimeException("查询字段名称（标签名称或者分支名称）不能为空");
+			throw new ApiRuntimeException("查询字段名称（标签名称或者分支名称）不能为空");
 		}
 		if(StringUtils.isBlank( startCommitId )){
 			startCommitId = null;
@@ -86,7 +87,7 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 				wc = new SVNWorkingCopy(wcPath, url, username, pwd , JSONUtils.optString(jsonObj,"mainBranch",""), JSONUtils.optString(jsonObj,"branchesPath",""), JSONUtils.optString(jsonObj,"tagsPath",""));
 				if("branch".equalsIgnoreCase( queryType )){
 					if(!wc.hasBranch( queryName )){
-						throw new RuntimeException("分支\""+ queryName +"\"不存在");
+						throw new ApiRuntimeException("分支\""+ queryName +"\"不存在");
 					}
 					if (startTime > 0){
 						commitInfoList = wc.getCommitsForBranch(queryName, startCommitId, pageSize, startTime,true);
@@ -97,7 +98,7 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 				}
 				else{
 					if(!wc.hasTag( queryName )){
-						throw new RuntimeException("标签\""+ queryName +"\"不存在");
+						throw new ApiRuntimeException("标签\""+ queryName +"\"不存在");
 					}
 					commitInfoList = wc.getCommitsForTag(queryName, startCommitId, pageSize, startTime, true);
 				}
@@ -117,14 +118,14 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 
 				if("branch".equalsIgnoreCase( queryType )){
 					if(!wc.hasBranch( queryName )){
-						throw new RuntimeException("分支\""+ queryName +"\"不存在");
+						throw new ApiRuntimeException("分支\""+ queryName +"\"不存在");
 					}
 
 					commitInfoList = wc.getCommitsForBranch(queryName, startCommitId, pageSize, startTime ,true);
 				}
 				else{
 					if(!wc.hasTag( queryName )){
-						throw new RuntimeException("标签\""+ queryName +"\"不存在");
+						throw new ApiRuntimeException("标签\""+ queryName +"\"不存在");
 					}
 					commitInfoList = wc.getCommitsForTag(queryName, startCommitId, pageSize, startTime, true);
 				}

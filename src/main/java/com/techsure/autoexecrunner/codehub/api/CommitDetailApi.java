@@ -13,6 +13,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -76,7 +77,7 @@ public class CommitDetailApi extends PrivateApiComponentBase {
                 if (CollectionUtils.isEmpty(commitList)) {
                     if (StringUtils.isBlank(srcBranch) || StringUtils.isBlank(srcEndCommit)
                             || StringUtils.isBlank(targetBranch) || StringUtils.isBlank(targetEndCommit)) {
-                        throw new RuntimeException("请指定参数 srcBranch, srcEndCommit, targetBranch, targetEndCommit");
+                        throw new ApiRuntimeException("请指定参数 srcBranch, srcEndCommit, targetBranch, targetEndCommit");
                     }
 
                     String[] oldMergedCommits = wc.getSrcBranchMergedCommitsFromMergeInfo(srcBranch, srcEndCommit, targetBranch, targetEndCommit);

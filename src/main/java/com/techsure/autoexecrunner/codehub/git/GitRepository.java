@@ -19,6 +19,7 @@ import com.techsure.autoexecrunner.codehub.dto.commit.CommitInfo;
 import com.techsure.autoexecrunner.codehub.dto.diff.FileDiffInfo;
 import com.techsure.autoexecrunner.codehub.dto.diff.FileInfo;
 import com.techsure.autoexecrunner.codehub.exception.GitOpsException;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.ArchiveCommand;
 import org.eclipse.jgit.api.DiffCommand;
@@ -229,10 +230,10 @@ public class GitRepository {
             ObjectId srcObjectId = repo.resolve("refs/remotes/origin/" + srcBranch);
             ObjectId dstObjectId = repo.resolve("refs/remotes/origin/" + dstBranch);
             if (srcObjectId == null) {
-            	throw new RuntimeException(String.format("branch '%s' is not exist.", srcBranch));
+            	throw new ApiRuntimeException(String.format("branch '%s' is not exist.", srcBranch));
             }
             if (dstObjectId == null) {
-            	throw new RuntimeException(String.format("branch '%s' is not exist.", dstBranch));
+            	throw new ApiRuntimeException(String.format("branch '%s' is not exist.", dstBranch));
             }
             
             RevCommit srcCommit = revWalk.parseCommit(srcObjectId);
@@ -494,7 +495,7 @@ public class GitRepository {
             if (startCommitId == null) {
                 ObjectId commitId = repo.resolve("refs/remotes/origin/" + branch);
                 if (commitId == null) {
-                    throw new RuntimeException("branch " + branch + " is not exist.");
+                    throw new ApiRuntimeException("branch " + branch + " is not exist.");
                 }
                 revWalk.markStart(revWalk.parseCommit(commitId));
             } else {

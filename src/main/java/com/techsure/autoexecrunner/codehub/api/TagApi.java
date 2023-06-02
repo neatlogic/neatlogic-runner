@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -70,15 +71,15 @@ public class TagApi extends PrivateApiComponentBase {
                     if (wc.hasTag(tagName)) {
                         wc.deleteTag(tagName);
                     } else {
-                        throw new RuntimeException("标签\"" + tagName + "\"不存在");
+                        throw new ApiRuntimeException("标签\"" + tagName + "\"不存在");
                     }
                     break;
                 case "save":
                     if (!wc.hasBranch(branchName)) {
-                        throw new RuntimeException(String.format("分支\"%s\"不存在", branchName));
+                        throw new ApiRuntimeException(String.format("分支\"%s\"不存在", branchName));
                     }
                     if (wc.hasTag(tagName)) {
-                        throw new RuntimeException(String.format("标签\"%s\"已经存在", tagName));
+                        throw new ApiRuntimeException(String.format("标签\"%s\"已经存在", tagName));
                     }
                     wc.createTag(tagName, branchName);
                     break;
@@ -115,15 +116,15 @@ public class TagApi extends PrivateApiComponentBase {
                     if (wc.hasTag(tagName)) {
                         wc.deleteTag(tagName);
                     } else {
-                        throw new RuntimeException("标签\"" + tagName + "\"不存在");
+                        throw new ApiRuntimeException("标签\"" + tagName + "\"不存在");
                     }
                     break;
                 case "save":
                     if (!wc.hasBranch(branchName)) {
-                        throw new RuntimeException(String.format("分支\"%s\"不存在", branchName));
+                        throw new ApiRuntimeException(String.format("分支\"%s\"不存在", branchName));
                     }
                     if (wc.hasTag(tagName)) {
-                        throw new RuntimeException(String.format("标签\"%s\"已经存在", tagName));
+                        throw new ApiRuntimeException(String.format("标签\"%s\"已经存在", tagName));
                     }
                     wc.createTag(tagName, branchName);
                     break;

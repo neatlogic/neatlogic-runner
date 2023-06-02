@@ -449,6 +449,8 @@ public class HttpRequestUtil {
     //用于将请求的response的header 设置到当前上下文response中
     private List<String> responseHeaderList;
 
+    private Map<String, List<String>> responseHeadersMap;
+
 
     public HttpRequestUtil sendRequest() {
         HttpURLConnection connection = getConnection();
@@ -465,6 +467,8 @@ public class HttpRequestUtil {
                 if (StringUtils.isNotBlank(contentDisPosition)) {
                     UserContext.get().getResponse().setHeader("Content-Disposition", contentDisPosition);
                 }
+                //这里返回response里携带的header信息
+                responseHeadersMap = connection.getHeaderFields();
                 if (CollectionUtils.isNotEmpty(responseHeaderList)) {
                     Map<String, List<String>> headersMap = connection.getHeaderFields();
                     for (String header : responseHeaderList) {
@@ -520,6 +524,10 @@ public class HttpRequestUtil {
     public HttpRequestUtil setResponseHeaders(List<String> responseHeaderList) {
         this.responseHeaderList = responseHeaderList;
         return this;
+    }
+
+    public Map<String,List<String>> getResponseHeadersMap() {
+        return this.responseHeadersMap;
     }
 
     public int getResponseCode() {

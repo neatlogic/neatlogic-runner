@@ -18,6 +18,7 @@ import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.common.config.Config;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Output;
@@ -105,7 +106,7 @@ public class DiffApi extends PrivateApiComponentBase {
 		if (repoType.equals("svn")) {
 			SVNWorkingCopy wc = null;
 			if (isMrDiff && StringUtils.isBlank(srcBranch)) {
-				throw new RuntimeException("请指定参数 'srcBranch'");
+				throw new ApiRuntimeException("请指定参数 'srcBranch'");
 			}
 
 			try {
@@ -135,7 +136,7 @@ public class DiffApi extends PrivateApiComponentBase {
 								// 点击变更tab, 显示的diff数据应该要跟需求有关联的最新commit
 								rightCommitId = commitList.getJSONObject(0).getString("commitId");
 							} else {
-								throw new RuntimeException("已提供的参数不满足 diff plugin 的使用条件");
+								throw new ApiRuntimeException("已提供的参数不满足 diff plugin 的使用条件");
 							}
 						}
 					}
@@ -150,7 +151,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					jsonObject.put("commitList", commitList);
 				} else {
 					if (StringUtils.isBlank(rightCommitId)) {
-						throw new RuntimeException("请指定参数 'rightCommitId'");
+						throw new ApiRuntimeException("请指定参数 'rightCommitId'");
 					}
 
 					if (StringUtils.isBlank(leftCommitId)) {
@@ -165,7 +166,7 @@ public class DiffApi extends PrivateApiComponentBase {
 				jsonObject.put("rightCommitId", rightCommitId);
 			} catch (Exception ex) {
 				logger.error(ex.getMessage(), ex);
-				throw new RuntimeException(ex);
+				throw new ApiRuntimeException(ex);
 			} finally {
 				if (wc != null) {
 					wc.close();
@@ -190,11 +191,11 @@ public class DiffApi extends PrivateApiComponentBase {
 						srcStartCommit = wc.resolveBranch(srcBranch);
 
 						if (srcStartCommit == null) {
-							throw new RuntimeException(String.format("分支'%s'不存在", srcBranch));
+							throw new ApiRuntimeException(String.format("分支'%s'不存在", srcBranch));
 						}
 
 						if (targetStartCommit == null) {
-							throw new RuntimeException(String.format("分支'%s'不存在", targetBranch));
+							throw new ApiRuntimeException(String.format("分支'%s'不存在", targetBranch));
 						}
 					}
 
@@ -263,7 +264,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					}
 				} else {
 					if (StringUtils.isBlank(rightCommitId)) {
-						throw new RuntimeException("请指定参数 'rightCommitId'");
+						throw new ApiRuntimeException("请指定参数 'rightCommitId'");
 					}
 
 					if (StringUtils.isBlank(leftCommitId)) {
@@ -280,7 +281,7 @@ public class DiffApi extends PrivateApiComponentBase {
 				jsonObject.put("rightCommitId", rightCommitId);
 			} catch(Exception ex) {
 				logger.error(ex.getMessage(), ex);
-				throw new RuntimeException(ex);
+				throw new ApiRuntimeException(ex);
 			} finally {
 				if (wc != null) {
 					wc.close();

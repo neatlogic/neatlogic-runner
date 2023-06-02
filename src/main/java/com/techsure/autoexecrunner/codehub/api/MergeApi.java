@@ -18,6 +18,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -97,11 +98,11 @@ public class MergeApi extends PrivateApiComponentBase {
 				// SVN 合并在目标分支所在目录下进行
 	            wc = new SVNWorkingCopy(branchRealPath, url, username, pwd , JSONUtils.optString(jsonObj,"mainBranch",""), JSONUtils.optString(jsonObj,"branchesPath",""), JSONUtils.optString(jsonObj,"tagsPath",""));
 	            if (!wc.hasBranch(srcBranch)) {
-	            	throw new RuntimeException(String.format("branch '%s' is not exist", srcBranch));
+	            	throw new ApiRuntimeException(String.format("branch '%s' is not exist", srcBranch));
 	            }
 	            
 	            if (!wc.hasBranch(targetBranch)) {
-	            	throw new RuntimeException(String.format("branch '%s' is not exist", targetBranch));
+	            	throw new ApiRuntimeException(String.format("branch '%s' is not exist", targetBranch));
 	            }
 	            wc.lock();
 				
@@ -163,11 +164,11 @@ public class MergeApi extends PrivateApiComponentBase {
 					String srcCommitId = wc.resolveBranch(srcBranch);
 					String targetCommitId = wc.resolveBranch(targetBranch);
 					if (StringUtils.isBlank(srcCommitId)) {
-						throw new RuntimeException(String.format("branch %s is not exist", srcBranch));
+						throw new ApiRuntimeException(String.format("branch %s is not exist", srcBranch));
 					}
 					
 					if (StringUtils.isBlank(targetCommitId)) {
-						throw new RuntimeException(String.format("branch %s is not exist", targetBranch));
+						throw new ApiRuntimeException(String.format("branch %s is not exist", targetBranch));
 					}
 					
 					if (mergeBaseOnly) {

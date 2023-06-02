@@ -6,6 +6,7 @@ import java.util.Set;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -133,7 +134,7 @@ public class GitlabApi extends PrivateApiComponentBase {
             // 列出所有用户信息
             return gitlabApi.listAllUsers();
         } else {
-            throw new RuntimeException("method error: " + method);
+            throw new ApiRuntimeException("method error: " + method);
         }
 
         return null;

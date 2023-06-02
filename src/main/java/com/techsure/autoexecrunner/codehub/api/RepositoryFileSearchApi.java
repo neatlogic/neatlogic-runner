@@ -9,6 +9,7 @@ import com.techsure.autoexecrunner.codehub.svn.SVNWorkingCopy;
 import com.techsure.autoexecrunner.codehub.utils.JSONUtils;
 import com.techsure.autoexecrunner.codehub.utils.WorkingCopyUtils;
 import com.techsure.autoexecrunner.constvalue.ApiParamType;
+import com.techsure.autoexecrunner.exception.core.ApiRuntimeException;
 import com.techsure.autoexecrunner.restful.annotation.Description;
 import com.techsure.autoexecrunner.restful.annotation.Input;
 import com.techsure.autoexecrunner.restful.annotation.Param;
@@ -79,7 +80,7 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
     				String branchName = queryName;
     				if(!wc.hasBranch(branchName)){
     					wc.close();
-    					throw new RuntimeException(String.format("分支 '%s' 不存在",branchName));
+    					throw new ApiRuntimeException(String.format("分支 '%s' 不存在",branchName));
     				}
     				
     				if(StringUtils.isBlank(subFilePath)){
@@ -91,7 +92,7 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
     				String tagName = queryName;
     				if(!wc.hasTag(tagName)){
     					wc.close();
-    					throw new RuntimeException(String.format("标签 '%s' 不存在",tagName));
+    					throw new ApiRuntimeException(String.format("标签 '%s' 不存在",tagName));
     				}
     				
     				if(StringUtils.isBlank(subFilePath)){
@@ -102,10 +103,10 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
 					lastCommit = wc.getCommit(wc.resolvePath(subFilePath));
 
 				} else {
-    				throw new RuntimeException(String.format("不支持的查询类型: '%s'", queryType));
+    				throw new ApiRuntimeException(String.format("不支持的查询类型: '%s'", queryType));
     			}
             } catch (Exception ex) {
-            	throw new RuntimeException(ex);
+            	throw new ApiRuntimeException(ex);
             } finally {
             	if (wc != null) {
             		wc.close();
@@ -121,12 +122,12 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
 					if("branch".equals( queryType )){
 						commitId = wc.resolveBranch(queryName);
 						if (commitId == null) {
-							throw new RuntimeException(String.format("分支 '%s' 不存在", queryName));
+							throw new ApiRuntimeException(String.format("分支 '%s' 不存在", queryName));
 						}
 					}else if("tag".equals( queryType )){
 						commitId = wc.resolveTag(queryName);
 						if (commitId == null) {
-							throw new RuntimeException(String.format("标签 '%s' 不存在", queryName));
+							throw new ApiRuntimeException(String.format("标签 '%s' 不存在", queryName));
 						}
 					}
 
@@ -135,10 +136,10 @@ public class RepositoryFileSearchApi extends PrivateApiComponentBase {
 						lastCommit = wc.getFilePathLastCommit(commitId, subFilePath);
 					}
 				} else {
-					throw new RuntimeException(String.format("不支持的查询类型: '%s'", queryType));
+					throw new ApiRuntimeException(String.format("不支持的查询类型: '%s'", queryType));
 				}
 			} catch (Exception ex) {
-				throw new RuntimeException(ex);
+				throw new ApiRuntimeException(ex);
 			} finally {
 				if (wc != null) {
 					wc.close();

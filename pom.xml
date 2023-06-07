@@ -22,7 +22,7 @@
          <!-- 不用再指定spring版本，springboot将自动匹配(springboot2.4.8对应springframework5.3.8)
           https://docs.spring.io/spring-boot/docs/2.4.8.RELEASE/reference/htmlsingle/#getting-started-system-requirements
           将上述url中的版本号(2.4.8)替换成其余版本号再访问，可在System Requirements一节中查看对应的springframework版本
-          -->
+          --> 
          <!--<spring.version>5.3.8.RELEASE</spring.version>-->
          <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

@@ -28,7 +28,7 @@ public class CommitLogSearchApi extends PrivateApiComponentBase {
 
 	@Override
 	public String getToken() {
-		return "codehub/commit/logsearch";
+		return "codehub/commitlog/search";
 	}
 
 

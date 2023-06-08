@@ -12,9 +12,9 @@ public class RepoTester {
 
 	private static String repoLocalDir = reposRootPath;
 
-	private static String remoteUrl = "http://svn.djbx.com:8080/svn/SCMTEST-15/单证集中管理平台/代码类";
-	private static String user = "WB20200507012";
-	private static String password = "Yz@123456";
+	private static String remoteUrl = "http://1.1.1.1";
+	private static String user = "23123213123";
+	private static String password = "12321321";
 	private static String repoPath = "单证集中管理平台/代码类";
 
 

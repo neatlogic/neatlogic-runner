@@ -84,7 +84,7 @@ spring.servlet.multipart.max-file-size=100MB
 neatlogic.root=http://127.0.0.1:8080/neatlogic
 #authentication check when connecting
 auth.type=basic
-access.key=techsure
+access.key=neatlogic
 access.secret=x15wDEzSbBL6tV1W
 
 #RUNNER

@@ -9,6 +9,7 @@ import java.util.Set;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.neatlogic.autoexecrunner.codehub.dto.cache.Cache;
 import com.neatlogic.autoexecrunner.codehub.dto.commit.CommitInfo;
 import com.neatlogic.autoexecrunner.codehub.dto.diff.FileDiffInfo;
@@ -125,7 +126,7 @@ public class DiffApi extends PrivateApiComponentBase {
 						//config.registerJsonBeanProcessor(CommitInfo.class, new MyJsonBeanProcessor());
 						//commitList = JSONArray.fromObject(newCommitList, config);
 						//这里不用自定义转了 fastjson会自动将Date转成时间戳
-						commitList = JSONArray.parseArray(JSON.toJSONString(newCommitList));
+						commitList = JSONArray.parseArray(JSON.toJSONString(newCommitList, SerializerFeature.DisableCircularReferenceDetect));
 					}
 
 					if (StringUtils.isBlank(rightCommitId)) {
@@ -159,7 +160,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					}
 
 					List<FileDiffInfo> fileDiffInfos = wc.getDiffInfo(filePath, Long.parseLong(leftCommitId), Long.parseLong(rightCommitId), maxChangeCount);
-					fileDiffList = JSONArray.parseArray(JSON.toJSONString(fileDiffInfos));
+					fileDiffList = JSONArray.parseArray(JSON.toJSONString(fileDiffInfos, SerializerFeature.DisableCircularReferenceDetect));
 				}
 				jsonObject.put("fileDiffList", fileDiffList);
 				jsonObject.put("leftCommitId", leftCommitId);
@@ -238,7 +239,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					if (CollectionUtils.isEmpty(fileDiffInfos)) { // no cache, disable cache, or file diff
 						List<FileDiffInfo> diffs = wc.getDiffInfo(rightCommitId, leftCommitId, filePath, maxChangeCount);
 						if (CollectionUtils.isNotEmpty(diffs)) {
-							fileDiffInfos = JSONArray.parseArray(JSON.toJSONString(diffs));
+							fileDiffInfos = JSONArray.parseArray(JSON.toJSONString(diffs, SerializerFeature.DisableCircularReferenceDetect));
 
 							if (Config.CACHE_ENABLE && StringUtils.isBlank(filePath)) {
 								cache.writeGitDiffToCache(leftCommitId, rightCommitId, fileDiffInfos);
@@ -259,7 +260,7 @@ public class DiffApi extends PrivateApiComponentBase {
 						}
 
 						if (Config.CACHE_ENABLE) {
-							cache.writeGitCommitsToCache(JSONArray.parseArray(JSON.toJSONString(noCacheList)));
+							cache.writeGitCommitsToCache(JSONArray.parseArray(JSON.toJSONString(noCacheList, SerializerFeature.DisableCircularReferenceDetect)));
 						}
 					}
 				} else {
@@ -272,7 +273,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					}
 
 					List<FileDiffInfo> diffs = wc.getDiffInfo(rightCommitId, leftCommitId, filePath, maxChangeCount);
-					fileDiffInfos = JSONArray.parseArray(JSON.toJSONString(diffs));
+					fileDiffInfos = JSONArray.parseArray(JSON.toJSONString(diffs, SerializerFeature.DisableCircularReferenceDetect));
 				}
 
 				jsonObject.put("commitList", commitInfoList);
@@ -351,7 +352,7 @@ public class DiffApi extends PrivateApiComponentBase {
 					commitInfoList = wc.getBranchCommitListByCommitIdRange(srcBranch, srcStartCommit, srcEndCommit, maxSearchCount);
 					if (CollectionUtils.isNotEmpty(commitInfoList)) {
 						if (CollectionUtils.isEmpty(cacheList)) {
-							cache.writeCommitsToCache(JSONArray.parseArray(JSONArray.toJSONString(commitInfoList)));
+							cache.writeCommitsToCache(JSONArray.parseArray(JSONArray.toJSONString(commitInfoList, SerializerFeature.DisableCircularReferenceDetect)));
 						} else {
 							// 防止刚好出现srcEndCommit commit重复
 							int size = commitInfoList.size();
@@ -361,21 +362,21 @@ public class DiffApi extends PrivateApiComponentBase {
 							}
 
 							if (CollectionUtils.isNotEmpty(commitInfoList)) {
-								cache.updateSVNCommitsToCache(commitInfoList.get(0).getCommitId(), JSONArray.parseArray(JSON.toJSONString(commitInfoList)));
+								cache.updateSVNCommitsToCache(commitInfoList.get(0).getCommitId(), JSONArray.parseArray(JSON.toJSONString(commitInfoList, SerializerFeature.DisableCircularReferenceDetect)));
 							}
 
-							commitInfoList.addAll(JSONArray.parseArray(cacheList.toJSONString(), CommitInfo.class));
+							commitInfoList.addAll(JSONArray.parseArray(JSON.toJSONString(cacheList, SerializerFeature.DisableCircularReferenceDetect), CommitInfo.class));
 						}
 
 						cache.setHead(commitInfoList.get(0).getCommitId());
 					}
 				} else {
-					commitInfoList.addAll(JSONArray.parseArray(cacheList.toJSONString(), CommitInfo.class));
+					commitInfoList.addAll(JSONArray.parseArray(JSON.toJSONString(cacheList, SerializerFeature.DisableCircularReferenceDetect), CommitInfo.class));
 				}
 
 			} else {
 				commitInfoList = wc.getBranchCommitListByCommitIdRange(srcBranch, srcStartCommit, srcEndCommit, maxSearchCount);
-				cache.updateSVNCommitsToCache(commitInfoList.get(0).getCommitId(), JSONArray.parseArray(JSON.toJSONString(commitInfoList)));
+				cache.updateSVNCommitsToCache(commitInfoList.get(0).getCommitId(), JSONArray.parseArray(JSON.toJSONString(commitInfoList, SerializerFeature.DisableCircularReferenceDetect)));
 
 				// 【缓存读写异常, 缓存还是存在重复的commit的问题】https://www.tapd.cn/54247054/bugtrace/bugs/view?bug_id=1154247054001008118
 				// bug , 没有更新head
@@ -447,7 +448,7 @@ public class DiffApi extends PrivateApiComponentBase {
 		if (CollectionUtils.isEmpty(retList)) {
 			fileDiffInfos = wc.getDiffInfo(filePath, Long.parseLong(leftCommitId), Long.parseLong(rightCommitId), maxChangeCount);
 
-			retList = JSONArray.parseArray(JSON.toJSONString(fileDiffInfos));
+			retList = JSONArray.parseArray(JSON.toJSONString(fileDiffInfos, SerializerFeature.DisableCircularReferenceDetect));
 			// 没有缓存，添加
 			if (StringUtils.isBlank(filePath) && Config.CACHE_ENABLE) {		// fixed: 设置了forceFlush之后需要更新缓存, 但是原来的needCache还是false
 				cache.writeSVNDiffToCache(leftCommitId, rightCommitId, retList);
@@ -457,6 +458,7 @@ public class DiffApi extends PrivateApiComponentBase {
 		return retList;
 	}
 
+	
 
 /*	private class MyJsonBeanProcessor implements JsonBeanProcessor {
 		@Override

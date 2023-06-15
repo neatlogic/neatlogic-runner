@@ -375,7 +375,7 @@ public class IssueCommitSearchApi extends PrivateApiComponentBase {
                     }
 
                     if (Config.CACHE_ENABLE) {
-                        cache.writeGitCommitsToCache(JSONArray.parseArray(JSON.toJSONString(noCacheList)));
+                        cache.writeGitCommitsToCache(noCacheList);
                     }
                 }
                 // 分支型

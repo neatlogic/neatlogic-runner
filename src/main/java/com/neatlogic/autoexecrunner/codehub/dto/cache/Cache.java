@@ -25,6 +25,8 @@ import java.util.Map;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.neatlogic.autoexecrunner.codehub.dto.commit.CommitInfo;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import org.apache.commons.io.FileUtils;
@@ -465,7 +467,7 @@ public class Cache {
 		return ret;
 	}
 	
-	public void writeGitCommitsToCache(JSONArray content) {
+	public void writeGitCommitsToCache(List<CommitInfo> content) {
 		if (CollectionUtils.isEmpty(content)) {
 			return;
 		}
@@ -520,9 +522,9 @@ public class Cache {
 			    
 			    StringBuffer idxContent = new StringBuffer();
 			    for (int i = 0; i < content.size(); i++) {
-			    	JSONObject commit = content.getJSONObject(i);
-			    	String commitId = commit.getString("commitId").substring(0, 7);
-			    	ByteBuffer bytes = ByteBuffer.wrap(commit.toString().getBytes(StandardCharsets.UTF_8));
+			    	CommitInfo commit = content.get(i);
+			    	String commitId = commit.getCommitId().substring(0, 7);
+			    	ByteBuffer bytes = ByteBuffer.wrap(JSON.toJSONString(commit, SerializerFeature.DisableCircularReferenceDetect).getBytes(StandardCharsets.UTF_8));
 					ByteBuffer length = ByteBuffer.allocate(4).putInt(bytes.array().length);
 			
 					long pos = raf.length();

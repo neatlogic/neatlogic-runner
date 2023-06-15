@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
 import org.apache.commons.collections4.MapUtils;
@@ -196,7 +197,8 @@ public class SvnAgentUtils {
 
     
     public static boolean getDelegation(JSONObject jsonObj) throws UnsupportedEncodingException {
-        String userId = jsonObj.getString("userId");
+        // 这里兼容处理svnserver的用户
+        String userId = UserContext.get().getUserId();
         String agentUrl = jsonObj.getString("agentUrl");
         String username = jsonObj.getString("agentUsername");
         String password = jsonObj.getString("agentPassword");

@@ -524,7 +524,7 @@ public class Cache {
 			    for (int i = 0; i < content.size(); i++) {
 			    	CommitInfo commit = content.get(i);
 			    	String commitId = commit.getCommitId().substring(0, 7);
-			    	ByteBuffer bytes = ByteBuffer.wrap(JSON.toJSONString(commit, SerializerFeature.DisableCircularReferenceDetect).toString().getBytes(StandardCharsets.UTF_8));
+			    	ByteBuffer bytes = ByteBuffer.wrap(JSON.toJSONString(commit, SerializerFeature.DisableCircularReferenceDetect).getBytes(StandardCharsets.UTF_8));
 					ByteBuffer length = ByteBuffer.allocate(4).putInt(bytes.array().length);
 			
 					long pos = raf.length();

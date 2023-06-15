@@ -138,10 +138,4 @@
     <logger name="jdbc.connection" level="WARN" additivity="false"/>
 
 
-    <!--自定义log文件
-    <logger name="com.techsure.asm.plugin" additivity="false">
-        <appender-ref ref="pluginAppender"/>
-    </logger>
-    -->
-
 </configuration>

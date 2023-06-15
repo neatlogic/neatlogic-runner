@@ -2,8 +2,8 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-    <bean class="com.techsure.autoexecrunner.common.config.LocalConfig"/>
-    <bean id="mongoDbFactory" class="com.techsure.autoexecrunner.store.mongodb.NeatlogicMongoDbFactory">
+    <bean class="com.neatlogic.autoexecrunner.common.config.LocalConfig"/>
+    <bean id="mongoDbFactory" class="com.neatlogic.autoexecrunner.store.mongodb.NeatlogicMongoDbFactory">
         <constructor-arg name="connectionString" value="${mongo.url}"/>
     </bean>
 

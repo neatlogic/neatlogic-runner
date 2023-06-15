@@ -260,7 +260,7 @@ public class DiffApi extends PrivateApiComponentBase {
 						}
 
 						if (Config.CACHE_ENABLE) {
-							cache.writeGitCommitsToCache(JSONArray.parseArray(JSON.toJSONString(noCacheList, SerializerFeature.DisableCircularReferenceDetect)));
+							cache.writeGitCommitsToCache(noCacheList);
 						}
 					}
 				} else {

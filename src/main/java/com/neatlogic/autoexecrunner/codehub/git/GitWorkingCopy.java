@@ -675,7 +675,13 @@ public class GitWorkingCopy {
 		deleteLocalBranch(branchName);
 
 		try {
-			wcGit.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password)).setRemote("origin").setRefSpecs(new RefSpec(":refs/heads/" + branchName)).call();
+			Iterable<PushResult> origPushResults = wcGit.push().setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password)).setRemote("origin").setRefSpecs(new RefSpec(":refs/heads/" + branchName)).call();
+			for (PushResult pushResult : origPushResults) {
+				RemoteRefUpdate remoteUpdate = pushResult.getRemoteUpdate("refs/heads/" + branchName);
+				if (!RemoteRefUpdate.Status.OK.equals(remoteUpdate.getStatus())) {
+					throw new GitOpsException("Delete branch " + branchName + " failed, message: " + pushResult.getMessages());
+				}
+			}
 		} catch (GitAPIException e) {
 			throw new GitOpsException("Delete branch " + branchName + " failed, " + e.getMessage(), e);
 		}

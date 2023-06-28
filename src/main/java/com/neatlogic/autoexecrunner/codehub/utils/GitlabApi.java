@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.exception.codehub.CodehubGitLabApiCallException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -113,7 +114,7 @@ public class GitlabApi {
         }
         HttpRequestUtil requestGet = httpRequestUtil.sendRequest();
         //return RestHandler.httpRest("GET", formatQueryParams(this.gitLabServerUrl + api, params), headers, null);
-        return handleGitLabResult(requestGet.getResponseHeadersMap(),requestGet.getResult());
+        return handleGitLabResult(requestGet);
     }
 
     /**
@@ -154,7 +155,7 @@ public class GitlabApi {
         }
         HttpRequestUtil requestPost = httpRequestUtil.sendRequest();
         //return RestHandler.httpRest("POST", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        return handleGitLabResult(requestPost.getResponseHeadersMap(),requestPost.getResult());
+        return handleGitLabResult(requestPost);
     }
 
     public JSONObject httpPut(String api, Map<String, Object> params, JSONObject json) {
@@ -169,7 +170,7 @@ public class GitlabApi {
         }
         HttpRequestUtil requestPut = httpRequestUtil.sendRequest();
         //return RestHandler.httpRest("PUT", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        return handleGitLabResult(requestPut.getResponseHeadersMap(),requestPut.getResult());
+        return handleGitLabResult(requestPut);
     }
 
     public void httpDelete(String api, Map<String, Object> params, JSONObject json) {
@@ -184,7 +185,7 @@ public class GitlabApi {
         }
         HttpRequestUtil requestDelete = httpRequestUtil.sendRequest();
         //RestHandler.httpRest("DELETE", formatQueryParams(this.gitLabServerUrl + api, params), headers, json);
-        handleGitLabResult(requestDelete.getResponseHeadersMap(),requestDelete.getResult());
+        handleGitLabResult(requestDelete);
     }
 
     public String formatQueryParams(String url, Map<String, Object> map) {
@@ -577,7 +578,13 @@ public class GitlabApi {
 
 
     //统一处理返回结果
-    public static JSONObject handleGitLabResult(Map<String, List<String>> headers, String result) {
+    public static JSONObject handleGitLabResult(HttpRequestUtil request) {
+        if (StringUtils.isNotEmpty(request.getError())) {
+            throw new CodehubGitLabApiCallException(request.getError());
+        }
+        
+        Map<String, List<String>> headers = request.getResponseHeadersMap();
+        String result = request.getResult();
         JSONObject retObj;
         if (StringUtils.isEmpty(result)) {
             retObj = new JSONObject();

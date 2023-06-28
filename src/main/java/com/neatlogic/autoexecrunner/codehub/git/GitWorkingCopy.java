@@ -529,6 +529,9 @@ public class GitWorkingCopy {
 			List<Ref> branchList = wcGit.branchList().setListMode(ListMode.REMOTE).call();
 			for (Ref ref : branchList) {
 				String branchName = ref.getName();
+				if ("HEAD".equals(branchName)) {
+					continue;
+				}
 
 				// 注意: 此处branchName有时候会返回 HEAD, 或者是refs/remotes/origin/xxxx 等 所以要区分出来, 去掉前缀
 				if (branchName.startsWith("refs/remotes/origin/")) {

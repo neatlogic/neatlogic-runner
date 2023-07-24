@@ -5,7 +5,7 @@ import com.neatlogic.autoexecrunner.exception.tagent.*;
 import com.neatlogic.autoexecrunner.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
 import com.neatlogic.autoexecrunner.tagent.handler.TagentResultHandler;
 import com.neatlogic.autoexecrunner.util.RC4Util;
-import com.techsure.tagent.client.TagentClient;
+import com.neatlogic.tagent.client.TagentClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;

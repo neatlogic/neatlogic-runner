@@ -8,7 +8,7 @@ import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException
 import com.neatlogic.autoexecrunner.exception.tagent.TagentDownloadFailedException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
-import com.techsure.tagent.client.TagentClient;
+import com.neatlogic.tagent.client.TagentClient;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

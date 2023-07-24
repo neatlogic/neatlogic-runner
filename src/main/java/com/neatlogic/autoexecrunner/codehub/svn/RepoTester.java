@@ -101,7 +101,7 @@ public class RepoTester {
 		/*
 		System.out.println("===list folder========");
 		wcSvn.locateToBranch("1.0.0");
-		List<FileInfo> fileInfoList = wcSvn.listFolder(550, "tagent/src/main/java/com/techsure/tagent/test/");
+		List<FileInfo> fileInfoList = wcSvn.listFolder(550, "tagent/src/main/java/com/neatlogic/tagent/test/");
 		for(FileInfo fileInfo:fileInfoList) {
 			System.out.println(fileInfo);
 		}
@@ -115,7 +115,7 @@ public class RepoTester {
 		
 		System.out.println("===Get file content========");
 		wcSvn.locateToBranch("1.0.0");
-		String fileContent = wcSvn.getFileContent(550, "tagent/src/main/java/com/techsure/tagent/test/RunResultHandler.java");
+		String fileContent = wcSvn.getFileContent(550, "tagent/src/main/java/com/neatlogic/tagent/test/RunResultHandler.java");
 		System.out.println(fileContent);
 		*/
 		

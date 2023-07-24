@@ -2,7 +2,7 @@ package com.neatlogic.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.techsure.tagent.handler.TagentCmdOutHandler;
+import com.neatlogic.tagent.handler.TagentCmdOutHandler;
 
 import java.io.ByteArrayOutputStream;
 

@@ -7,7 +7,7 @@ import com.neatlogic.autoexecrunner.exception.tagent.TagentNotFoundChannelAndRel
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
-import com.techsure.tagent.client.TagentClient;
+import com.neatlogic.tagent.client.TagentClient;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -11,7 +11,7 @@ public class TagentHandlerFactory {
     private static Map<String, TagentHandlerBase> actionMap = new HashMap<String, TagentHandlerBase>();
 
     static {
-        Reflections reflections = new Reflections("com.techsure.autoexecrunner.tagent.handler");
+        Reflections reflections = new Reflections("com.neatlogic.autoexecrunner.tagent.handler");
         Set<Class<? extends TagentHandlerBase>> modules = reflections.getSubTypesOf(TagentHandlerBase.class);
         for (Class<? extends TagentHandlerBase> c : modules) {
             TagentHandlerBase action;

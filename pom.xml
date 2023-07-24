@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.techsure</groupId>
+    <groupId>com.neatlogic</groupId>
     <artifactId>neatlogic-runner</artifactId>
     <packaging>jar</packaging>
     <version>0.1.0.0-SNAPSHOT</version>
@@ -61,11 +61,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>nexus-snapshot</id>
-            <url>http://repo.techsure.cn:9008/nexus/content/repositories/techsure-Snapshot</url>
+            <url>http://192.168.0.88:9008/nexus/content/repositories/techsure-Snapshot</url>
         </snapshotRepository>
         <repository>
             <id>nexus-release</id>
-            <url>http://repo.techsure.cn:9008/nexus/content/repositories/techsure-release</url>
+            <url>http://192.168.0.88:9008/nexus/content/repositories/techsure-release</url>
         </repository>
     </distributionManagement>
 
@@ -199,7 +199,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.techsure</groupId>
+            <groupId>com.neatlogic</groupId>
             <artifactId>tagent</artifactId>
             <version>[1.0.0,)</version>
             <exclusions>

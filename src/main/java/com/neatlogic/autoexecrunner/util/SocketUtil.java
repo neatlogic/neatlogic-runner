@@ -32,7 +32,9 @@ public class SocketUtil {
                 //sock.send(datagramPacket);
             } catch (Exception ex) {
                 logger.info(ex.getMessage(), ex);
-                throw new ApiRuntimeException(ex.getMessage());
+                if(!ex.getMessage().contains("Operation not permitted")) {
+                    throw new ApiRuntimeException(ex.getMessage());
+                }
             }
         }
     }

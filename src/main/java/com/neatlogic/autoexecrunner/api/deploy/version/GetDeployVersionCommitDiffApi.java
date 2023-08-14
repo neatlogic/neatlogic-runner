@@ -39,8 +39,8 @@ public class GetDeployVersionCommitDiffApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "appId", type = ApiParamType.LONG, desc = "应用id", isRequired = true),
-            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id", isRequired = true),
+            @Param(name = "appSystemId", type = ApiParamType.LONG, desc = "应用id", isRequired = true),
+            @Param(name = "appModuleId", type = ApiParamType.LONG, desc = "模块id", isRequired = true),
             @Param(name = "version", type = ApiParamType.STRING, desc = "版本", isRequired = true)
 
     })
@@ -48,8 +48,8 @@ public class GetDeployVersionCommitDiffApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long appId = jsonObj.getLong("appId");
-        Long moduleId = jsonObj.getLong("moduleId");
+        Long appId = jsonObj.getLong("appSystemId");
+        Long moduleId = jsonObj.getLong("appModuleId");
         String version = jsonObj.getString("version");
         String logPath = Config.DATA_HOME() + File.separator + appId+ File.separator + moduleId+ "artifact" + File.separator + version+ "diff.json";
         return FileUtil.getReadFileContent(logPath);

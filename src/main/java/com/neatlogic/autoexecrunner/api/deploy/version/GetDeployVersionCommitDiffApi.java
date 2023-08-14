@@ -51,8 +51,8 @@ public class GetDeployVersionCommitDiffApi extends PrivateApiComponentBase {
         Long appId = jsonObj.getLong("appSystemId");
         Long moduleId = jsonObj.getLong("appModuleId");
         String version = jsonObj.getString("version");
-        String logPath = Config.DATA_HOME() + File.separator + appId+ File.separator + moduleId+ "artifact" + File.separator + version+ "diff.json";
-        return FileUtil.getReadFileContent(logPath);
+        String path = Config.DATA_HOME() + File.separator + appId + File.separator + moduleId + File.separator + "artifact" + File.separator + version + File.separator + "diff.json";
+        return FileUtil.getReadFileContent(path);
     }
 
     @Override

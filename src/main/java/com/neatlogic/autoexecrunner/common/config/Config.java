@@ -220,7 +220,7 @@ public class Config {
             CACHE_MAX_SIZE = Integer.parseInt(prop.getProperty("cache.max.size", "512")) * 1024;
             // 转为字节
 
-            FILE_MIMETYPE_TEXT_PLAIN = prop.getProperty("file.mimetype.text.plain", "");
+            FILE_MIMETYPE_TEXT_PLAIN = prop.getProperty("file.mimetype.text.plain", "sql text c cc c++ cpp h pl py txt java el gitignore js css properties jsp yml json md vue sh config htm html xml classpath project pm less scss");
             FILE_MIME_TYPE_MAP = new MimetypesFileTypeMap();
             FILE_MIME_TYPE_MAP.addMimeTypes("text/plain " + FILE_MIMETYPE_TEXT_PLAIN);
             FILE_CONTENT_SHOW_MAX_SIZE = Integer.parseInt(prop.getProperty("file.content.show.max.size", "2048"));

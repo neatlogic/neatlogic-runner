@@ -15,6 +15,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
@@ -27,7 +29,7 @@ import java.util.List;
 @SpringBootApplication(exclude = {MongoAutoConfiguration.class, MongoDataAutoConfiguration.class})
 @EnableAspectJAutoProxy(exposeProxy = true)
 @ServletComponentScan
-class AutoexecRunnerApplication {
+class AutoexecRunnerApplication extends WebMvcConfigurationSupport {
     private static final Logger logger = LoggerFactory.getLogger(AutoexecRunnerApplication.class);
 
     public static void main(String[] args) {
@@ -55,6 +57,12 @@ class AutoexecRunnerApplication {
         messageConverterList.add(messageConverter);
         requestMappingHandlerAdapter.setMessageConverters(messageConverterList);
         return requestMappingHandlerAdapter;
+    }
+
+    @Override
+    protected void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.setUseSuffixPatternMatch(false)
+                .setUseTrailingSlashMatch(false);
     }
 
     final static SignalHandler _signalHandler = new SignalHandler() {

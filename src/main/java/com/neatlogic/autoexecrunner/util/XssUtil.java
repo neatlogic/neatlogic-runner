@@ -120,6 +120,9 @@ public class XssUtil {
      * @return 去掉事件后的html
      */
     public static String removeHtmlEvent(String html) {
+        if(!html.contains("<")){
+            return html;
+        }
         // 创建Matcher对象
         Matcher matcher = patternRemoveEvent.matcher(html);
         // 查找匹配的事件属性

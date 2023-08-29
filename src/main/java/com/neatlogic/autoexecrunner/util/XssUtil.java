@@ -19,9 +19,12 @@ package com.neatlogic.autoexecrunner.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class XssUtil {
@@ -109,10 +112,6 @@ public class XssUtil {
         }
     }
 
-    // 正则表达式匹配所有以 on 开头的单词，以及引号中的所有内容
-    static String regexRemoveEvent = "\\b(on\\w+\\s*=\\s*)(['\"]?)(.*?)\\2";
-    static Pattern patternRemoveEvent = Pattern.compile(regexRemoveEvent);
-
     /**
      * 只去掉事件
      *
@@ -123,12 +122,29 @@ public class XssUtil {
         if(!html.contains("<")){
             return html;
         }
-        // 创建Matcher对象
-        Matcher matcher = patternRemoveEvent.matcher(html);
-        // 查找匹配的事件属性
-        while (matcher.find()) {
-            html = html.replace(matcher.group(1) + matcher.group(2) + matcher.group(3)+ matcher.group(2) , StringUtils.EMPTY);
+        // 使用JSoup解析HTML
+        Document doc = Jsoup.parse(html);
+
+        // 获取所有元素
+        Elements elements = doc.getAllElements();
+
+        // 定义正则表达式匹配规则
+        Pattern pattern = Pattern.compile("^on.*");
+
+        // 遍历所有元素
+        for (Element element : elements) {
+            // 获取元素的所有属性
+            element.attributes().asList().forEach(attribute -> {
+                // 使用正则表达式匹配属性名
+                if (pattern.matcher(attribute.getKey()).matches()) {
+                    // 移除匹配的属性
+                    element.removeAttr(attribute.getKey());
+                }
+            });
         }
-        return html;
+
+        // 输出处理后的HTML
+        return doc.getElementsByTag("body").html().replaceAll("\n", "");
     }
+
 }

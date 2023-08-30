@@ -19,13 +19,8 @@ package com.neatlogic.autoexecrunner.util;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class XssUtil {
 
@@ -111,40 +106,5 @@ public class XssUtil {
             }
         }
     }
-
-    /**
-     * 只去掉事件
-     *
-     * @param html 页面html
-     * @return 去掉事件后的html
-     */
-    public static String removeHtmlEvent(String html) {
-        if(!html.contains("<")){
-            return html;
-        }
-        // 使用JSoup解析HTML
-        Document doc = Jsoup.parse(html);
-
-        // 获取所有元素
-        Elements elements = doc.getAllElements();
-
-        // 定义正则表达式匹配规则
-        Pattern pattern = Pattern.compile("^on.*");
-
-        // 遍历所有元素
-        for (Element element : elements) {
-            // 获取元素的所有属性
-            element.attributes().asList().forEach(attribute -> {
-                // 使用正则表达式匹配属性名
-                if (pattern.matcher(attribute.getKey()).matches()) {
-                    // 移除匹配的属性
-                    element.removeAttr(attribute.getKey());
-                }
-            });
-        }
-
-        // 输出处理后的HTML
-        return doc.getElementsByTag("body").html().replaceAll("\n", "");
-    }
-
+    
 }

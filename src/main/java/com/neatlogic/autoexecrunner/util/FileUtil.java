@@ -223,7 +223,7 @@ public class FileUtil {
                                 anchor = anchorSb.toString();
                             }
                         }
-                        lineList.add(new FileLineVo(fis.getFilePointer(), time, lineType, XssUtil.removeHtmlEvent(content), anchor));
+                        lineList.add(new FileLineVo(fis.getFilePointer(), time, lineType, content, anchor));
                     }
                 }
                 fileTailer.setLogPos(fis.getFilePointer());

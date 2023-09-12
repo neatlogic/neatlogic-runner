@@ -33,7 +33,7 @@ neatlogic-runner(执行器)+[neatlogic-autoexec-backend](../../../neatlogic-auto
 ## 配置参数
 
 目前仅讲解docker部署方式,其他方式后续补充:
-进入docker的/app/systems/autoexec-runner/config 目录,编辑application.properties
+进入docker的/app/systems/neatlogic-runner/config 目录,编辑application.properties
 
 ```
 #SERVER
@@ -81,6 +81,9 @@ deploy.home=/app/autoexec/data/verdata
  
 #neatlogic--autoexec-backend数据根路径
 data.home=${runner.home}/data
+
+#tagent 安装包下载目录，将文件放在这个目录，就可以通过“http://ip:8084/autoexecrunner/tagent/download/” +文件名下载文件
+tagent.download.path=/app/autoexec/data/tagent/
 ```
 
 ## 技术交流

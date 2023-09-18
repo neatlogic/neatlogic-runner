@@ -32,7 +32,7 @@ public class TagentRegisterApi extends PublicApiComponentBase {
         StringBuilder execInfo = new StringBuilder();
         try {
             String url = String.format("%s/public/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_REGISTER_TAGENT);
-            status = tagentService.forwardNeatlogicWeb(jsonObj,url,execInfo,true);
+            status = tagentService.forwardNeatlogicWeb(jsonObj,url,execInfo);
         } catch (Exception ex) {
             execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
         }

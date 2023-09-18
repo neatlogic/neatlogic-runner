@@ -13,5 +13,5 @@ public interface TagentService {
      * @param execInfo 执行信息
      * @return 执行转发结果
      */
-    boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo, boolean isFromTagent);
+    boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo);
 }

@@ -18,16 +18,18 @@ import java.util.Map;
  * @since 2021/10/14 14:15
  **/
 @Service
-public class TagentServiceImpl implements TagentService{
+public class TagentServiceImpl implements TagentService {
 
     @Override
-    public boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo, boolean isFromTagent) {
+    public boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo) {
         boolean status = false;
-        if (isFromTagent) {
+        if (jsonObj.containsKey("mgmtIp") && StringUtils.isNotBlank(jsonObj.getString("mgmtIp"))) {
+            jsonObj.put("ip", jsonObj.containsKey("mgmtIp"));
+        } else {
             jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
         }
         Map<String, String> params = (Map<String, String>) JSON.parse(jsonObj.toJSONString());
-        RestVo restVo = new RestVo( url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));
         restVo.setTenant(jsonObj.getString("tenant"));
         restVo.setAuthType(TagentConfig.AUTH_TYPE);
         restVo.setUsername(TagentConfig.ACCESS_KEY);
@@ -38,7 +40,7 @@ public class TagentServiceImpl implements TagentService{
             String httpStatus = resultJson.getString("Status");
             if ("OK".equals(httpStatus)) {
                 status = true;
-                jsonObj.put("data",resultJson);
+                jsonObj.put("data", resultJson);
             } else {
                 execInfo.append("Server Error,").append(httpResult);
             }

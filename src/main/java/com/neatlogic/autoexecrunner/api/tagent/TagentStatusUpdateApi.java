@@ -39,7 +39,7 @@ public class TagentStatusUpdateApi extends PublicApiComponentBase {
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
-            status = tagentService.forwardNeatlogicWeb(jsonObj, String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT), execInfo,true);
+            status = tagentService.forwardNeatlogicWeb(jsonObj, String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT), execInfo);
         } catch (Exception ex) {
             execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
         }

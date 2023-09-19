@@ -21,7 +21,7 @@ public class TagentServiceImpl implements TagentService {
     public boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo) {
         boolean status = false;
         if (jsonObj.containsKey("mgmtIp") && StringUtils.isNotBlank(jsonObj.getString("mgmtIp"))) {
-            jsonObj.put("ip", jsonObj.containsKey("mgmtIp"));
+            jsonObj.put("ip", jsonObj.getString("mgmtIp"));
         } else {
             jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
         }

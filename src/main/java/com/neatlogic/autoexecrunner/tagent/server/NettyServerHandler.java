@@ -42,6 +42,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     private static final AttributeKey<Integer> AGENT_LISTEN_PORT_KEY = AttributeKey.valueOf("listenPort");
     private static final AttributeKey<String> AGENT_LISTEN_TENANT_KEY = AttributeKey.valueOf("tenant");
 
+    //业务ip，为了方便开墙
+    private static final AttributeKey<String> MGMT_IP_KEY = AttributeKey.valueOf("mgmtIp");
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof IdleStateEvent) {
@@ -77,7 +80,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
         String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
-
+        String mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
+        //优先使用mgmtIp
+        if(StringUtils.isNotBlank(mgmtIp)){
+            agentIp = mgmtIp;
+        }
         ctx.flush();
         ctx.channel().close();
         ctx.close();
@@ -147,6 +154,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     //优先使用mgmtIp
                     if (agentData.containsKey("mgmtIp") && StringUtils.isNotBlank(agentData.getString("mgmtIp"))) {
                         agentIp = agentData.getString("mgmtIp");
+                        ctx.channel().attr(MGMT_IP_KEY).set(agentIp);
                     }
                     Integer listenPort = agentData.getInteger("port");
                     agentKey = agentIp + ":" + listenPort;

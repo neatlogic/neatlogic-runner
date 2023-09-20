@@ -80,9 +80,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
         String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
-        String mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
+        String mgmtIp = StringUtils.EMPTY;
+        if (ctx.channel().attr(MGMT_IP_KEY) != null) {
+            mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
+        }
         //优先使用mgmtIp
-        if(StringUtils.isNotBlank(mgmtIp)){
+        if (StringUtils.isNotBlank(mgmtIp)) {
             agentIp = mgmtIp;
         }
         ctx.flush();
@@ -162,7 +165,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     log.info("received heartbeat from " + agentKey);
                     if (agentData.getString("type").equals("monitor")) {
                         agentData.put("ip", agentIp);
-                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {});
+                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
+                        });
                         //conf文件缺少tenant配置的情况，异常抛在tagent端
                         if (StringUtils.isBlank(params.get("tenant"))) {
                             throw new TagentNettyTenantIsNullException();

@@ -1,16 +1,18 @@
 package com.neatlogic.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNotFoundChannelAndReloadFieldException;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
 import com.neatlogic.tagent.client.TagentClient;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.ConnectException;
 
 public class TagentReloadHandler extends TagentHandlerBase {
 
@@ -36,7 +38,15 @@ public class TagentReloadHandler extends TagentHandlerBase {
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
             try {
                 tagentClient.reload();
-            } catch (Exception e) {
+            } catch (ConnectException e) {
+                Constant.tagentMap.remove(param.getString("tenant") + param.getString("ip") + ":" + param.getString("port"));
+                for (String s : Constant.tagentMap.keySet()) {
+                    allTagentKeys.append(s).append(",");
+                }
+                logger.error("can not find channel for key" + tagentKey + ",keyList:" + allTagentKeys + ", so we couldn't restart through heartbeat. We tried to use password to connect to agent, but failed", e);
+                throw new TagentNotFoundChannelAndReloadFieldException(tagentKey);
+            }
+            catch (Exception e) {
                 for (String s : Constant.tagentMap.keySet()) {
                     allTagentKeys.append(s).append(",");
                 }

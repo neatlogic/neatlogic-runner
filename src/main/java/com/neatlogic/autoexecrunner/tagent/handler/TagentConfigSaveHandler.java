@@ -2,6 +2,7 @@ package com.neatlogic.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 
 public class TagentConfigSaveHandler extends TagentHandlerBase {
@@ -41,6 +43,10 @@ public class TagentConfigSaveHandler extends TagentHandlerBase {
             InputStream input = new ByteArrayInputStream(tagentData.trim().getBytes(StandardCharsets.UTF_8));
             tagentClient.upload(input, "tagent.conf", "$TAGENT_HOME/conf/", null, false);
             tagentClient.reload();
+        } catch (ConnectException e) {
+            Constant.tagentMap.remove(param.getString("tenant") + param.getString("ip") + ":" + param.getString("port"));
+            logger.error("exec saveconfig cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            throw new TagentActionFailedException(e.getMessage());
         } catch (Exception e) {
             logger.error("exec saveconfig cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
             throw new TagentActionFailedException(e.getMessage());

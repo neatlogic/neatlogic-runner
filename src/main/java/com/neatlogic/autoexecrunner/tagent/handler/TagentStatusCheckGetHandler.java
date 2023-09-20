@@ -23,6 +23,11 @@ public class TagentStatusCheckGetHandler extends TagentHandlerBase {
         String ipPort = param.getString("ip") + ":" + param.getString("port");
         if (!Constant.tagentMap.containsKey(TenantContext.get().getTenantUuid() + ipPort)) {
             throw new TagentNotFoundChannelException(ipPort);
+        } else {
+            if (!Constant.tagentMap.get(TenantContext.get().getTenantUuid() + ipPort).channel().isOpen()) {
+                Constant.tagentMap.remove(TenantContext.get().getTenantUuid() + ipPort);
+                throw new TagentNotFoundChannelException(ipPort);
+            }
         }
         return null;
     }

@@ -12,8 +12,6 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.ConnectException;
-
 public class TagentReloadHandler extends TagentHandlerBase {
 
     private final Logger logger = LoggerFactory.getLogger(TagentReloadHandler.class);
@@ -29,24 +27,22 @@ public class TagentReloadHandler extends TagentHandlerBase {
         StringBuilder allTagentKeys = new StringBuilder();
         String tenant = TenantContext.get().getTenantUuid();
         String tagentKey = param.getString("ip") + ":" + param.getString("port");
+        boolean isSend = false;
         if (Constant.tagentMap.containsKey(tenant + tagentKey)) {
             ChannelHandlerContext context = Constant.tagentMap.get(tenant + tagentKey);
-            context.channel().writeAndFlush(param.toString() + "\n");
-            result.put("Data", "send command succeed");
-        } else {
+            if (context.channel().isOpen()) {
+                context.channel().writeAndFlush(param + "\n");
+                result.put("Data", "send command succeed");
+                Constant.tagentMap.remove(tenant + tagentKey);
+                isSend = true;
+            }
+        }
+        if (!isSend) {
             String credential = RC4Util.decrypt(param.getString("credential"));
             TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
             try {
                 tagentClient.reload();
-            } catch (ConnectException e) {
-                Constant.tagentMap.remove(param.getString("tenant") + param.getString("ip") + ":" + param.getString("port"));
-                for (String s : Constant.tagentMap.keySet()) {
-                    allTagentKeys.append(s).append(",");
-                }
-                logger.error("can not find channel for key" + tagentKey + ",keyList:" + allTagentKeys + ", so we couldn't restart through heartbeat. We tried to use password to connect to agent, but failed", e);
-                throw new TagentNotFoundChannelAndReloadFieldException(tagentKey);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 for (String s : Constant.tagentMap.keySet()) {
                     allTagentKeys.append(s).append(",");
                 }

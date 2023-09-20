@@ -1,7 +1,6 @@
 package com.neatlogic.autoexecrunner.tagent.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentConfigGetFailedException;
@@ -10,8 +9,6 @@ import com.neatlogic.autoexecrunner.util.RC4Util;
 import com.neatlogic.tagent.client.TagentClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.ConnectException;
 
 public class TagentConfigGetHandler extends TagentHandlerBase {
 
@@ -46,10 +43,6 @@ public class TagentConfigGetHandler extends TagentHandlerBase {
             } else {
                 throw new TagentConfigGetFailedException();
             }
-        } catch (ConnectException e) {
-            Constant.tagentMap.remove(param.getString("tenant") + param.getString("ip") + ":" + param.getString("port"));
-            logger.error("exec getConfig cmd error ,exception ：" + param.toString(), e);
-            throw new TagentActionFailedException(e.getMessage());
         } catch (Exception e) {
             logger.error("exec getConfig cmd error ,exception ：" + param.toString(), e);
             throw new TagentActionFailedException(e.getMessage());

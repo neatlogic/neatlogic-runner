@@ -18,7 +18,6 @@ package com.neatlogic.autoexecrunner.tagent.handler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
-import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentConfigGetFailedException;
@@ -30,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
@@ -104,10 +102,6 @@ public class TagentConfigBatchSaveHandler extends TagentHandlerBase {
             } else {
                 throw new TagentConfigGetFailedException();
             }
-        }catch (ConnectException e) {
-            Constant.tagentMap.remove(param.getString("tenant") + param.getString("ip") + ":" + param.getString("port"));
-            logger.error("exec batchSaveConfig cmd error ,exception ：" + param, e);
-            throw new TagentActionFailedException(e.getMessage());
         } catch (Exception e) {
             logger.error("exec batchSaveConfig cmd error ,exception ：" + param, e);
             throw new TagentActionFailedException(e.getMessage());

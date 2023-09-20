@@ -144,7 +144,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
                 if (msg != null && ("null".equals(msg) || msg.startsWith("[") && msg.endsWith("]") || msg.startsWith("{") && msg.endsWith("}"))) {
                     JSONObject agentData = JSONObject.parseObject(msg);
-
+                    //优先使用mgmtIp
+                    if (agentData.containsKey("mgmtIp") && StringUtils.isNotBlank(agentData.getString("mgmtIp"))) {
+                        agentIp = agentData.getString("mgmtIp");
+                    }
                     Integer listenPort = agentData.getInteger("port");
                     agentKey = agentIp + ":" + listenPort;
                     ctx.channel().attr(AGENT_LISTEN_PORT_KEY).set(listenPort);

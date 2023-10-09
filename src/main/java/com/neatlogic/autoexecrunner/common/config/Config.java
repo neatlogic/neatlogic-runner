@@ -32,6 +32,8 @@ public class Config {
     public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
     private static String JWT_SECRET = "neatlogic#neatlogic$secret";
     private static String AUTOEXEC_HOME;//脚本目录
+
+    private static Integer SERVER_PORT;//服务端口
     private static String AUTH_TYPE;//autoexecrunner的认证方式
     private static String ACCESS_KEY;//访问用户
     private static String ACCESS_SECRET;//访问密码
@@ -106,6 +108,11 @@ public class Config {
      */
     public static Integer MERGE_CONCURRENT_SIZE = 4;
 
+    public static Boolean IS_SSL ;
+
+    //启动服务需要注册runner的租户，以逗号隔开
+    public static String REGISTER_TENANTS;
+
 
     public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<String>();
 
@@ -116,6 +123,10 @@ public class Config {
 
     public static String AUTOEXEC_HOME() {
         return AUTOEXEC_HOME;
+    }
+
+    public static Integer SERVER_PORT() {
+        return SERVER_PORT;
     }
 
     public static String AUTH_TYPE() {
@@ -154,6 +165,14 @@ public class Config {
         return GITLAB_PASSWORD;
     }
 
+    public static Boolean IS_SSL(){
+        return IS_SSL;
+    }
+
+    public static String REGISTER_TENANTS(){
+        return REGISTER_TENANTS;
+    }
+
 
     @PostConstruct
     public void init() {
@@ -185,6 +204,7 @@ public class Config {
                 // 如果从nacos中读不出配置，则使用本地配置文件配置
                 prop.load(new InputStreamReader(Objects.requireNonNull(Config.class.getClassLoader().getResourceAsStream(CONFIG_FILE)), StandardCharsets.UTF_8));
             }
+            SERVER_PORT = Integer.parseInt(prop.getProperty("server.port","8084"));
             AUTOEXEC_HOME = prop.getProperty("autoexec.home");
             if (StringUtils.isBlank(AUTOEXEC_HOME)) {
                 logger.error("请在配置文件中定义autoexec.home参数");
@@ -236,6 +256,10 @@ public class Config {
                     RES_POSSIBLY_CHARSETS.add(charset);
                 }
             }
+
+            IS_SSL = Boolean.valueOf(prop.getProperty("server.ssl.enabled", "false"));
+
+            REGISTER_TENANTS = prop.getProperty("register.tenants");
 
 
         } catch (IOException e) {

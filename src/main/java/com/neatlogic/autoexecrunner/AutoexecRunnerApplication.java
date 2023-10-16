@@ -34,9 +34,13 @@ class AutoexecRunnerApplication extends WebMvcConfigurationSupport {
 
     public static void main(String[] args) {
         SpringApplication.run(AutoexecRunnerApplication.class, args);
-        Signal.handle(new Signal("CHLD"), _signalHandler);
-        logger.info("Registered SIGCHLD signal handler");
-
+        String osName = System.getProperty("os.name");
+        if (osName.contains("Linux")) {
+            Signal.handle(new Signal("CHLD"), _signalHandler);
+            logger.info("Registered SIGCHLD signal handler");
+        } else {
+            logger.info("Signal handling is not supported on this operating system.");
+        }
     }
 
     @Bean

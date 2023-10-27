@@ -16,15 +16,18 @@
 package com.neatlogic.autoexecrunner.api.job;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.config.Config;
+import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.MongodbException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
-import com.neatlogic.autoexecrunner.common.config.Config;
-import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
-import com.neatlogic.autoexecrunner.util.JobUtil;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.neatlogic.autoexecrunner.util.FileUtil;
+import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +41,7 @@ import java.io.File;
  **/
 @Component
 public class JobAllResetApi extends PrivateApiComponentBase {
+    static Logger logger = LoggerFactory.getLogger(JobAllResetApi.class);
     @Override
     public String getName() {
         return "重置作业";
@@ -56,7 +60,12 @@ public class JobAllResetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         Document document = new Document();
         document.put("jobId", jobId.toString());
-        mongoTemplate.getCollection("_node_status").deleteMany(document);
+        try {
+            mongoTemplate.getCollection("_node_status").deleteMany(document);
+        }catch (Exception ex){
+            logger.error(ex.getMessage(),ex);
+            throw new MongodbException();
+        }
         //删除对应status文件记录
         String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
         FileUtil.deleteDirectoryOrFile(nodeStatusPath);

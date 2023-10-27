@@ -217,7 +217,7 @@ public class Config {
             ACCESS_SECRET = prop.getProperty("access.secret", "password");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(64 * 1024)));
-            DATA_HOME = prop.getProperty("data.home", "/home/autoexec-runner/data");
+            DATA_HOME = prop.getProperty("data.home", "/app/autoexec/");
             GITLAB_PASSWORD = prop.getProperty("gitlab.password");
 
             //codehub

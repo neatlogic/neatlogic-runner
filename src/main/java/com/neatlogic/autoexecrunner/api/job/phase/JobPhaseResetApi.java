@@ -16,7 +16,9 @@
 package com.neatlogic.autoexecrunner.api.job.phase;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.api.job.node.UpdateJobPhaseNodeStatusApi;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.MongodbException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
@@ -25,6 +27,8 @@ import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentB
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +42,9 @@ import java.io.File;
  **/
 @Component
 public class JobPhaseResetApi extends PrivateApiComponentBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(UpdateJobPhaseNodeStatusApi.class);
+
     @Override
     public String getName() {
         return "重置作业阶段";
@@ -59,7 +66,12 @@ public class JobPhaseResetApi extends PrivateApiComponentBase {
         Document document = new Document();
         document.put("jobId", jobId.toString());
         document.put("phase", phaseName);
-        mongoTemplate.getCollection("_node_status").deleteMany(document);
+        try {
+            mongoTemplate.getCollection("_node_status").deleteMany(document);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new MongodbException();
+        }
         //删除对应status文件记录
         String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phaseName;
         FileUtil.deleteDirectoryOrFile(nodeStatusPath);

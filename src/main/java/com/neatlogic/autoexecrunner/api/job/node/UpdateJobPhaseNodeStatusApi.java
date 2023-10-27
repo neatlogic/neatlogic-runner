@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.MongodbException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
@@ -83,14 +84,19 @@ public class UpdateJobPhaseNodeStatusApi extends PrivateApiComponentBase {
         //更新mongodb 节点状态
         if (!Objects.equals("sqlfile", execMode)) {
             List<Long> resourceIdList = new ArrayList<>();
-            if(Objects.equals(execMode,"runner")){
+            if (Objects.equals(execMode, "runner")) {
                 resourceIdList.add(0L);
-            }else {
+            } else {
                 resourceIdList = phaseNodeList.stream().map(o -> (JSONObject.parseObject(JSONObject.toJSONString(o))).getLong("resourceId")).collect(Collectors.toList());
             }
             Bson filterDoc = combine(in("resourceId", resourceIdList), eq("phase", phase));
             Bson updateDoc = set("data.status", nodeStatus);
-            mongoTemplate.getCollection("_node_status").updateMany(filterDoc, updateDoc);
+            try {
+                mongoTemplate.getCollection("_node_status").updateMany(filterDoc, updateDoc);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new MongodbException();
+            }
         }
         //更新节点状态文件
         if (CollectionUtils.isNotEmpty(phaseNodeList)) {

@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.MongodbException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
@@ -28,6 +29,8 @@ import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +46,7 @@ import java.util.Objects;
  **/
 @Component
 public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
+    static Logger logger = LoggerFactory.getLogger(JobPhaseNodeStatusResetApi.class);
     @Override
     public String getName() {
         return "重置作业阶段节点";
@@ -76,14 +80,19 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 Document document = new Document();
                 document.put("jobId", jobId.toString());
                 document.put("phase", phase);
-                document.put("resourceId",node.getLong("resourceId"));
-                Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+                document.put("resourceId", node.getLong("resourceId"));
+                try {
+                    Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+                } catch (Exception ex) {
+                    logger.error(ex.getMessage(), ex);
+                    throw new MongodbException();
+                }
                 //删除对应status文件记录
                 String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-                if(Objects.equals("sqlfile", execMode)){
-                    nodeStatusPath += host + "-" + (port==null?StringUtils.EMPTY:port) + "-" +node.getString("resourceId") + File.separator+ node.getString("sqlFile")+".txt";
-                } else if(Arrays.asList("target","runner_target").contains(execMode)) {
-                    nodeStatusPath += host + "-" + (port==null?StringUtils.EMPTY:port) + "-" +node.getString("resourceId") + ".json";
+                if (Objects.equals("sqlfile", execMode)) {
+                    nodeStatusPath += host + "-" + (port == null ? StringUtils.EMPTY : port) + "-" + node.getString("resourceId") + File.separator + node.getString("sqlFile") + ".txt";
+                } else if (Arrays.asList("target", "runner_target").contains(execMode)) {
+                    nodeStatusPath += host + "-" + (port == null ? StringUtils.EMPTY : port) + "-" + node.getString("resourceId") + ".json";
                 } else {
                     nodeStatusPath += "local-0-0.json";
                 }
@@ -94,7 +103,12 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             Document document = new Document();
             document.put("jobId", jobId.toString());
             document.put("phase", phase);
-            Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+            try {
+                Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new MongodbException();
+            }
             //删除对应status文件记录
             String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
             FileUtil.deleteDirectoryOrFile(nodeStatusPath);

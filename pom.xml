@@ -199,6 +199,7 @@
             </exclusions>
         </dependency>
         <dependency>
+            <!-- 如果提示找不到，在代码根目录有提供这个neatlogic-tagent.jar -->
             <groupId>com.neatlogic</groupId>
             <artifactId>tagent</artifactId>
             <version>[1.0.0,)</version>

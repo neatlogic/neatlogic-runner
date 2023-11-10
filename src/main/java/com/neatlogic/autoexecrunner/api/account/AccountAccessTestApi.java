@@ -62,11 +62,14 @@ public class AccountAccessTestApi extends PrivateApiComponentBase {
                 ProcessBuilder builder = new ProcessBuilder("nodeconntest", "--node", object.toJSONString());
                 Process proc = builder.start();
                 proc.waitFor();
-                logger.error(IOUtils.toString(proc.getErrorStream()));
+                String msgError = IOUtils.toString(proc.getErrorStream());
+                logger.error(msgError);
+                object.put("msgError", msgError);
                 object.put("exitValue", proc.exitValue());
                 object.remove("password");
             } catch (Exception ex) {
                 object.put("exitValue", 1);
+                object.put("msgError", ex.getMessage());
                 logger.error(ex.getMessage(), ex);
             }
             result.add(object);

@@ -1,5 +1,6 @@
 package com.neatlogic.autoexecrunner.util;
 
+import com.alibaba.fastjson.JSONArray;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.FileLogType;
 import com.neatlogic.autoexecrunner.dto.FileLineVo;
@@ -20,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -630,5 +632,32 @@ public class FileUtil {
         }
         path = Config.DATA_HOME() + path;
         return path;
+    }
+
+
+    /**
+     * 从目录列表中删除子目录
+     *
+     * @param paths 目录列表
+     */
+    public static JSONArray deleteSonPath(JSONArray paths) {
+        if (paths.size() > 1) {
+            List<File> files = new ArrayList<>();
+            paths.forEach(path -> {
+                files.add(new File(path.toString()));
+            });
+            List<String> filePaths = files.stream().map(File::getAbsolutePath).collect(Collectors.toList());
+            paths = JSONArray.parseArray(JSONArray.toJSONString(filePaths));
+            for (int i = 0; i < paths.size(); i++) {
+                for (int j = 0; j < paths.size(); j++) {
+                    if (i != j && paths.getString(i).startsWith(paths.getString(j))) {
+                        paths.remove(i);
+                        i--;
+                        break;
+                    }
+                }
+            }
+        }
+        return paths;
     }
 }

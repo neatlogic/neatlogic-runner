@@ -24,6 +24,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -62,17 +63,18 @@ public class DpversyncApi extends PrivateApiComponentBase {
             builder.redirectOutput(NULL_FILE);
             builder.redirectError(NULL_FILE);
             Map<String, String> env = builder.environment();
-            env.put("RUNNER_GROUP", jsonObj.getString("runnerGroup"));
+            env.put("RUNNER_GROUP", jsonObj.getJSONObject("runnerGroup").toJSONString());
             env.put("DEPLOY_TARGET_PATH", getParentDirectory(targetPaths).toJSONString());
             env.put("RUNNER_ID", jsonObj.getString("runnerId"));
             env.put("tenant", TenantContext.get().getTenantUuid());
             Process proc = builder.start();
             proc.waitFor();
             String msgError = IOUtils.toString(proc.getErrorStream());
-            logger.error(msgError);
-            result.put("msgError", msgError);
+            if (StringUtils.isNotBlank(msgError)) {
+                logger.error(msgError);
+                result.put("msgError", msgError);
+            }
             result.put("exitValue", proc.exitValue());
-            result.remove("password");
         } catch (Exception ex) {
             result.put("exitValue", 1);
             result.put("msgError", ex.getMessage());

@@ -51,9 +51,7 @@ public class DpversyncApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "runnerGroup", type = ApiParamType.JSONOBJECT, desc = "该runner组下所有runner", isRequired = true),
             @Param(name = "targetPaths", type = ApiParamType.JSONARRAY, desc = "需要同步的目标路径", isRequired = true),
-            @Param(name = "path", type = ApiParamType.STRING, desc = "appSystemAbbrName/appModuleAbbrName", isRequired = true),
-            @Param(name = "idPath", type = ApiParamType.STRING, desc = "appSystemId/appModuleId", isRequired = true),
-            @Param(name = "version", type = ApiParamType.STRING, desc = "版本", isRequired = true),
+            @Param(name = "runnerId", type = ApiParamType.LONG, desc = "执行器id", isRequired = true)
     })
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
@@ -64,11 +62,9 @@ public class DpversyncApi extends PrivateApiComponentBase {
             builder.redirectOutput(NULL_FILE);
             builder.redirectError(NULL_FILE);
             Map<String, String> env = builder.environment();
-            env.put("DEPLOY_RUNNERGROUP", jsonObj.getJSONObject("runnerGroup").toJSONString());
+            env.put("RUNNER_GROUP", jsonObj.getString("runnerGroup"));
             env.put("DEPLOY_TARGET_PATH", getParentDirectory(targetPaths).toJSONString());
-            env.put("DEPLOY_PATH", jsonObj.getString("path"));
-            env.put("DEPLOY_ID_PATH", jsonObj.getString("idPath"));
-            env.put("VERSION", jsonObj.getString("version"));
+            env.put("RUNNER_ID", jsonObj.getString("runnerId"));
             env.put("tenant", TenantContext.get().getTenantUuid());
             Process proc = builder.start();
             proc.waitFor();

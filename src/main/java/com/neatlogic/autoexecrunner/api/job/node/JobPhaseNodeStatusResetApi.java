@@ -82,7 +82,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 document.put("phase", phase);
                 document.put("resourceId", node.getLong("resourceId"));
                 try {
-                    Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+                    mongoTemplate.getCollection("_node_status").deleteMany(document);
                 } catch (Exception ex) {
                     logger.error(ex.getMessage(), ex);
                     throw new MongodbException();
@@ -104,7 +104,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             document.put("jobId", jobId.toString());
             document.put("phase", phase);
             try {
-                Document result = mongoTemplate.getCollection("_node_status").findOneAndDelete(document);
+                mongoTemplate.getCollection("_node_status").deleteMany(document);
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
                 throw new MongodbException();

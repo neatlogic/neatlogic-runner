@@ -11,6 +11,7 @@ import java.util.Date;
  **/
 public class TimeUtil {
     public static final String YYYY_MM_DD_HH_MM_SS = "yyyy-MM-dd HH:mm:ss";
+    public static final String HH_MM_SS = "HH:mm:ss";
     public static final String YYYYMMDD_HHMMSS = "yyyyMMdd-HHmmss";
     public static String getTimeToDateString(long time, String format) {
         try {

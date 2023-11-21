@@ -23,6 +23,7 @@ import com.neatlogic.autoexecrunner.core.ExecProcessCommand;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.neatlogic.autoexecrunner.threadpool.CommonThreadPool;
+import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +56,8 @@ public class JobExecApi extends PrivateApiComponentBase {
         commandList = Lists.newArrayList(commandList);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {
             commandList.add("--firstfire");
+            //删除当前consoleLog
+            FileUtil.deleteDirectoryOrFile(commandVo.getConsoleLogPath());
         }
         if (commandVo.getNoFireNext() != null && commandVo.getNoFireNext()) {
             commandList.add("--nofirenext");
@@ -79,6 +82,7 @@ public class JobExecApi extends PrivateApiComponentBase {
             commandList.add("--sqlfiles");
             commandList.add(commandVo.getJobPhaseNodeSqlList().toString());
         }
+        commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
         ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
         CommonThreadPool.execute(processCommand);

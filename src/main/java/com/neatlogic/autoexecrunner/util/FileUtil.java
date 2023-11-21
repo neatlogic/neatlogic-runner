@@ -6,6 +6,7 @@ import com.neatlogic.autoexecrunner.constvalue.FileLogType;
 import com.neatlogic.autoexecrunner.dto.FileLineVo;
 import com.neatlogic.autoexecrunner.dto.FileTailerVo;
 import com.neatlogic.autoexecrunner.dto.FileVo;
+import com.neatlogic.autoexecrunner.exception.FileCreatePermissionDeniedException;
 import com.neatlogic.autoexecrunner.exception.MkdirPermissionDeniedException;
 import com.neatlogic.autoexecrunner.exception.job.ExecuteJobFileNotFoundException;
 import org.apache.commons.io.IOUtils;
@@ -35,7 +36,22 @@ public class FileUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
+    /**
+     * 保存内容到文件
+     * @param content 内容
+     * @param path 文件路径
+     */
     public static void saveFile(String content, String path) throws Exception {
+        saveFile(content, path, false);
+    }
+
+    /**
+     * 保存内容到文件
+     * @param content 内容
+     * @param path 文件路径
+     * @param isAdd true 表示追加 ， false 覆盖
+     */
+    public static void saveFile(String content, String path, Boolean isAdd) throws Exception {
         InputStream inputStream = IOUtils.toInputStream(content + System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
         File file = new File(path);
         if (!file.getParentFile().exists()) {
@@ -44,7 +60,7 @@ public class FileUtil {
             }
 
         }
-        FileOutputStream fos = new FileOutputStream(file);
+        FileOutputStream fos = new FileOutputStream(file, isAdd);
         IOUtils.copyLarge(inputStream, fos);
         fos.flush();
         fos.close();
@@ -199,15 +215,21 @@ public class FileUtil {
                         String content = StringUtils.EMPTY;
                         String lineType = StringUtils.EMPTY;
                         if (line.length() > 9) {
-                            content = line.substring(9);
-                            if (content.startsWith(FileLogType.ERROR.getValue())) {
+                            if(time.lastIndexOf(":") > -1) {
+                                content = line.substring(9);
+                                if (content.startsWith(FileLogType.ERROR.getValue())) {
+                                    lineType = FileLogType.ERROR.getValue();
+                                } else if (content.startsWith(FileLogType.INFO.getValue())) {
+                                    lineType = FileLogType.INFO.getValue();
+                                } else if (content.startsWith(FileLogType.WARN.getValue())) {
+                                    lineType = FileLogType.WARN.getValue();
+                                } else if (content.startsWith(FileLogType.FINE.getValue())) {
+                                    lineType = FileLogType.FINE.getValue();
+                                }
+                            }else{
+                                content = line;
                                 lineType = FileLogType.ERROR.getValue();
-                            } else if (content.startsWith(FileLogType.INFO.getValue())) {
-                                lineType = FileLogType.INFO.getValue();
-                            } else if (content.startsWith(FileLogType.WARN.getValue())) {
-                                lineType = FileLogType.WARN.getValue();
-                            } else if (content.startsWith(FileLogType.FINE.getValue())) {
-                                lineType = FileLogType.FINE.getValue();
+                                time = StringUtils.EMPTY;
                             }
                         }
                         String anchor = null;
@@ -659,5 +681,29 @@ public class FileUtil {
             }
         }
         return paths;
+    }
+
+    /**
+     * 创建文件
+     *
+     * @param filePath 文件路径
+     */
+    public static File createFile(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            if (!file.getParentFile().exists()) {
+                if (!file.getParentFile().mkdirs()) {
+                    throw new MkdirPermissionDeniedException();
+                }
+
+            }
+            try {
+                if (!file.createNewFile()) {
+                    throw new FileCreatePermissionDeniedException();
+                }
+            } catch (IOException ignored) {
+            }
+        }
+        return file;
     }
 }

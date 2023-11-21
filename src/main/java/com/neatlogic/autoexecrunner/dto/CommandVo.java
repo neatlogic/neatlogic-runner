@@ -3,9 +3,12 @@ package com.neatlogic.autoexecrunner.dto;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
+import com.neatlogic.autoexecrunner.common.config.Config;
+import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +33,8 @@ public class CommandVo {
     private List<Integer> jobGroupIdList;//需要执行的组
     private JSONArray jobPhaseNodeSqlList;
     private JSONObject environment;//设置环境变量
+
+    private String consoleLogPath;
 
     List<String> commandList;
     Boolean isCancel;
@@ -202,4 +207,8 @@ public class CommandVo {
         this.environment = environment;
     }
 
+    public String getConsoleLogPath() {
+        this.consoleLogPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(getJobId(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
+        return consoleLogPath;
+    }
 }

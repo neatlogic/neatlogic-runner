@@ -79,7 +79,7 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             }
         }
 
-        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"));
+        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"), false);
     }
 
     @Override

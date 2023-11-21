@@ -55,7 +55,7 @@ public class JobConsoleLogTailApi extends PrivateApiComponentBase {
         String direction = jsonObj.getString("direction");
         String encoding = jsonObj.getString("encoding");
         String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
-        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"));
+        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"), true);
     }
 
     @Override

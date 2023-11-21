@@ -159,9 +159,10 @@ public class FileUtil {
      * @param direction 方向
      * @param encoding  字符编码
      * @param status    状态，如果是中止状态则读取剩下的日志，不受 LOGTAIL_BUFLEN 长度限制
+     * @param isConsoleLog 是否控制台
      * @return 读取的内容
      */
-    public static FileTailerVo tailLogWithoutHtml(String logPath, Long logPos, String direction, String encoding, String status) {
+    public static FileTailerVo tailLogWithoutHtml(String logPath, Long logPos, String direction, String encoding, String status,boolean isConsoleLog) {
         if (logPos == null) {
             logPos = 0L;
         }
@@ -215,7 +216,11 @@ public class FileUtil {
                         String content = StringUtils.EMPTY;
                         String lineType = StringUtils.EMPTY;
                         if (line.length() > 9) {
-                            if(time.lastIndexOf(":") > -1) {
+                            if(isConsoleLog && time.lastIndexOf(":") < 0) {
+                                content = line;
+                                lineType = FileLogType.ERROR.getValue();
+                                time = StringUtils.EMPTY;
+                            }else{
                                 content = line.substring(9);
                                 if (content.startsWith(FileLogType.ERROR.getValue())) {
                                     lineType = FileLogType.ERROR.getValue();
@@ -226,10 +231,6 @@ public class FileUtil {
                                 } else if (content.startsWith(FileLogType.FINE.getValue())) {
                                     lineType = FileLogType.FINE.getValue();
                                 }
-                            }else{
-                                content = line;
-                                lineType = FileLogType.ERROR.getValue();
-                                time = StringUtils.EMPTY;
                             }
                         }
                         String anchor = null;

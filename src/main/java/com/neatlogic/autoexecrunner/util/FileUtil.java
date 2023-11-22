@@ -8,6 +8,7 @@ import com.neatlogic.autoexecrunner.dto.FileTailerVo;
 import com.neatlogic.autoexecrunner.dto.FileVo;
 import com.neatlogic.autoexecrunner.exception.FileCreatePermissionDeniedException;
 import com.neatlogic.autoexecrunner.exception.MkdirPermissionDeniedException;
+import com.neatlogic.autoexecrunner.exception.file.FileDeleteException;
 import com.neatlogic.autoexecrunner.exception.job.ExecuteJobFileNotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +20,7 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -32,14 +34,15 @@ import java.util.zip.ZipFile;
  **/
 public class FileUtil {
 
-    private static int BUF_SIZE = 16 * 1024;
+    private static final int BUF_SIZE = 16 * 1024;
 
     private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
     /**
      * 保存内容到文件
+     *
      * @param content 内容
-     * @param path 文件路径
+     * @param path    文件路径
      */
     public static void saveFile(String content, String path) throws Exception {
         saveFile(content, path, false);
@@ -47,23 +50,34 @@ public class FileUtil {
 
     /**
      * 保存内容到文件
+     *
      * @param content 内容
-     * @param path 文件路径
-     * @param isAdd true 表示追加 ， false 覆盖
+     * @param path    文件路径
+     * @param isAdd   true 表示追加 ， false 覆盖
      */
     public static void saveFile(String content, String path, Boolean isAdd) throws Exception {
-        InputStream inputStream = IOUtils.toInputStream(content + System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
-        File file = new File(path);
-        if (!file.getParentFile().exists()) {
-            if (!file.getParentFile().mkdirs()) {
-                throw new MkdirPermissionDeniedException();
-            }
+        FileOutputStream fos = null;
+        InputStream is = null;
+        try {
+            is = IOUtils.toInputStream(content + System.getProperty("line.separator"), StandardCharsets.UTF_8.toString());
+            File file = new File(path);
+            if (!file.getParentFile().exists()) {
+                if (!file.getParentFile().mkdirs()) {
+                    throw new MkdirPermissionDeniedException();
+                }
 
+            }
+            fos = new FileOutputStream(file, isAdd);
+            IOUtils.copyLarge(is, fos);
+            fos.flush();
+        } finally {
+            if (fos != null) {
+                fos.close();
+            }
+            if (is != null) {
+                is.close();
+            }
         }
-        FileOutputStream fos = new FileOutputStream(file, isAdd);
-        IOUtils.copyLarge(inputStream, fos);
-        fos.flush();
-        fos.close();
     }
 
     /**
@@ -154,15 +168,15 @@ public class FileUtil {
     /**
      * logPos = -1 && direction =  down 则读取最新内容
      *
-     * @param logPath   文件地址
-     * @param logPos    读取点
-     * @param direction 方向
-     * @param encoding  字符编码
-     * @param status    状态，如果是中止状态则读取剩下的日志，不受 LOGTAIL_BUFLEN 长度限制
+     * @param logPath      文件地址
+     * @param logPos       读取点
+     * @param direction    方向
+     * @param encoding     字符编码
+     * @param status       状态，如果是中止状态则读取剩下的日志，不受 LOGTAIL_BUFLEN 长度限制
      * @param isConsoleLog 是否控制台
      * @return 读取的内容
      */
-    public static FileTailerVo tailLogWithoutHtml(String logPath, Long logPos, String direction, String encoding, String status,boolean isConsoleLog) {
+    public static FileTailerVo tailLogWithoutHtml(String logPath, Long logPos, String direction, String encoding, String status, boolean isConsoleLog) {
         if (logPos == null) {
             logPos = 0L;
         }
@@ -216,11 +230,11 @@ public class FileUtil {
                         String content = StringUtils.EMPTY;
                         String lineType = StringUtils.EMPTY;
                         if (line.length() > 9) {
-                            if(isConsoleLog && time.lastIndexOf(":") < 0) {
+                            if (isConsoleLog && time.lastIndexOf(":") < 0) {
                                 content = line;
                                 lineType = FileLogType.ERROR.getValue();
                                 time = StringUtils.EMPTY;
-                            }else{
+                            } else {
                                 content = line.substring(9);
                                 if (content.startsWith(FileLogType.ERROR.getValue())) {
                                     lineType = FileLogType.ERROR.getValue();
@@ -276,18 +290,18 @@ public class FileUtil {
             return null;
         } else {
             String result = "";
-            FileInputStream fr = null;
-            BufferedReader filebr = null;
+            FileInputStream fis = null;
+            BufferedReader br = null;
             InputStreamReader in = null;
             File desFile = new File(filePath);
             try {
                 if (desFile.isFile() && desFile.exists()) {
                     StringBuilder str = new StringBuilder();
-                    fr = new FileInputStream(desFile);
-                    in = new InputStreamReader(fr, StandardCharsets.UTF_8);
-                    filebr = new BufferedReader(in);
+                    fis = new FileInputStream(desFile);
+                    in = new InputStreamReader(fis, StandardCharsets.UTF_8);
+                    br = new BufferedReader(in);
                     String inLine = "";
-                    while ((inLine = filebr.readLine()) != null) {
+                    while ((inLine = br.readLine()) != null) {
                         str.append(inLine);
                     }
                     result = str.toString();
@@ -297,15 +311,15 @@ public class FileUtil {
             } catch (Exception ex) {
                 result = ex.getMessage();
             } finally {
-                if (fr != null) {
+                if (fis != null) {
                     try {
-                        fr.close();
+                        fis.close();
                     } catch (IOException ignored) {
                     }
                 }
-                if (filebr != null) {
+                if (br != null) {
                     try {
-                        filebr.close();
+                        br.close();
                     } catch (IOException ignored) {
                     }
                 }
@@ -326,7 +340,6 @@ public class FileUtil {
      *
      * @param filePath       文件路径
      * @param wordCountLimit 字数限制
-     * @return
      */
     public static String getFileContentWithLimit(String filePath, int wordCountLimit) {
         if (filePath == null || "".equals(filePath)) {
@@ -335,11 +348,7 @@ public class FileUtil {
         String result = null;
         File file = new File(filePath);
         if (file.exists() && file.isFile()) {
-            FileInputStream fis = null;
-            InputStreamReader isr = null;
-            try {
-                fis = new FileInputStream(file);
-                isr = new InputStreamReader(fis, StandardCharsets.UTF_8);
+            try (FileInputStream fis = new FileInputStream(file); InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
                 int c;
                 int index = 0;
                 StringBuilder sb = new StringBuilder();
@@ -350,26 +359,17 @@ public class FileUtil {
                 result = sb.toString();
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
-            } finally {
-                if (isr != null) {
-                    try {
-                        isr.close();
-                    } catch (IOException e) {
-                        logger.error(e.getMessage(), e);
-                    }
-                }
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException e) {
-                        logger.error(e.getMessage(), e);
-                    }
-                }
             }
         }
         return result;
     }
 
+    /**
+     * 获取sql文件内容
+     *
+     * @param filePath 文件路径
+     * @param encoding 编码
+     */
     public static FileTailerVo getSqlFileContent(String filePath, String encoding) {
         List<FileLineVo> lineList = new ArrayList<>();
         FileTailerVo fileTailer = new FileTailerVo();
@@ -434,16 +434,17 @@ public class FileUtil {
         InputStream in = null;
         File file = new File(path);
         if (file.exists() && file.isFile()) {
-            in = new FileInputStream(file);
+            in = Files.newInputStream(file.toPath());
         }
         if (in != null) {
-            OutputStream os = response.getOutputStream();
-            IOUtils.copyLarge(in, os);
-            if (os != null) {
-                os.flush();
-                os.close();
+            try (OutputStream os = response.getOutputStream()) {
+                IOUtils.copyLarge(in, os);
+                if (os != null) {
+                    os.flush();
+                }
+            } finally {
+                in.close();
             }
-            in.close();
         } else {
             throw new ExecuteJobFileNotFoundException(path);
         }
@@ -457,21 +458,31 @@ public class FileUtil {
     public static void deleteDirectoryOrFile(String path) {
         File dirFile = new File(path);
         if (!dirFile.isDirectory()) {
-            dirFile.getAbsoluteFile().delete();
+            if(!dirFile.getAbsoluteFile().delete()){
+                throw new FileDeleteException(path);
+            }
         } else {
-            File[] files = dirFile.listFiles();
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].isFile()) {
-                    File file = new File(files[i].getAbsolutePath());
-                    if (file.isFile()) {
-                        file.delete();
+            File[] subFiles = dirFile.listFiles();
+            if(subFiles != null) {
+                for (File subFile : subFiles) {
+                    if (subFile.isFile()) {
+                        File file = new File(subFile.getAbsolutePath());
+                        if (file.isFile()) {
+                            if (!file.delete()) {
+                                throw new FileDeleteException(subFile.getAbsolutePath());
+                            }
+                        }
+                    } else {
+                        deleteDirectoryOrFile(subFile.getAbsolutePath());
                     }
-                } else {
-                    deleteDirectoryOrFile(files[i].getAbsolutePath());
+                }
+                if (subFiles.length == 0) {
+                    if (!dirFile.delete()) {
+                        throw new FileDeleteException(path);
+                    }
                 }
             }
-            if (Objects.requireNonNull(dirFile.listFiles()).length == 0)
-                dirFile.delete();
+
         }
     }
 
@@ -513,10 +524,8 @@ public class FileUtil {
      * Chrome浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36
      * Edg浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46
      *
-     * @param userAgent
-     * @param fileName
-     * @return
-     * @throws UnsupportedEncodingException
+     * @param userAgent userAgent
+     * @param fileName 文件名
      */
     public static String getEncodedFileName(String userAgent, String fileName) throws UnsupportedEncodingException {
         if (userAgent.indexOf("Gecko") > 0) {
@@ -532,17 +541,26 @@ public class FileUtil {
     /**
      * 上传文件
      *
-     * @param filePath    文件路径
-     * @param inputStream
+     * @param filePath 文件路径
+     * @param is       输入流
      * @return 保存后的文件绝对路径
-     * @throws IOException
      */
-    public static String uploadFile(String filePath, InputStream inputStream) throws IOException {
+    public static String uploadFile(String filePath, InputStream is) throws IOException {
+        FileOutputStream fos = null;
         File file = new File(getFullAbsolutePath(filePath));
-        FileOutputStream fos = new FileOutputStream(file);
-        IOUtils.copyLarge(inputStream, fos);
-        fos.flush();
-        fos.close();
+        try {
+            fos = new FileOutputStream(file);
+            IOUtils.copyLarge(is, fos);
+            fos.flush();
+        } finally {
+            if (fos != null) {
+                fos.close();
+            }
+            if (is != null) {
+                is.close();
+            }
+        }
+
         return file.getCanonicalPath();
     }
 
@@ -551,7 +569,6 @@ public class FileUtil {
      *
      * @param zipFile 文件
      * @param charset 字符集
-     * @throws Exception
      */
     public static void unzipFile(File zipFile, String charset) throws Exception {
         unzipFileToDestDirectory(zipFile, charset, null);
@@ -563,7 +580,6 @@ public class FileUtil {
      * @param zipFile   文件
      * @param charset   字符集
      * @param targetDir 目标目录
-     * @throws Exception
      */
     public static void unzipFileToDestDirectory(File zipFile, String charset, String targetDir) throws Exception {
         try (ZipFile zip = new ZipFile(zipFile, Charset.forName(charset))) {//解决中文文件名乱码
@@ -575,9 +591,12 @@ public class FileUtil {
                 String zipEntryName = entry.getName();
                 String outPath = (targetDir + File.separator + zipEntryName).replaceAll("\\*", File.separator);
                 // 判断路径是否存在,不存在则创建文件路径
-                File file = new File(outPath.substring(0, outPath.lastIndexOf(File.separatorChar)));
+                String tmpFilePath = outPath.substring(0, outPath.lastIndexOf(File.separatorChar));
+                File file = new File(tmpFilePath);
                 if (!file.exists()) {
-                    file.mkdirs();
+                    if(!file.mkdirs()){
+                        throw new FileCreatePermissionDeniedException(tmpFilePath);
+                    }
                 }
                 // 判断文件全路径是否为文件夹,如果是上面已经上传,不需要解压
                 if (new File(outPath).isDirectory()) {
@@ -598,14 +617,14 @@ public class FileUtil {
      * 压缩目录为zip文件
      *
      * @param rootDir 需要压缩的目录
-     * @param out
-     * @throws IOException
+     * @param out 输出流
      */
     public static void zipDirectory(String rootDir, OutputStream out) throws IOException {
         Path rootPath = Paths.get(rootDir).normalize().toAbsolutePath();
         rootDir = rootPath.toString();
-        int bufLen = BUF_SIZE;
-        byte[] buf = new byte[bufLen];
+        InputStream in = null;
+        InputStream err = null;
+        byte[] buf = new byte[BUF_SIZE];
         try {
             // ProcessBuilder builder = new ProcessBuilder("zip", "-qr", "-", ".");
             // .git/config里有密码信息，屏蔽掉
@@ -619,10 +638,10 @@ public class FileUtil {
             builder.directory(new File(rootDir));
             Process proc = builder.start();
 
-            InputStream in = proc.getInputStream();
-            InputStream err = proc.getErrorStream();
+            in = proc.getInputStream();
+            err = proc.getErrorStream();
             int len;
-            while ((len = in.read(buf, 0, bufLen)) >= 0) {
+            while ((len = in.read(buf, 0, BUF_SIZE)) >= 0) {
                 out.write(buf, 0, len);
             }
             proc.waitFor();
@@ -630,24 +649,31 @@ public class FileUtil {
             if (exitValue != 0) {
                 String errMsg = "";
                 try {
-                    len = err.read(buf, 0, bufLen);
-                    errMsg = new String(buf, 0, bufLen);
-                } catch (Exception ex) {
+                    len = err.read(buf, 0, BUF_SIZE);
+                    errMsg = new String(buf, 0, BUF_SIZE);
+                } catch (Exception ignored) {
                 }
                 throw new IOException("zip dir failed:" + rootDir + ":" + errMsg);
             }
         } catch (InterruptedException e) {
             throw new IOException("zip dir failed:" + rootDir, e);
         } finally {
-
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+            if (err != null) {
+                err.close();
+            }
         }
     }
 
     /**
      * 补全文件路径
      *
-     * @param path
-     * @return
+     * @param path 文件路径
      */
     public static String getFullAbsolutePath(String path) {
         if (!path.startsWith(File.separator)) {
@@ -700,7 +726,7 @@ public class FileUtil {
             }
             try {
                 if (!file.createNewFile()) {
-                    throw new FileCreatePermissionDeniedException();
+                    throw new FileCreatePermissionDeniedException(filePath);
                 }
             } catch (IOException ignored) {
             }

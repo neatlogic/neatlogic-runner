@@ -458,17 +458,17 @@ public class FileUtil {
     public static void deleteDirectoryOrFile(String path) {
         File dirFile = new File(path);
         if (!dirFile.isDirectory()) {
-            if(!dirFile.getAbsoluteFile().delete()){
+            if (dirFile.exists() && !dirFile.getAbsoluteFile().delete()) {
                 throw new FileDeleteException(path);
             }
         } else {
             File[] subFiles = dirFile.listFiles();
-            if(subFiles != null) {
+            if (subFiles != null) {
                 for (File subFile : subFiles) {
                     if (subFile.isFile()) {
                         File file = new File(subFile.getAbsolutePath());
                         if (file.isFile()) {
-                            if (!file.delete()) {
+                            if (file.exists() && !file.delete()) {
                                 throw new FileDeleteException(subFile.getAbsolutePath());
                             }
                         }
@@ -477,7 +477,7 @@ public class FileUtil {
                     }
                 }
                 if (subFiles.length == 0) {
-                    if (!dirFile.delete()) {
+                    if (dirFile.exists() && !dirFile.delete()) {
                         throw new FileDeleteException(path);
                     }
                 }
@@ -525,7 +525,7 @@ public class FileUtil {
      * Edg浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46
      *
      * @param userAgent userAgent
-     * @param fileName 文件名
+     * @param fileName  文件名
      */
     public static String getEncodedFileName(String userAgent, String fileName) throws UnsupportedEncodingException {
         if (userAgent.indexOf("Gecko") > 0) {
@@ -594,7 +594,7 @@ public class FileUtil {
                 String tmpFilePath = outPath.substring(0, outPath.lastIndexOf(File.separatorChar));
                 File file = new File(tmpFilePath);
                 if (!file.exists()) {
-                    if(!file.mkdirs()){
+                    if (!file.mkdirs()) {
                         throw new FileCreatePermissionDeniedException(tmpFilePath);
                     }
                 }
@@ -617,7 +617,7 @@ public class FileUtil {
      * 压缩目录为zip文件
      *
      * @param rootDir 需要压缩的目录
-     * @param out 输出流
+     * @param out     输出流
      */
     public static void zipDirectory(String rootDir, OutputStream out) throws IOException {
         Path rootPath = Paths.get(rootDir).normalize().toAbsolutePath();

@@ -113,6 +113,8 @@ public class Config {
     //启动服务需要注册runner的租户，以逗号隔开
     public static String REGISTER_TENANTS;
 
+    public static Integer SERVER_ID;
+
 
     public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<String>();
 
@@ -171,6 +173,10 @@ public class Config {
 
     public static String REGISTER_TENANTS(){
         return REGISTER_TENANTS;
+    }
+
+    public static Integer SERVER_ID(){
+        return SERVER_ID;
     }
 
 
@@ -260,6 +266,10 @@ public class Config {
             IS_SSL = Boolean.valueOf(prop.getProperty("server.ssl.enabled", "false"));
 
             REGISTER_TENANTS = prop.getProperty("register.tenants");
+
+            SERVER_ID = Integer.parseInt(prop.getProperty("server.id","1"));
+
+
 
 
         } catch (IOException e) {

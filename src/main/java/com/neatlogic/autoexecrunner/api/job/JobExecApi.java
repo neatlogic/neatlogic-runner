@@ -24,6 +24,7 @@ import com.neatlogic.autoexecrunner.dto.CommandVo;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.neatlogic.autoexecrunner.threadpool.CommonThreadPool;
 import com.neatlogic.autoexecrunner.util.FileUtil;
+import com.neatlogic.autoexecrunner.util.SnowflakeUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class JobExecApi extends PrivateApiComponentBase {
         FileUtil.saveFile(commandVo.getConfig(), filePath);*/
         //set command
         List<String> commandList = Arrays.asList("autoexec",
-                "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid()
+                "--jobid", commandVo.getJobId(), "--execuser", UserContext.get().getUserUuid(), "--execid", String.valueOf(SnowflakeUtil.uniqueLong())
         );//--paramsfile 参数 仅用于测试
         commandList = Lists.newArrayList(commandList);
         if (commandVo.getFirstFire() != null && commandVo.getFirstFire()) {

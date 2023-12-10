@@ -1,9 +1,5 @@
 package com.neatlogic.autoexecrunner.codehub.api;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.codehub.exception.SVNOpsException;
@@ -13,17 +9,21 @@ import com.neatlogic.autoexecrunner.codehub.utils.GitlabUtils;
 import com.neatlogic.autoexecrunner.codehub.utils.JSONUtils;
 import com.neatlogic.autoexecrunner.codehub.utils.SvnAgentUtils;
 import com.neatlogic.autoexecrunner.codehub.utils.WorkingCopyUtils;
+import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.annotation.Description;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
-import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
-import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.tmatesoft.svn.core.wc.SVNRevision;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class RepositoryInitApi extends PrivateApiComponentBase {
@@ -86,7 +86,7 @@ public class RepositoryInitApi extends PrivateApiComponentBase {
 					wc.close();
 					throw new ApiRuntimeException(e.getMessage(), e);
 				}
-				
+
 				// getRepositoryRoot返回域名是小写的
 				int idx = wc.getRepositoryRoot().lastIndexOf('/');
 				String baseUrl = wc.getRepositoryRoot().substring(0, idx);

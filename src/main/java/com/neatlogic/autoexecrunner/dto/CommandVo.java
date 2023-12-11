@@ -39,6 +39,8 @@ public class CommandVo {
     List<String> commandList;
     Boolean isCancel;
 
+    private String execid; //
+
     @Override
     public String toString() {
         return JSONObject.toJSONString(this);
@@ -91,6 +93,12 @@ public class CommandVo {
             }
             this.jobPhaseNodeSqlList = jobPhaseNodeSqlList;
         }
+
+        this.execid = jsonObj.getString("execid");
+    }
+
+    public String getExecid() {
+        return execid;
     }
 
     public String getJobId() {

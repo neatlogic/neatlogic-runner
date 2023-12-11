@@ -37,7 +37,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.Arrays;
-import java.util.Objects;
 
 
 /**
@@ -47,6 +46,7 @@ import java.util.Objects;
 @Component
 public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
     static Logger logger = LoggerFactory.getLogger(JobPhaseNodeStatusResetApi.class);
+
     @Override
     public String getName() {
         return "重置作业阶段节点";
@@ -70,11 +70,13 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
         String phase = jsonObj.getString("phaseName");
         String execMode = jsonObj.getString("execMode");
         JSONArray phaseNodeList = jsonObj.getJSONArray("phaseNodeList");
+        JSONArray jobPhaseNodeSqlList = jsonObj.getJSONArray("jobPhaseNodeSqlList");
+        StringBuilder nodeStatusPath = new StringBuilder(Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator);
         //重置单个或多个节点
         if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-            phaseNodeList.forEach(n -> {
+            for (int i = 0; i < phaseNodeList.size(); i++) {
                 //删除db对应的status记录
-                JSONObject node = JSONObject.parseObject(JSONObject.toJSONString(n));
+                JSONObject node = phaseNodeList.getJSONObject(i);
                 String host = node.getString("host");
                 Integer port = node.getInteger("port");
                 Document document = new Document();
@@ -88,16 +90,21 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                     throw new MongodbException();
                 }
                 //删除对应status文件记录
-                String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
-                if (Objects.equals("sqlfile", execMode)) {
-                    nodeStatusPath += host + "-" + (port == null ? StringUtils.EMPTY : port) + "-" + node.getString("resourceId") + File.separator + node.getString("sqlFile") + ".txt";
-                } else if (Arrays.asList("target", "runner_target").contains(execMode)) {
-                    nodeStatusPath += host + "-" + (port == null ? StringUtils.EMPTY : port) + "-" + node.getString("resourceId") + ".json";
+                if (Arrays.asList("target", "runner_target").contains(execMode)) {
+                    nodeStatusPath.append(host).append("-").append(port == null ? StringUtils.EMPTY : port).append("-").append(node.getString("resourceId")).append(".json");
                 } else {
-                    nodeStatusPath += "local-0-0.json";
+                    nodeStatusPath.append("local-0-0.json");
                 }
-                FileUtil.deleteDirectoryOrFile(nodeStatusPath);
-            });
+                FileUtil.deleteDirectoryOrFile(nodeStatusPath.toString());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(jobPhaseNodeSqlList)) {
+            for (int i = 0; i < jobPhaseNodeSqlList.size(); i++) {
+                JSONObject node = jobPhaseNodeSqlList.getJSONObject(i);
+                String host = node.getString("host");
+                Integer port = node.getInteger("port");
+                nodeStatusPath.append(host).append("-").append(port == null ? StringUtils.EMPTY : port).append("-").append(node.getString("resourceId")).append(File.separator).append(node.getString("sqlFile")).append(".txt");
+            }
         } else {
             //重置整个phase
             Document document = new Document();
@@ -110,8 +117,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 throw new MongodbException();
             }
             //删除对应status文件记录
-            String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase;
-            FileUtil.deleteDirectoryOrFile(nodeStatusPath);
+            FileUtil.deleteDirectoryOrFile(nodeStatusPath.toString());
         }
         return null;
     }

@@ -59,8 +59,12 @@ public class NeatlogicMongoDbFactory extends SimpleMongoClientDatabaseFactory {
             result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.BEARER.getValue(), TenantContext.get().getTenantUuid()));
             try {
                 JSONObject resultJson = JSONObject.parseObject(result);
-                if (MapUtils.isNotEmpty(resultJson) && Objects.equals(resultJson.getString("Status"), "ERROR")) {
-                    throw new RuntimeException(resultJson.getString("Message"));
+                if (MapUtils.isNotEmpty(resultJson) && !Objects.equals(resultJson.getString("Status"), "OK")) {
+                    if (resultJson.containsKey("Message")) {
+                        throw new RuntimeException(resultJson.getString("Message"));
+                    } else {
+                        throw new RuntimeException(resultJson.toJSONString());
+                    }
                 }
                 JSONObject returnJson = resultJson.getJSONObject("Return");
                 if (MapUtils.isEmpty(returnJson)) {
@@ -71,10 +75,11 @@ public class NeatlogicMongoDbFactory extends SimpleMongoClientDatabaseFactory {
                 mongoDbMap.put(TenantContext.get().getTenantUuid(), client);
                 mongoDatabaseMap.put(TenantContext.get().getTenantUuid(), mongoDbVo.getDatabase());
                 return client.getDatabase(mongoDbVo.getDatabase());
-            }catch (JSONException ex){
-                throw new ConnectRefusedException(url+":"+result);
+            } catch (JSONException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new ConnectRefusedException(url + ":" + result);
             }
-        }else{
+        } else {
             return mongoDbMap.get(TenantContext.get().getTenantUuid()).getDatabase(mongoDatabaseMap.get(TenantContext.get().getTenantUuid()));
         }
     }

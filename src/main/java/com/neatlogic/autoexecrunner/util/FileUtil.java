@@ -129,8 +129,7 @@ public class FileUtil {
                 fileTailer.setStartPos(logPos);
                 fis.seek(logPos);
                 String line;
-                while ((fileTailer.getEndPos() == -1L || fis.getFilePointer() < fileTailer.getEndPos())
-                        && (line = fis.readLine()) != null) {
+                while ((fileTailer.getEndPos() == -1L || fis.getFilePointer() < fileTailer.getEndPos()) && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1));
                     fileTailer.setLastLine(line);
                     if (StringUtils.isNotBlank(line) && line.length() > 8) {
@@ -165,6 +164,56 @@ public class FileUtil {
         return fileTailer;
     }
 
+
+    /**
+     * 获取开始位置
+     * 逻辑：往前读取寻找换行byte，并return所在指针位置
+     *
+     * @param fis    文件
+     * @param logPos 开始寻找的位置
+     */
+    private static void getStartPosByUp(RandomAccessFile fis, Long logPos) throws IOException {
+        logPos = logPos - Config.LOGTAIL_BUFLEN();
+        if (logPos <= 0) {
+            //如果不够一次buf，则直接读到0
+            fis.seek(0);
+            return;
+        }
+        long readBufTimes = 1L;
+        long buffLen = Config.LOGTAIL_BUFLEN();
+
+        // 将文件指针移动到指定位置
+        fis.seek(logPos);
+        // 从当前位置开始往前读取数据
+        byte[] buffer = new byte[Math.toIntExact(buffLen)]; // 读取缓冲区大小
+        int bytesRead = fis.read(buffer);
+        int index = 0; // 记录当前读取到的位置
+        while (bytesRead > 0) {
+            while (index < bytesRead) {
+                if (buffer[index] == 10) {
+                    fis.seek(logPos + index);
+                    return;
+                }
+                // 处理读取到的数据
+                //System.out.print((char) buffer[index]);
+                index++;
+            }
+            readBufTimes++;
+            logPos = fis.getFilePointer() - readBufTimes * Config.LOGTAIL_BUFLEN();
+            if (logPos > 0) {
+                buffer = new byte[Math.toIntExact(Config.LOGTAIL_BUFLEN())];
+                readBufTimes = 1L;
+            } else {
+                fis.seek(0);
+                return;
+            }
+            // 重新分配缓冲区，继续读取数据
+            fis.seek(logPos);
+            bytesRead = fis.read(buffer);
+            index = 0;
+        }
+    }
+
     /**
      * logPos = -1 && direction =  down 则读取最新内容
      *
@@ -189,9 +238,13 @@ public class FileUtil {
                 if (logPos == -1) {
                     if (fileLen > Config.LOGTAIL_BUFLEN()) {
                         logPos = fileLen - Config.LOGTAIL_BUFLEN();
-                        fis.seek(logPos);
-                        while (fis.readByte() != 10) {
-                        }
+                        //fis.seek(logPos);
+//                        while (fis.readByte() != 10) {
+//                        }
+//                        //解决某一行太长的问题
+//                        if (logPos == fis.getFilePointer()) {
+                        getStartPosByUp(fis, logPos);
+//                        }
                         logPos = fis.getFilePointer();
                     } else {
                         logPos = 0L;
@@ -203,9 +256,13 @@ public class FileUtil {
                     fileTailer.setEndPos(logPos);
                     logPos = logPos - Config.LOGTAIL_BUFLEN();
                     if (logPos > 0) {
-                        fis.seek(logPos);
+                        /*fis.seek(logPos);
                         while (fis.read() != 10) {
-                        }
+                        }*/
+                        //解决某一行太长的问题
+                        //if (logPos == fis.getFilePointer()) {
+                        getStartPosByUp(fis, logPos);
+                        //}
                         logPos = fis.getFilePointer();
                     } else {
                         logPos = 0L;
@@ -221,8 +278,7 @@ public class FileUtil {
                 fileTailer.setStartPos(logPos);
                 fis.seek(logPos);
                 String line;
-                while ((fileTailer.getEndPos() == -1L || fis.getFilePointer() < fileTailer.getEndPos())
-                        && (line = fis.readLine()) != null) {
+                while ((fileTailer.getEndPos() == -1L || fis.getFilePointer() < fileTailer.getEndPos()) && (line = fis.readLine()) != null) {
                     line = new String(line.getBytes(StandardCharsets.ISO_8859_1), encoding);
                     fileTailer.setLastLine(line);
                     if (StringUtils.isNotBlank(line) && line.length() > 8) {

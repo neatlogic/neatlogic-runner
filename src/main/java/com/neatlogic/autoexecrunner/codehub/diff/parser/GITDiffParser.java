@@ -250,9 +250,11 @@ public class GITDiffParser implements DiffParser {
 	private void parseFromLine(FileDiffInfo currentDiff, String currentLine) {
 		if (!onlyChangeInfo) {
 			Line fromLine = new Line(Line.LineType.FROM, currentLine.substring(1));
-			currentDiff.getLatestHunk().getLines().add(fromLine);
+			Hunk hunk = currentDiff.getLatestHunk();
+			if(hunk != null) {
+				hunk.getLines().add(fromLine);
+			}
 		}
-
 		currentDiff.increaseDeletedCount();
 	}
 

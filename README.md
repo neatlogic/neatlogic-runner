@@ -24,6 +24,10 @@ neatlogic-runner(执行器)+[neatlogic-autoexec-backend](../../../neatlogic-auto
 ## 安装教程
 
 需整体一键构建和部署，请参考[neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0.0/README.md)
+### ❗❗❗ 注意
+```js
+ ❗❗❗"仅支持在mac或linux下开发部署"   
+```
 
 ## 配置参数
 

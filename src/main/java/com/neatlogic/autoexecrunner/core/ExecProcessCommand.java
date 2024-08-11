@@ -64,6 +64,7 @@ public class ExecProcessCommand implements Runnable {
                 payload.put("command", commandVo);
                 payload.put("passThroughEnv", commandVo.getPassThroughEnv().toJSONString());
                 process = builder.start();
+                System.out.println(String.join(" ", commandVo.getCommandList()));
                 if (Objects.equals(commandVo.getAction(), "abort") || Objects.equals(commandVo.getAction(), "pause")) {
                     process.waitFor();
                 } else {

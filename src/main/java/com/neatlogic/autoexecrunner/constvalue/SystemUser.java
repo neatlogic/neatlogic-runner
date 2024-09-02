@@ -1,6 +1,7 @@
 package com.neatlogic.autoexecrunner.constvalue;
 
 
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.dto.UserVo;
 
 /**
@@ -17,7 +18,7 @@ public enum SystemUser {
     private String userName;
     private String timezone = "+8:00";
 
-    private SystemUser(String userId, String userUuid, String userName) {
+    SystemUser(String userId, String userUuid, String userName) {
         this.userId = userId;
         this.userUuid = userUuid;
         this.userName = userName;
@@ -44,6 +45,9 @@ public enum SystemUser {
         userVo.setUuid(userUuid);
         userVo.setUserId(userId);
         userVo.setUserName(userName);
+        userVo.setIsDelete(0);
+        userVo.setIsActive(1);
+        userVo.setTenant(TenantContext.get() != null ? TenantContext.get().getTenantUuid() : null);
         return userVo;
     }
 

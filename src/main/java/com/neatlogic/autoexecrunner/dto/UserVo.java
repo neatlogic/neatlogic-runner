@@ -71,6 +71,13 @@ public class UserVo implements Serializable {
 	@JSONField(serialize=false)
 	private String authorization;
 
+	@EntityField(name = "是否超级管理员", type = ApiParamType.BOOLEAN)
+	private Boolean isSuperAdmin;
+
+	@JSONField(serialize = false)
+	@EntityField(name = "jwtVo", type = ApiParamType.BOOLEAN)
+	private JwtVo jwtVo;
+
 	public UserVo() {
 
 	}
@@ -343,5 +350,19 @@ public class UserVo implements Serializable {
         this.authorization = authorization;
     }
 
-    
+	public Boolean getIsSuperAdmin() {
+		return isSuperAdmin;
+	}
+
+	public void setIsSuperAdmin(Boolean superAdmin) {
+		isSuperAdmin = superAdmin;
+	}
+
+	public JwtVo getJwtVo() {
+		return jwtVo;
+	}
+
+	public void setJwtVo(JwtVo jwtVo) {
+		this.jwtVo = jwtVo;
+	}
 }

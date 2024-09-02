@@ -10,10 +10,13 @@ import com.neatlogic.autoexecrunner.common.config.TagentConfig;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.common.tagent.NettyUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
+import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.RestVo;
+import com.neatlogic.autoexecrunner.dto.UserVo;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNettyTenantIsNullException;
 import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
+import com.neatlogic.autoexecrunner.filter.core.LoginAuthHandlerBase;
 import com.neatlogic.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.neatlogic.autoexecrunner.util.RestUtil;
 import io.netty.channel.ChannelHandler;
@@ -66,17 +69,17 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
      * 客户端断开连接
      */
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         agentInactive(ctx);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         agentInactive(ctx);
         log.error(cause.getMessage());
     }
 
-    private void agentInactive(ChannelHandlerContext ctx) {
+    private void agentInactive(ChannelHandlerContext ctx) throws Exception {
         String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
         String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
@@ -113,12 +116,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             String result = StringUtils.EMPTY;
             JSONObject resultJson = new JSONObject();
             RestVo restVo = null;
-            String url = String.format("%s/public/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
+            String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             try {
-                restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));
-                restVo.setTenant(tenant);
-                restVo.setUsername(Config.ACCESS_KEY());
-                restVo.setPassword(Config.ACCESS_SECRET());
+                restVo = new RestVo(url,  JSONObject.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
+                UserVo userVo = SystemUser.SYSTEM.getUserVo();
+                LoginAuthHandlerBase.buildJwt(userVo);
+                restVo.setToken(userVo.getAuthorization());
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
@@ -192,10 +195,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         String agentActionExecRes = StringUtils.EMPTY;
                         JSONObject resultJson = new JSONObject();
                         RestVo restVo = null;
-                        restVo = new RestVo(String.format("%s/public/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO), AuthenticateType.BASIC.getValue(), JSONObject.parseObject(JSON.toJSONString(params)));// 调用neatlogic的Tagent信息更新接口
-                        restVo.setTenant(params.get("tenant"));
-                        restVo.setUsername(Config.ACCESS_KEY());
-                        restVo.setPassword(Config.ACCESS_SECRET());
+                        String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO);
+                        String tenant = params.get("tenant");
+                        restVo = new RestVo(url,  JSONObject.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
+                        UserVo userVo = SystemUser.SYSTEM.getUserVo();
+                        LoginAuthHandlerBase.buildJwt(userVo);
+                        restVo.setToken(userVo.getAuthorization());
                         agentActionExecRes = RestUtil.sendRequest(restVo);
                         resultJson = JSONObject.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {

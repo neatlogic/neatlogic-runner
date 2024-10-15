@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.config.TagentConfig;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
@@ -83,6 +84,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
         String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
+        TenantContext.init(tenant).switchTenant(tenant);
         String mgmtIp = StringUtils.EMPTY;
         if (ctx.channel().attr(MGMT_IP_KEY) != null) {
             mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
@@ -118,12 +120,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             RestVo restVo = null;
             String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             try {
-                restVo = new RestVo(url,  JSONObject.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
+                restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
                 UserVo userVo = SystemUser.SYSTEM.getUserVo();
                 LoginAuthHandlerBase.buildJwt(userVo);
                 restVo.setToken(userVo.getAuthorization());
                 result = RestUtil.sendRequest(restVo);
-                resultJson = JSONObject.parseObject(result);
+                resultJson = JSON.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                     throw new TagentActionFailedException(url + ":" + resultJson.getString("Message"));
                 }
@@ -192,22 +194,20 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                             params.put("needUpdateTagentIp", "1");
                         }
 
-                        String agentActionExecRes = StringUtils.EMPTY;
-                        JSONObject resultJson = new JSONObject();
-                        RestVo restVo = null;
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO);
                         String tenant = params.get("tenant");
-                        restVo = new RestVo(url,  JSONObject.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
+                        TenantContext.init(tenant).switchTenant(tenant);
+                        RestVo restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
                         UserVo userVo = SystemUser.SYSTEM.getUserVo();
                         LoginAuthHandlerBase.buildJwt(userVo);
                         restVo.setToken(userVo.getAuthorization());
-                        agentActionExecRes = RestUtil.sendRequest(restVo);
-                        resultJson = JSONObject.parseObject(agentActionExecRes);
+                        String agentActionExecRes = RestUtil.sendRequest(restVo);
+                        JSONObject resultJson = JSON.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                             throw new TagentActionFailedException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                         }
                         if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {
-                            JSONObject resObj = JSONObject.parseObject(agentActionExecRes);
+                            JSONObject resObj = JSON.parseObject(agentActionExecRes);
                             JSONObject groupData = resObj.getJSONObject("Return").getJSONObject("Data");
                             if (groupData != null) {
                                 // Constant.runnerGroupMap.put(groupId, groupData.optString("groupInfo"));

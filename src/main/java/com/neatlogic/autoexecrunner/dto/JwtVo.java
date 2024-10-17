@@ -37,10 +37,14 @@ public class JwtVo implements Serializable {
 
     public JwtVo(UserVo checkUserVo, Long tokenCreateTime, AuthenticationInfoVo authenticationInfoVo) {
         JSONObject jwtBodyObj = new JSONObject();
+        String tenant =checkUserVo.getTenant();
+        if(TenantContext.get() != null && StringUtils.isNotBlank(TenantContext.get().getTenantUuid())){
+            tenant = TenantContext.get().getTenantUuid();
+        }
         jwtBodyObj.put("useruuid", checkUserVo.getUuid());
         jwtBodyObj.put("userid", checkUserVo.getUserId());
         jwtBodyObj.put("username", checkUserVo.getUserName());
-        jwtBodyObj.put("tenant", TenantContext.get().getTenantUuid());
+        jwtBodyObj.put("tenant", tenant);
         jwtBodyObj.put("isSuperAdmin", checkUserVo.getIsSuperAdmin());
         jwtBodyObj.put("createTime", tokenCreateTime);
 //        if (RequestContext.get() != null && RequestContext.get().getRequest() != null) {

@@ -13,6 +13,7 @@ import com.neatlogic.autoexecrunner.dto.ApiVo;
 import com.neatlogic.autoexecrunner.dto.UserVo;
 import com.neatlogic.autoexecrunner.exception.ApiNotFoundException;
 import com.neatlogic.autoexecrunner.exception.ComponentNotFoundException;
+import com.neatlogic.autoexecrunner.exception.TenantNotFoundException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.core.IApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IBinaryStreamApiComponent;
@@ -73,15 +74,21 @@ public class PublicApiDispatcher {
         }
 
         //param补充 tenant 租户信息
-        if(StringUtils.isNotBlank(request.getHeader("Tenant"))){
-            paramObj.put("tenant",request.getHeader("Tenant"));
+        if (StringUtils.isNotBlank(request.getHeader("Tenant"))) {
+            paramObj.put("tenant", request.getHeader("Tenant"));
         }
+
+        String tenant = paramObj.getString("tenant");
+        if (!paramObj.containsKey("tenant") || StringUtils.isBlank(tenant)) {
+            throw new TenantNotFoundException(tenant);
+        }
+        TenantContext.init(tenant);
 //自定义接口 访问人初始化
         String userUuid = request.getHeader("User");
         UserVo userVo;
         if (StringUtils.isNotBlank(userUuid)) {
             userVo = new UserVo(userUuid);
-        }else{
+        } else {
             userVo = new UserVo(SystemUser.SYSTEM.getUserUuid());
         }
         UserContext.init(userVo, "+8:00", request, response);

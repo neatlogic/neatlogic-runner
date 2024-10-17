@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.config.TagentConfig;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
@@ -14,9 +13,9 @@ import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.dto.UserVo;
+import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNettyTenantIsNullException;
-import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
 import com.neatlogic.autoexecrunner.filter.core.LoginAuthHandlerBase;
 import com.neatlogic.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.neatlogic.autoexecrunner.util.RestUtil;
@@ -84,7 +83,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
         Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
         String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
-        TenantContext.init(tenant).switchTenant(tenant);
         String mgmtIp = StringUtils.EMPTY;
         if (ctx.channel().attr(MGMT_IP_KEY) != null) {
             mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
@@ -122,6 +120,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             try {
                 restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
                 UserVo userVo = SystemUser.SYSTEM.getUserVo();
+                userVo.setTenant(tenant);
                 LoginAuthHandlerBase.buildJwt(userVo);
                 restVo.setToken(userVo.getAuthorization());
                 result = RestUtil.sendRequest(restVo);
@@ -196,9 +195,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO);
                         String tenant = params.get("tenant");
-                        TenantContext.init(tenant).switchTenant(tenant);
                         RestVo restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.BEARER.getValue(), tenant);
                         UserVo userVo = SystemUser.SYSTEM.getUserVo();
+                        userVo.setTenant(tenant);
                         LoginAuthHandlerBase.buildJwt(userVo);
                         restVo.setToken(userVo.getAuthorization());
                         String agentActionExecRes = RestUtil.sendRequest(restVo);

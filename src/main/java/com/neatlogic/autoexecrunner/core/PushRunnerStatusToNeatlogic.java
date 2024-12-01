@@ -68,6 +68,6 @@ public class PushRunnerStatusToNeatlogic {
                     logger.error(e.getMessage(), e);
                 }
             }
-        }, 0, 1000); // 半个小时执行一次
+        }, 0, Config.UPDATE_RUNNER_STATUS_PERIOD());
     }
 }

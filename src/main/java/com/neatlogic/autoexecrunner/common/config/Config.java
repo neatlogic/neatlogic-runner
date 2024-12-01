@@ -109,6 +109,8 @@ public class Config {
 
     private static String AUTOEXEC_TOKEN;// autoexec用户的token
 
+    private static Integer UPDATE_RUNNER_STATUS_PERIOD;// runner推送到neatlogic的间隔时间,半个小时执行一次
+
 
     public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<String>();
 
@@ -123,6 +125,10 @@ public class Config {
 
     public static Integer SERVER_PORT() {
         return SERVER_PORT;
+    }
+
+    public static Integer UPDATE_RUNNER_STATUS_PERIOD() {
+        return UPDATE_RUNNER_STATUS_PERIOD;
     }
 
     public static String AUTH_TYPE() {
@@ -237,6 +243,8 @@ public class Config {
             SERVER_ID = Integer.parseInt(prop.getProperty("server.id", "1"));
 
             AUTOEXEC_TOKEN = prop.getProperty("autoexec.token", "499922b4317c251c2ce525f7b83e3d94");
+
+            UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period","1800000"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

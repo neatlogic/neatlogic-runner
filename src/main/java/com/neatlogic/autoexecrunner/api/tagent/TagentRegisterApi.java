@@ -12,6 +12,13 @@ import javax.annotation.Resource;
 
 @Service
 public class TagentRegisterApi extends PublicApiComponentBase {
+    private final Object lock = new Object();
+    private static long count = 0;
+
+    public static long getCount() {
+        return count;
+    }
+
     @Resource
     TagentService tagentService;
 
@@ -27,20 +34,23 @@ public class TagentRegisterApi extends PublicApiComponentBase {
 
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        boolean status = false;
-        JSONObject result = new JSONObject();
-        StringBuilder execInfo = new StringBuilder();
-        try {
-            String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_REGISTER_TAGENT);
-            status = tagentService.forwardNeatlogicWeb(jsonObj,url,execInfo);
-        } catch (Exception ex) {
-            execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
-        }
-        if (status) {
-            return jsonObj.get("data");
-        } else {
-            result.put("Message", execInfo);
-            return result;
+        synchronized (lock) {
+            count++;
+            boolean status = false;
+            JSONObject result = new JSONObject();
+            StringBuilder execInfo = new StringBuilder();
+            try {
+                String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_REGISTER_TAGENT);
+                status = tagentService.forwardNeatlogicWeb(jsonObj, url, execInfo);
+            } catch (Exception ex) {
+                execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
+            }
+            if (status) {
+                return jsonObj.get("data");
+            } else {
+                result.put("Message", execInfo);
+                return result;
+            }
         }
     }
 

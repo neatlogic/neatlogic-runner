@@ -25,6 +25,8 @@ public class Constant {
     // tagent注册API接口
     public static String ACTION_REGISTER_TAGENT = "tagent/register";
 
+    public static String ACTION_RUNNER_STATUS = "runner/status/push";
+
     // tagent更新连接状态接口
     public static String ACTION_UPDATE_TAGENT = "tagent/status/update";
 

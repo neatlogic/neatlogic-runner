@@ -1,6 +1,7 @@
 package com.neatlogic.autoexecrunner.api;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.api.tagent.TagentRegisterApi;
 import com.neatlogic.autoexecrunner.constvalue.ApiAnonymousAccessSupportEnum;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,9 @@ public class ServerHealthCheckApi extends PrivateApiComponentBase {
 
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        return null;
+        JSONObject result = new JSONObject();
+        result.put("tagentRegisterCount", TagentRegisterApi.getCount());
+        return result;
     }
 
     @Override

@@ -149,7 +149,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             String agentKey = null;
             JSONObject result = new JSONObject();
             String errorString = "";
-
             try {
                 String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
                 if (StringUtils.isBlank(agentIp)) {
@@ -206,12 +205,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                             throw new TagentActionFailedException(String.format("host:%s tagent update info failed,error details:%n%s:%s", agentIp, restVo.getUrl(), resultJson.getString("Message")));
                         }
                         if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {
-                            JSONObject resObj = JSON.parseObject(agentActionExecRes);
-                            JSONObject groupData = resObj.getJSONObject("Return").getJSONObject("Data");
+                            JSONObject groupData = resultJson.getJSONObject("Return").getJSONObject("Data");
                             if (groupData != null) {
                                 // Constant.runnerGroupMap.put(groupId, groupData.optString("groupInfo"));
                                 result = groupData;
                             }
+                            result.put("serverId", resultJson.getJSONObject("Return").getLong("serverId"));
                         } else {
                             log.error(String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO) + "返回的数据不是json格式，参数：" + agentData + "，返回值：" + agentActionExecRes);
                         }

@@ -18,6 +18,7 @@ package com.neatlogic.autoexecrunner.web;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.neatlogic.autoexecrunner.api.tagent.TagentRegisterApi;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
@@ -39,11 +40,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,8 +55,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 @RequestMapping("anonymous/api/")
@@ -150,6 +157,38 @@ public class AnonymousApiDispatcher {
         }
 
     }
+    @RequestMapping(value = "/demo/**", method = RequestMethod.GET)
+    public DeferredResult<ResponseEntity<List<String>>> test() {
+        JSONObject result = new JSONObject();
+        result.put("tagentRegisterCount", TagentRegisterApi.getCount());
+
+        // 创建 DeferredResult
+        DeferredResult<ResponseEntity<List<String>>> deferredResult = new DeferredResult<>(20000L,
+                new ResponseEntity<>(HttpStatus.NOT_MODIFIED));
+
+        deferredResult.onTimeout(() -> {
+            System.out.println("调用超时");
+        });
+
+        deferredResult.onCompletion(() -> {
+            System.out.println("调用完成");
+        });
+
+        // 异步任务
+        new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(3); // 模拟耗时任务
+                deferredResult.setResult(new ResponseEntity<>(Arrays.asList("sss", "ddd"), HttpStatus.OK));
+                System.out.println("异步任务完成");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        // 返回 DeferredResult，Spring 框架会自动处理响应
+        return deferredResult;
+    }
+
 
     @RequestMapping(value = "/rest/**", method = RequestMethod.GET)
     public void dispatcherForGet(HttpServletRequest request, HttpServletResponse response) throws IOException {

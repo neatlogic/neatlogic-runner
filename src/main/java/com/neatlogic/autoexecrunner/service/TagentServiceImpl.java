@@ -1,8 +1,6 @@
 package com.neatlogic.autoexecrunner.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
-import com.neatlogic.autoexecrunner.common.tagent.IpUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.RestVo;
@@ -20,12 +18,12 @@ import org.springframework.stereotype.Service;
 public class TagentServiceImpl implements TagentService {
 
     @Override
-    public boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo) throws Exception {
+    public boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo,String host) throws Exception {
         boolean status = false;
         if (jsonObj.containsKey("mgmtIp") && StringUtils.isNotBlank(jsonObj.getString("mgmtIp"))) {
             jsonObj.put("ip", jsonObj.getString("mgmtIp"));
         } else {
-            jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
+            jsonObj.put("ip", host);
         }
         RestVo restVo = new RestVo(url, jsonObj, AuthenticateType.HMAC.getValue(), jsonObj.getString("tenant"));
         UserVo userVo = SystemUser.SYSTEM.getUserVo();

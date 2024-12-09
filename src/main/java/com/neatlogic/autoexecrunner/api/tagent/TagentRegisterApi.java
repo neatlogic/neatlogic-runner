@@ -1,8 +1,10 @@
 package com.neatlogic.autoexecrunner.api.tagent;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
+import com.neatlogic.autoexecrunner.common.tagent.IpUtil;
 import com.neatlogic.autoexecrunner.service.TagentService;
 import com.neatlogic.autoexecrunner.restful.core.publicapi.PublicApiComponentBase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -41,7 +43,7 @@ public class TagentRegisterApi extends PublicApiComponentBase {
             StringBuilder execInfo = new StringBuilder();
             try {
                 String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_REGISTER_TAGENT);
-                status = tagentService.forwardNeatlogicWeb(jsonObj, url, execInfo);
+                status = tagentService.forwardNeatlogicWeb(jsonObj, url, execInfo,  IpUtil.getIpAddr(UserContext.get().getRequest()));
             } catch (Exception ex) {
                 execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
             }

@@ -31,7 +31,7 @@ public class SocketUtil {
                 sock.getChannel().write(bb);
                 //sock.send(datagramPacket);
             } catch (Exception ex) {
-                logger.info(ex.getMessage(), ex);
+                logger.error(ex.getMessage(), ex);
                 if(!ex.getMessage().contains("Operation not permitted")) {
                     throw new ApiRuntimeException(ex.getMessage());
                 }

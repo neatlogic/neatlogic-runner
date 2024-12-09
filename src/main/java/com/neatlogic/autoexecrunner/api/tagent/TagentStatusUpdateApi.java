@@ -1,7 +1,9 @@
 package com.neatlogic.autoexecrunner.api.tagent;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
+import com.neatlogic.autoexecrunner.common.tagent.IpUtil;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Description;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
@@ -35,11 +37,12 @@ public class TagentStatusUpdateApi extends PublicApiComponentBase {
     @Description(desc = "tagent状态更新")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        String requestHost = IpUtil.getIpAddr(UserContext.get().getRequest());
         boolean status = false;
         JSONObject result = new JSONObject();
         StringBuilder execInfo = new StringBuilder();
         try {
-            status = tagentService.forwardNeatlogicWeb(jsonObj, String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT), execInfo);
+            status = tagentService.forwardNeatlogicWeb(jsonObj, String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT), execInfo, requestHost);
         } catch (Exception ex) {
             execInfo.append("runner exec error :").append(ExceptionUtils.getStackTrace(ex));
         }

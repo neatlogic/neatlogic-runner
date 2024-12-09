@@ -11,7 +11,8 @@ public interface TagentService {
      * @param jsonObj  参数
      * @param url      请求转发url
      * @param execInfo 执行信息
+     * @param host     host
      * @return 执行转发结果
      */
-    boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo) throws Exception;
+    boolean forwardNeatlogicWeb(JSONObject jsonObj, String url, StringBuilder execInfo, String host) throws Exception;
 }

@@ -1,15 +1,10 @@
 package com.neatlogic.autoexecrunner.core;
 
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
-import com.neatlogic.autoexecrunner.common.config.Config;
-import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
-import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.util.FileUtil;
-import com.neatlogic.autoexecrunner.util.RestUtil;
 import com.neatlogic.autoexecrunner.util.TimeUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -93,16 +88,16 @@ public class ExecProcessCommand implements Runnable {
                 logger.error(e.getMessage(), e);
             }
         } finally {
-            if (commandVo != null && Objects.equals(commandVo.getExitValue(), 2)) {
-                String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
-                String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
-                try {
-                    result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.HMAC.getValue(), commandVo.getTenant()));
-                    JSONObject.parseObject(result);
-                } catch (JSONException e) {
-                    logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);
-                }
-            }
+//            if (commandVo != null && Objects.equals(commandVo.getExitValue(), 2)) {
+//                String CALLBACK_PROCESS_UPDATE_URL = "autoexec/job/process/status/update";
+//                String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
+//                try {
+//                    result = RestUtil.sendRequest(new RestVo(url, payload, AuthenticateType.HMAC.getValue(), commandVo.getTenant()));
+//                    JSONObject.parseObject(result);
+//                } catch (JSONException e) {
+//                    logger.error("do RESTFul api failed,url: #{},result: #{}", url, result);
+//                }
+//            }
         }
     }
 

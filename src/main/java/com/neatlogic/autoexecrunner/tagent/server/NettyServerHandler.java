@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.neatlogic.autoexecrunner.common.config.Config;
-import com.neatlogic.autoexecrunner.common.config.TagentConfig;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.common.tagent.NettyUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
@@ -26,13 +25,11 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,15 +101,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             params.put("port", listenPort.toString());
             //params.put("runnerIp", runnerIp);
             params.put("status", "disconnected");
-
-            Map<String, String> header = new HashMap<>();
-            if (TagentConfig.AUTH_TYPE != null && !TagentConfig.AUTH_TYPE.equals("")) {
-                if (TagentConfig.AUTH_TYPE.equalsIgnoreCase("basic")) {
-                    String key = TagentConfig.ACCESS_KEY + ":" + TagentConfig.ACCESS_SECRET;
-                    header.put("Authorization", "Basic " + Base64.encodeBase64String(key.getBytes(StandardCharsets.UTF_8), false));
-                    header.put("x-access-date", Long.toString(System.currentTimeMillis()));
-                }
-            }
             String result = StringUtils.EMPTY;
             JSONObject resultJson = new JSONObject();
             RestVo restVo = null;

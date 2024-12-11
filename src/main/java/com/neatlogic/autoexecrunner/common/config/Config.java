@@ -4,9 +4,12 @@ import com.neatlogic.autoexecrunner.common.RootConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.FileNameMap;
@@ -19,6 +22,9 @@ import java.util.regex.Pattern;
 
 @RootConfiguration
 public class Config {
+    @Resource
+    private ConfigurableApplicationContext configurableApplicationContext;
+
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
     private static final String CONFIG_FILE = "application.properties";
     public static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
@@ -26,9 +32,6 @@ public class Config {
     private static String AUTOEXEC_HOME;//脚本目录
 
     private static Integer SERVER_PORT;//服务端口
-    private static String AUTH_TYPE;//autoexecrunner的认证方式
-    private static String ACCESS_KEY;//访问用户
-    private static String ACCESS_SECRET;//访问密码
     private static Long LOGTAIL_BUFLEN;//日志tail buff长度
     private static String WARN_PATTERN;//告警提示关键字
     private static String DATA_HOME;//文件根目录
@@ -111,9 +114,7 @@ public class Config {
 
     private static Integer UPDATE_RUNNER_STATUS_PERIOD;// runner推送到neatlogic的间隔时间,半个小时执行一次
 
-
     public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<String>();
-
 
     public static String JWT_SECRET() {
         return JWT_SECRET;
@@ -131,20 +132,8 @@ public class Config {
         return UPDATE_RUNNER_STATUS_PERIOD;
     }
 
-    public static String AUTH_TYPE() {
-        return AUTH_TYPE;
-    }
-
     public static String NEATLOGIC_ROOT() {
         return NEATLOGIC_ROOT;
-    }
-
-    public static String ACCESS_KEY() {
-        return ACCESS_KEY;
-    }
-
-    public static String ACCESS_SECRET() {
-        return ACCESS_SECRET;
     }
 
     public static Long LOGTAIL_BUFLEN() {
@@ -178,6 +167,7 @@ public class Config {
     public static String AUTOEXEC_TOKEN() {
         return AUTOEXEC_TOKEN;
     }
+
     @PostConstruct
     public void init() {
         try {
@@ -189,11 +179,14 @@ public class Config {
                 logger.error("请在配置文件中定义autoexec.home参数");
             }
             DEPLOY_HOME = prop.getProperty("deploy.home");
-            JWT_SECRET = prop.getProperty("jwt.secret", "neatlogic#neatlogic$secret");
+            JWT_SECRET = prop.getProperty("jwt.secret");
+            if (StringUtils.isBlank(JWT_SECRET)) {
+                System.out.println("  ✖application.properties请定义jwt密钥:jwt.secret,注意需和neatlogic配置的保持一致");
+                logger.error("  ✖application.properties请定义jwt密钥:jwt.secret,注意需和neatlogic配置的保持一致");
+                int exitCode = SpringApplication.exit(configurableApplicationContext);
+                System.exit(exitCode);
+            }
             NEATLOGIC_ROOT = prop.getProperty("neatlogic.root", "http://localhost:8083/neatlogic");
-            AUTH_TYPE = prop.getProperty("auth.type", "");
-            ACCESS_KEY = prop.getProperty("access.key", "admin");
-            ACCESS_SECRET = prop.getProperty("access.secret", "password");
             WARN_PATTERN = prop.getProperty("warn.pattern", "warn:");
             LOGTAIL_BUFLEN = Long.valueOf(prop.getProperty("logtail.buflen", String.valueOf(64 * 1024)));
             DATA_HOME = prop.getProperty("data.home", "/app/autoexec/");
@@ -244,7 +237,7 @@ public class Config {
 
             AUTOEXEC_TOKEN = prop.getProperty("autoexec.token", "499922b4317c251c2ce525f7b83e3d94");
 
-            UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period","1800000"));
+            UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period", "1800000"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

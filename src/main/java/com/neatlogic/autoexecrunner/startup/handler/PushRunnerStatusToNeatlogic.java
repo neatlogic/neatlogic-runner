@@ -1,4 +1,4 @@
-package com.neatlogic.autoexecrunner.core;
+package com.neatlogic.autoexecrunner.startup.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -11,23 +11,30 @@ import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.dto.TenantVo;
 import com.neatlogic.autoexecrunner.dto.UserVo;
 import com.neatlogic.autoexecrunner.filter.core.LoginAuthHandlerBase;
+import com.neatlogic.autoexecrunner.startup.IStartUp;
 import com.neatlogic.autoexecrunner.util.RestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@Component
-public class PushRunnerStatusToNeatlogic {
+public class PushRunnerStatusToNeatlogic implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(PushRunnerStatusToNeatlogic.class);
+    @Override
+    public String getName() {
+        return "pushRunnerStatus";
+    }
 
-    @PostConstruct
-    public final void init() {
+    @Override
+    public String getDescription() {
+        return "启动时定时推送runner状态";
+    }
+
+    @Override
+    public void doService() {
         Timer timer = new Timer();
 
         timer.schedule(new TimerTask() {

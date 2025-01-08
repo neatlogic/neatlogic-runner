@@ -194,7 +194,7 @@ public class Config {
 
             //codehub
             NEATLOGIC_HOME = System.getenv("NEATLOGIC_HOME");
-            if (NEATLOGIC_HOME == null || "".equals(NEATLOGIC_HOME)) {
+            if (NEATLOGIC_HOME == null || NEATLOGIC_HOME.isEmpty()) {
                 NEATLOGIC_HOME = "/app";
             }
 
@@ -224,7 +224,7 @@ public class Config {
             }
             String possiblyCharsets = prop.getProperty("res.possibly.charsets", "UTF-8,GBK,ISO-8859-1");
             for (String charset : possiblyCharsets.split(",")) {
-                if (!charset.trim().equals("")) {
+                if (!charset.trim().isEmpty()) {
                     RES_POSSIBLY_CHARSETS.add(charset);
                 }
             }

@@ -37,7 +37,6 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
         String timezone = "+8:00";
         boolean isAuth = false;
         ILoginAuthHandler loginAuth = null;
-        boolean isUnExpired = false;
         boolean hasTenant = false;
         UserVo userVo = null;
         JSONObject redirectObj = new JSONObject();
@@ -67,13 +66,11 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
                     TenantContext.init();
                     TenantContext.get().switchTenant(tenant);
                     UserContext.get().setToken(userVo.getAuthorization());
-                    //isUnExpired = userExpirationValid(); //没有校验用户登录有效性 可能存在漏洞
-                    isUnExpired= true;
                     isAuth = true;
                 }
             }
 
-            if (hasTenant && isAuth && isUnExpired) {
+            if (hasTenant && isAuth) {
                 //兼容“处理response,对象toString可能会异常”的场景，过了filter，应该是520异常
                 try {
                     filterChain.doFilter(request, response);
@@ -90,22 +87,10 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
                     response.setStatus(521);
                     redirectObj.put("Status", "FAILED");
                     redirectObj.put("Message", "租户 '" + tenant + "' 不存在或已被禁用");
-                } else if (loginAuth == null) {
-                    response.setStatus(522);
-                    redirectObj.put("Status", "FAILED");
-                    redirectObj.put("Message", "找不到认证方式 '" + authType + "'");
-                } else if (userVo != null && StringUtils.isBlank(userVo.getAuthorization())) {
-                    response.setStatus(522);
-                    redirectObj.put("Status", "FAILED");
-                    redirectObj.put("Message", "没有找到认证信息，请登录");
-                } else if (isAuth && !isUnExpired) {
-                    response.setStatus(522);
-                    redirectObj.put("Status", "FAILED");
-                    redirectObj.put("Message", "会话已超时或已被终止，请重新登录");
                 } else {
                     response.setStatus(522);
                     redirectObj.put("Status", "FAILED");
-                    redirectObj.put("Message", "用户认证失败，请登录");
+                    redirectObj.put("Message", "用户认证失败，请核对neatlogic和runner的jwt.secret是否一致");
                 }
                 response.setContentType(Config.RESPONSE_TYPE_JSON);
                 response.getWriter().print(redirectObj.toJSONString());

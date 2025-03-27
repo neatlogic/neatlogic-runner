@@ -4,6 +4,6 @@ import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 
 public class TagentClientNetException extends ApiRuntimeException {
     public TagentClientNetException(String message) {
-        super("tagent连接异常：" + message);
+        super("tagentClient连接异常：" + message);
     }
 }

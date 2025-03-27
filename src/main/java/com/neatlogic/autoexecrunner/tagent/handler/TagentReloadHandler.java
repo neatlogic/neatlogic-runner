@@ -48,10 +48,10 @@ public class TagentReloadHandler extends TagentHandlerBase {
                 TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
                 tagentClient.reload();
             } catch (com.neatlogic.tagent.exception.AuthException e) {
-                logger.error("exec TagentLogDownload cmd error ,exception : {} ", ExceptionUtils.getStackTrace(e));
+                logger.error("exec TagentReloadHandler cmd error ,exception : {} ", ExceptionUtils.getStackTrace(e));
                 throw new TagentClientAuthException(e.getMessage());
             } catch (IOException e) {
-                logger.error("exec TagentLogDownload cmd error ,exception :  {}", ExceptionUtils.getStackTrace(e));
+                logger.error("exec TagentReloadHandler cmd error ,exception :  {}", ExceptionUtils.getStackTrace(e));
                 throw new TagentClientNetException(e.getMessage());
             } catch (Exception e) {
                 for (String s : Constant.tagentMap.keySet()) {

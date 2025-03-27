@@ -9,13 +9,10 @@ import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.common.tagent.NettyUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
-import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.RestVo;
-import com.neatlogic.autoexecrunner.dto.UserVo;
 import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNettyTenantIsNullException;
-import com.neatlogic.autoexecrunner.filter.core.LoginAuthHandlerBase;
 import com.neatlogic.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.neatlogic.autoexecrunner.util.RestUtil;
 import io.netty.channel.ChannelHandler;
@@ -107,10 +104,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             try {
                 restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.HMAC.getValue(), tenant);
-                UserVo userVo = SystemUser.SYSTEM.getUserVo();
-                userVo.setTenant(tenant);
-                LoginAuthHandlerBase.buildJwt(userVo);
-                restVo.setToken(userVo.getAuthorization());
                 result = RestUtil.sendRequest(restVo);
                 resultJson = JSON.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
@@ -183,10 +176,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO);
                         String tenant = params.get("tenant");
                         RestVo restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.HMAC.getValue(), tenant);
-                        UserVo userVo = SystemUser.SYSTEM.getUserVo();
-                        userVo.setTenant(tenant);
-                        LoginAuthHandlerBase.buildJwt(userVo);
-                        restVo.setToken(userVo.getAuthorization());
                         String agentActionExecRes = RestUtil.sendRequest(restVo);
                         JSONObject resultJson = JSON.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {

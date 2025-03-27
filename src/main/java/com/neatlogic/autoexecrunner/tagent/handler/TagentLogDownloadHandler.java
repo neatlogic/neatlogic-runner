@@ -5,6 +5,8 @@ import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientAuthException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientNetException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentDownloadFailedException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 public class TagentLogDownloadHandler extends TagentHandlerBase {
 
@@ -41,8 +44,14 @@ public class TagentLogDownloadHandler extends TagentHandlerBase {
             }
         } catch (ApiRuntimeException ex) {
             throw ex;
+        } catch (com.neatlogic.tagent.exception.AuthException e) {
+            logger.error("exec TagentLogDownload cmd error ,exception : {} " , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientAuthException(e.getMessage());
+        } catch (IOException e) {
+            logger.error("exec TagentLogDownload cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientNetException(e.getMessage());
         } catch (Exception e) {
-            logger.error("exec download cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            logger.error("exec TagentLogDownload cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
             throw new TagentActionFailedException(e.getMessage());
         }
         return result;

@@ -19,11 +19,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientAuthException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientNetException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentConfigGetFailedException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
 import com.neatlogic.tagent.client.TagentClient;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,8 +104,14 @@ public class TagentConfigBatchSaveHandler extends TagentHandlerBase {
             } else {
                 throw new TagentConfigGetFailedException();
             }
+        } catch (com.neatlogic.tagent.exception.AuthException e) {
+            logger.error("exec TagentConfigBatchSave cmd error ,exception : {} " , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientAuthException(e.getMessage());
+        } catch (IOException e) {
+            logger.error("exec TagentConfigBatchSave cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientNetException(e.getMessage());
         } catch (Exception e) {
-            logger.error("exec batchSaveConfig cmd error ,exception ：" + param, e);
+            logger.error("exec TagentConfigBatchSave cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
             throw new TagentActionFailedException(e.getMessage());
         }
         return result;

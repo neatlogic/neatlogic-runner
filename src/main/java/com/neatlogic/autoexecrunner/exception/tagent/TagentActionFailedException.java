@@ -4,6 +4,6 @@ import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 
 public class TagentActionFailedException extends ApiRuntimeException {
     public TagentActionFailedException(String message) {
-        super("tagent报错信息：" + message);
+        super("未知异常：" + message);
     }
 }

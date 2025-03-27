@@ -1,8 +1,11 @@
 package com.neatlogic.autoexecrunner.tagent.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientAuthException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientNetException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentLogGetFailedException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
@@ -11,9 +14,11 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class TagentLogGetHandler extends TagentHandlerBase {
 
-    private Logger logger = LoggerFactory.getLogger(TagentLogGetHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(TagentLogGetHandler.class);
 
     @Override
     public String getName() {
@@ -31,7 +36,7 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             TagentResultHandler handler = new TagentResultHandler();
             String osType = tagentClient.getAgentOsType();
             tagentClient.execCmd("echo %TAGENT_HOME%", null, 10000, handler);
-            String path = JSONObject.parseObject(handler.getContent()).getJSONArray("std").getString(0).substring(0, 2);
+            String path = JSON.parseObject(handler.getContent()).getJSONArray("std").getString(0).substring(0, 2);
 
             TagentResultHandler listHandler = new TagentResultHandler();
             int execStatus = 0;
@@ -45,11 +50,17 @@ public class TagentLogGetHandler extends TagentHandlerBase {
             } else {
                 throw new TagentLogGetFailedException();
             }
+        } catch (com.neatlogic.tagent.exception.AuthException e) {
+            logger.error("exec TagentLogGet cmd error ,exception : {} " , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientAuthException(e.getMessage());
+        } catch (IOException e) {
+            logger.error("exec TagentLogGet cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
+            throw new TagentClientNetException(e.getMessage());
         } catch (Exception e) {
-            logger.error("exec getlogs cmd error ,exception :  " + ExceptionUtils.getStackTrace(e));
+            logger.error("exec TagentLogGet cmd error ,exception :  {}" , ExceptionUtils.getStackTrace(e));
             throw new TagentActionFailedException(e.getMessage());
         }
-        result.put("Data", JSONObject.parseObject(data).getJSONArray("std"));
+        result.put("Data", JSON.parseObject(data).getJSONArray("std"));
         return result;
     }
 }

@@ -4,13 +4,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.constvalue.TagentAction;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientAuthException;
+import com.neatlogic.autoexecrunner.exception.tagent.TagentClientNetException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNotFoundChannelAndReloadFieldException;
 import com.neatlogic.autoexecrunner.tagent.TagentHandlerBase;
 import com.neatlogic.autoexecrunner.util.RC4Util;
 import com.neatlogic.tagent.client.TagentClient;
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 public class TagentReloadHandler extends TagentHandlerBase {
 
@@ -39,9 +44,15 @@ public class TagentReloadHandler extends TagentHandlerBase {
         }
         if (!isSend) {
             String credential = RC4Util.decrypt(param.getString("credential"));
-            TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
             try {
+                TagentClient tagentClient = new TagentClient(param.getString("ip"), Integer.parseInt(param.getString("port")), credential, 3000, 30000);
                 tagentClient.reload();
+            } catch (com.neatlogic.tagent.exception.AuthException e) {
+                logger.error("exec TagentLogDownload cmd error ,exception : {} ", ExceptionUtils.getStackTrace(e));
+                throw new TagentClientAuthException(e.getMessage());
+            } catch (IOException e) {
+                logger.error("exec TagentLogDownload cmd error ,exception :  {}", ExceptionUtils.getStackTrace(e));
+                throw new TagentClientNetException(e.getMessage());
             } catch (Exception e) {
                 for (String s : Constant.tagentMap.keySet()) {
                     allTagentKeys.append(s).append(",");

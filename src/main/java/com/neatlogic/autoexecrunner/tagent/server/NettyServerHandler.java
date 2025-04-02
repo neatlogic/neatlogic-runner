@@ -74,20 +74,35 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
     }
 
     private void agentInactive(ChannelHandlerContext ctx) throws Exception {
-        String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
-        Integer listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
-        String tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
-        String mgmtIp = StringUtils.EMPTY;
-        if (ctx.channel().attr(MGMT_IP_KEY) != null) {
-            mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
+        String agentIp = null;
+        Integer listenPort = null;
+        String tenant = null;
+        try {
+            agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
+            listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
+            tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
+            String mgmtIp = StringUtils.EMPTY;
+
+            if (ctx.channel().attr(MGMT_IP_KEY) != null) {
+                mgmtIp = ctx.channel().attr(MGMT_IP_KEY).get();
+            }
+
+            // 优先使用 mgmtIp
+            if (StringUtils.isNotBlank(mgmtIp)) {
+                agentIp = mgmtIp;
+            }
+
+            ctx.flush();
+        } catch (Exception e) {
+            // 记录日志，方便排查问题
+            log.error("处理 Netty 连接时发生异常", e);
+        } finally {
+            try {
+                ctx.channel().close();
+            } finally {
+                ctx.close();
+            }
         }
-        //优先使用mgmtIp
-        if (StringUtils.isNotBlank(mgmtIp)) {
-            agentIp = mgmtIp;
-        }
-        ctx.flush();
-        ctx.channel().close();
-        ctx.close();
 
         if (StringUtils.isNotBlank(agentIp) && listenPort != null) {
             Constant.tagentMap.remove(tenant + agentIp + ":" + listenPort);

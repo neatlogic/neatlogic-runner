@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
  * @author lvzk
  * @since 2021/4/21 17:12
  **/
+@Deprecated
 public class ExecProcessCommand implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ExecProcessCommand.class);
     private final ProcessBuilder builder;

@@ -37,6 +37,8 @@ public class Config {
     private static String DATA_HOME;//文件根目录
     private static String DEPLOY_HOME;//发布目录
     private static String GITLAB_PASSWORD;// gitlab private_token
+    private static Integer MAX_PROCESS_QUEUE_SIZE;//最大自动化作业队列数，多余的则丢弃
+    private static Integer MAX_PROCESS_EXECUTE_COUNT;//最大执行作业数，超过的则进入队列
 
     //neatlogic
     private static String NEATLOGIC_ROOT;
@@ -168,6 +170,13 @@ public class Config {
         return AUTOEXEC_TOKEN;
     }
 
+    public static Integer MAX_PROCESS_QUEUE_SIZE() {
+        return MAX_PROCESS_QUEUE_SIZE;
+    }
+    public static Integer MAX_PROCESS_EXECUTE_COUNT() {
+        return MAX_PROCESS_EXECUTE_COUNT;
+    }
+
     @PostConstruct
     public void init() {
         try {
@@ -238,6 +247,10 @@ public class Config {
             AUTOEXEC_TOKEN = prop.getProperty("autoexec.token", "499922b4317c251c2ce525f7b83e3d94");
 
             UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period", "1800000"));
+
+            MAX_PROCESS_QUEUE_SIZE = Integer.parseInt(prop.getProperty("max.process.queue.size", "2000"));
+
+            MAX_PROCESS_EXECUTE_COUNT = Integer.parseInt(prop.getProperty("max.process.execute.size", "10"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

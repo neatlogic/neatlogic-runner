@@ -17,10 +17,9 @@ package com.neatlogic.autoexecrunner.api.job;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.JobAction;
-import com.neatlogic.autoexecrunner.core.ExecProcessCommand;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
-import com.neatlogic.autoexecrunner.threadpool.CommonThreadPool;
+import com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -83,8 +82,7 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
-        CommonThreadPool.execute(processCommand);
+        AutoexecQueueThread.addUpdateTagent(commandVo);
         return null;
     }
 

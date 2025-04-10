@@ -248,9 +248,9 @@ public class Config {
 
             UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period", "1800000"));
 
-            MAX_PROCESS_QUEUE_SIZE = Integer.parseInt(prop.getProperty("max.process.queue.size", "2000"));
+            MAX_PROCESS_QUEUE_SIZE = Integer.parseInt(prop.getProperty("max.process.queue.size", "1000"));
 
-            MAX_PROCESS_EXECUTE_COUNT = Integer.parseInt(prop.getProperty("max.process.execute.size", "10"));
+            MAX_PROCESS_EXECUTE_COUNT = Integer.parseInt(prop.getProperty("max.process.execute.count", "20"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

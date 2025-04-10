@@ -18,6 +18,7 @@
 package com.neatlogic.autoexecrunner.asynchronization.queue;
 
 import com.alibaba.fastjson.JSON;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,22 +60,36 @@ public class NeatLogicUniqueBlockingQueue<T> {
     public T take() throws InterruptedException {
         Task<T> task = blockingQueue.take(); // 阻塞式获取任务
         taskMap.remove(task.getUniqueKey()); // 移除已处理任务的唯一标记
+        TenantContext tenantContext = TenantContext.get();
+        if (tenantContext != null) {
+            tenantContext.switchTenant(task.getTenantUuid());
+        } else {
+            TenantContext.init(task.getTenantUuid());
+        }
         return task.getT();
     }
 
     private static class Task<T> {
         private final T t;
+        private final String tenantUuid;
 
         public Task(T t) {
             this.t = t;
+            this.tenantUuid = TenantContext.get().getTenantUuid();
         }
 
         public T getT() {
             return t;
         }
 
+        public String getTenantUuid() {
+            return tenantUuid;
+        }
+
         public String getUniqueKey() {
-            return String.valueOf(t.hashCode());
+            // 唯一标识任务的 key，可根据需求定义，例如 `tenantUuid-t.hashCode`
+            //System.out.println(tenantUuid + "-" + t.hashCode());
+            return tenantUuid + "-" + t.hashCode();
         }
     }
 

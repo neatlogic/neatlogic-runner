@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package com.neatlogic.autoexecrunner.asynchronization;
 
 
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
@@ -29,6 +30,7 @@ import java.util.concurrent.Semaphore;
 public abstract class NeatLogicThread implements Runnable, Comparable<NeatLogicThread> {
     private static final Logger logger = LoggerFactory.getLogger(NeatLogicThread.class);
     protected UserContext userContext;
+    protected RequestContext requestContext;
     private final String tenantUuid;
     private String threadName;
     private boolean isUnique = false;
@@ -95,6 +97,7 @@ public abstract class NeatLogicThread implements Runnable, Comparable<NeatLogicT
             userContext = tmp.copy();
         }
         tenantUuid = TenantContext.get().getTenantUuid();
+        requestContext = RequestContext.get();
         this.threadName = _threadName;
     }
 
@@ -104,6 +107,7 @@ public abstract class NeatLogicThread implements Runnable, Comparable<NeatLogicT
             userContext = tmp.copy();
         }
         tenantUuid = TenantContext.get().getTenantUuid();
+        requestContext = RequestContext.get();
         this.threadName = _threadName;
         this.priority = priority;
     }
@@ -111,6 +115,7 @@ public abstract class NeatLogicThread implements Runnable, Comparable<NeatLogicT
     public NeatLogicThread(String _threadName, boolean _isUnique) {
         userContext = UserContext.get();
         tenantUuid = TenantContext.get().getTenantUuid();
+        requestContext = RequestContext.get();
         this.threadName = _threadName;
         this.isUnique = _isUnique;
     }

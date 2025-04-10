@@ -4,8 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.NeatLogicThread;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
 import com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread;
-import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,32 +15,35 @@ public class ProcessWaitTask extends NeatLogicThread {
     private final Process process;
     private final CommandVo commandVo;
     private final JSONObject payload;
+    private final String jobName;
 
-    public ProcessWaitTask(Process process, CommandVo commandVo, JSONObject payload) {
-        super("THREAD-AUTOEXEC-WAIT-" + commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY));
+    public ProcessWaitTask(Process process, CommandVo commandVo, JSONObject payload, String jobName) {
+        super("THREAD-AUTOEXEC-WAIT-" + jobName);
         this.process = process;
         this.commandVo = commandVo;
         this.payload = payload;
+        this.jobName = jobName;
     }
 
 
     @Override
     protected void execute() {
-
+        Long pid = null;
         try {
             int exitCode = process.waitFor();
             int exitStatus = process.exitValue();
             commandVo.setExitValue(exitStatus);
-            logger.debug("进程[{}] 退出，状态码: {}", getPid(process), exitCode);
+            pid = getPid(process);
+            logger.debug("process[{}] finished，exitCode: {}", pid, exitCode);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            logger.error(String.format("等待被中断: 入参：%s, errorMsg:%s", payload, e.getMessage()), e);
+            logger.error(String.format("thread interrupt: param：%s, errorMsg:%s", payload, e.getMessage()), e);
         } finally {
             // 确保关闭流
             closeQuietly(process.getInputStream());
             closeQuietly(process.getErrorStream());
             closeQuietly(process.getOutputStream());
-            AutoexecQueueThread.removeProcess(process);
+            AutoexecQueueThread.removeProcess(process, jobName, pid);
         }
     }
 

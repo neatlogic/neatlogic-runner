@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -44,29 +45,28 @@ public class AutoexecQueueThread implements IStartUp {
 
             while (running) {
                 if (workerThread == null || !workerThread.isAlive()) {
-                    System.out.println("工作线程未运行，准备启动...");
-                    logger.debug("工作线程未运行，准备启动...");
+                    System.out.println("autoexec job thread is down，ready to start...");
+                    logger.debug("autoexec job thread is down，ready to start...");
                     workerThread = new Thread(() -> {
-                        Thread.currentThread().setName("");
+                        Thread.currentThread().setName("AutoexecQueueThread");
+                        System.out.println("autoexec job thread start succeed!");
                         while (running) {
                             CommandVo commandVo = null;
                             try {
                                 // 你的业务逻辑
-                                if (processQueue.size() <= Config.MAX_PROCESS_QUEUE_SIZE()) {
+                                if (processQueue.size() <= Config.MAX_PROCESS_EXECUTE_COUNT()) {
                                     commandVo = blockingQueue.take();
-                                    logger.debug("作业{} 即将运行...", commandVo.getTenant() + "-" + commandVo.getJobId());
+                                    logger.debug("current autoexec sub process count:{} <= {},autoexec job:{} will create...", processQueue.size(), Config.MAX_PROCESS_EXECUTE_COUNT(), (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY)));
                                     createSubProcessAndStart(commandVo);
                                 } else {
-                                    logger.debug("作业进程最大数量：{}, 需等待运行中的进程结束后，才继续创建队列内的作业进程！", Config.MAX_PROCESS_QUEUE_SIZE());
+                                    logger.debug("autoexec sub process limit count ：{}, need to wait process finish，then keep on creating sub process！", Config.MAX_PROCESS_EXECUTE_COUNT());
                                 }
                                 Thread.sleep(2000);
                             } catch (InterruptedException e) {
-                                System.out.printf("创建自动化作业子进程的线程被中断...入参：%s ,errorMsg:%s%n", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage());
-                                logger.error(String.format("创建自动化作业子进程的线程被中断...入参：%s ,errorMsg:%s%n", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage()), e);
+                                logger.error(String.format("autoexec job thread is interrupted...params：%s ,errorMsg:%s%n", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage()), e);
                                 break;
                             } catch (Exception e) {
-                                System.out.printf("创建自动化作业子进程失败：入参：%s ,errorMsg:%s%n", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage());
-                                logger.error(String.format("创建自动化作业子进程失败：入参：%s ,errorMsg:%s", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage()), e);
+                                logger.error(String.format("create sub process failed：params：%s ,errorMsg:%s", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage()), e);
                                 break; // 退出由外层 watchdog 负责重启
                             }
                         }
@@ -104,33 +104,34 @@ public class AutoexecQueueThread implements IStartUp {
         }
         env.put("tenant", commandVo.getTenant());
         JSONObject payload = new JSONObject();
-        Process process = null;
+        Process process;
         try {
             payload.put("jobId", commandVo.getJobId());
             payload.put("status", 1);
             payload.put("command", commandVo);
             payload.put("passThroughEnv", commandVo.getPassThroughEnv().toJSONString());
             process = builder.start();
+            String jobName = (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY));
             addProcess(process);
-            CachedThreadPool.execute(new ProcessWaitTask(process, commandVo, payload));
+            logger.debug("autoexec job sub process {} is running, pid {},added to processQueue,now processQueue size is {}", jobName, getPid(process), processQueue.size());
+            CachedThreadPool.execute(new ProcessWaitTask(process, commandVo, payload, jobName));
         } catch (IOException e) {
-            logger.error(String.format("进程启动失败: %s ,error: %s", payload, e.getMessage()), e);
-            System.err.println("进程启动失败: " + payload + ",error:" + e.getMessage());
-        } finally {
-            // 确保关闭流
-            if (process != null) {
-                closeQuietly(process.getInputStream());
-                closeQuietly(process.getErrorStream());
-                closeQuietly(process.getOutputStream());
-            }
+            logger.error(String.format("autoexec job sub process start failed: %s ,error: %s", payload, e.getMessage()), e);
         }
     }
 
-    private void closeQuietly(java.io.Closeable c) {
+    // 兼容不同JDK版本的PID获取
+    private long getPid(Process p) {
         try {
-            if (c != null) c.close();
-        } catch (IOException ignore) {
+            if (p.getClass().getName().contains("UNIXProcess")) {
+                Field pidField = p.getClass().getDeclaredField("pid");
+                pidField.setAccessible(true);
+                return pidField.getLong(p);
+            }
+        } catch (Exception e) {
+            // 忽略异常
         }
+        return -1; // 未知PID
     }
 
     public void stop() {
@@ -148,10 +149,16 @@ public class AutoexecQueueThread implements IStartUp {
         }
     }
 
-    public static void removeProcess(Process process) {
+    public static void removeProcess(Process process, String jobName, Long pid) {
         boolean result = processQueue.remove(process);
         if (!result) {
-            logger.error("processQueue remove failed!current queue size is :{}", processQueue.size());
+            logger.error("autoexec process:{} (pid:{})finished. processQueue remove failed!current queue size is :{}", jobName, pid, blockingQueue.size());
+        } else {
+            logger.debug("autoexec process:{} (pid:{})finished. processQueue remove succeed!current queue size is :{}", jobName, pid, blockingQueue.size());
         }
+    }
+
+    public static Integer getProcessQueueSize() {
+        return processQueue.size();
     }
 }

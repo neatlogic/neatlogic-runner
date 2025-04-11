@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -138,7 +139,8 @@ public class AutoexecQueueThread implements IStartUp {
         running = false;
     }
 
-    public static void addUpdateTagent(CommandVo commandVo) {
+    public static void addCommand(CommandVo commandVo) {
+        commandVo.setFcd(new Date());
         blockingQueue.offer(commandVo);
     }
 
@@ -160,5 +162,9 @@ public class AutoexecQueueThread implements IStartUp {
 
     public static Integer getProcessQueueSize() {
         return processQueue.size();
+    }
+
+    public static NeatLogicUniqueBlockingQueue<CommandVo> getBlockingQueue(){
+        return blockingQueue;
     }
 }

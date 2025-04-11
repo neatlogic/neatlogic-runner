@@ -19,12 +19,16 @@ package com.neatlogic.autoexecrunner.asynchronization.queue;
 
 import com.alibaba.fastjson.JSON;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Collectors;
 
 public class NeatLogicUniqueBlockingQueue<T> {
     private static final Logger logger = LoggerFactory.getLogger(NeatLogicUniqueBlockingQueue.class);
@@ -69,7 +73,7 @@ public class NeatLogicUniqueBlockingQueue<T> {
         return task.getT();
     }
 
-    private static class Task<T> {
+    public static class Task<T> {
         private final T t;
         private final String tenantUuid;
 
@@ -93,8 +97,17 @@ public class NeatLogicUniqueBlockingQueue<T> {
         }
     }
 
-    public int size(){
+    public int size() {
         return blockingQueue.size();
+    }
+
+    public List<T> getQueue() {
+        List<T> list = new ArrayList<>();
+        List<Task<T>> taskList = new ArrayList<>(blockingQueue);
+        if (CollectionUtils.isNotEmpty(taskList)) {
+            list = taskList.stream().map(Task::getT).collect(Collectors.toList());
+        }
+        return list;
     }
 
 //    public static void main(String[] args) throws InterruptedException {

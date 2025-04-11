@@ -9,10 +9,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -33,6 +30,7 @@ public class CommandVo {
     private List<Integer> jobGroupIdList;//需要执行的组
     private JSONArray jobPhaseNodeSqlList;
     private JSONObject environment;//设置环境变量
+    private Date fcd;
 
     private String consoleLogPath;
 
@@ -218,5 +216,13 @@ public class CommandVo {
     public String getConsoleLogPath() {
         this.consoleLogPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(getJobId(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
         return consoleLogPath;
+    }
+
+    public Date getFcd() {
+        return fcd;
+    }
+
+    public void setFcd(Date fcd) {
+        this.fcd = fcd;
     }
 }

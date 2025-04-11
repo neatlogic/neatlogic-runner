@@ -82,7 +82,7 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        AutoexecQueueThread.addUpdateTagent(commandVo);
+        AutoexecQueueThread.addCommand(commandVo);
         return null;
     }
 

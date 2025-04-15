@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.JobAction;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
+import com.neatlogic.autoexecrunner.exception.job.JobQueueFullException;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
 import com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread;
 import com.neatlogic.autoexecrunner.util.FileUtil;
@@ -82,7 +83,9 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        AutoexecQueueThread.addCommand(commandVo);
+        if(!AutoexecQueueThread.addCommand(commandVo)){
+            throw new JobQueueFullException();
+        }
         return null;
     }
 

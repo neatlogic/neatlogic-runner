@@ -17,15 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class AutoexecQueueThread implements IStartUp {
-    private static final BlockingQueue<Process> processQueue = new LinkedBlockingQueue<>(Config.MAX_PROCESS_QUEUE_SIZE() + 5);
+    private static final BlockingQueue<Process> processQueue = new LinkedBlockingQueue<>(Config.MAX_PROCESS_EXECUTE_COUNT() + 5);
     private static final Logger logger = LoggerFactory.getLogger(AutoexecQueueThread.class);
-    private static final NeatLogicUniqueBlockingQueue<CommandVo> blockingQueue = new NeatLogicUniqueBlockingQueue<>(50000);
+    private static final NeatLogicUniqueBlockingQueue<CommandVo> blockingQueue = new NeatLogicUniqueBlockingQueue<>(Config.MAX_PROCESS_QUEUE_SIZE());
     private volatile boolean running = true;
 
     @Override
@@ -139,9 +138,9 @@ public class AutoexecQueueThread implements IStartUp {
         running = false;
     }
 
-    public static void addCommand(CommandVo commandVo) {
+    public static boolean addCommand(CommandVo commandVo) {
         commandVo.setFcd(new Date());
-        blockingQueue.offer(commandVo);
+        return blockingQueue.offer(commandVo);
     }
 
     public static void addProcess(Process process) {
@@ -164,7 +163,18 @@ public class AutoexecQueueThread implements IStartUp {
         return processQueue.size();
     }
 
-    public static NeatLogicUniqueBlockingQueue<CommandVo> getBlockingQueue(){
-        return blockingQueue;
+    public static Integer getBlockingQueueSize() {
+        return blockingQueue.size();
+    }
+
+    public static List<CommandVo> getBlockingQueueByJobIdAndGroupSort(String jobId, Integer groupSort) {
+        List<CommandVo> list = blockingQueue.getQueue();
+        List<CommandVo> jobCommandList = new ArrayList<>();
+        for (CommandVo commandVo : list) {
+            if (Objects.equals(commandVo.getJobId(), jobId) && (groupSort == null || commandVo.getJobGroupIdList().contains(groupSort))) {
+                jobCommandList.add(commandVo);
+            }
+        }
+        return jobCommandList;
     }
 }

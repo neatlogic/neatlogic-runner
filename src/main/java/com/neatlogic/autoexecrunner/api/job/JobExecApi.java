@@ -23,6 +23,8 @@ import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentB
 import com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ import java.util.stream.Collectors;
  **/
 @Component
 public class JobExecApi extends PrivateApiComponentBase {
+    private static final Logger logger = LoggerFactory.getLogger(JobExecApi.class);
+
     @Override
     public String getName() {
         return "创建执行作业剧本进程";
@@ -65,9 +69,9 @@ public class JobExecApi extends PrivateApiComponentBase {
             commandList.add("--passthroughenv");
             commandList.add(commandVo.getPassThroughEnv().toString());
         }
-        if (CollectionUtils.isNotEmpty(commandVo.getJobGroupIdList())) {
+        if (CollectionUtils.isNotEmpty(commandVo.getJobGroupSortList())) {
             commandList.add("--phasegroups");
-            commandList.add(commandVo.getJobGroupIdList().stream().map(Object::toString).collect(Collectors.joining("','")));
+            commandList.add(commandVo.getJobGroupSortList().stream().map(Object::toString).collect(Collectors.joining("','")));
         }
         if (CollectionUtils.isNotEmpty(commandVo.getJobPhaseNameList())) {
             commandList.add("--phases");
@@ -83,8 +87,10 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        if(!AutoexecQueueThread.addCommand(commandVo)){
+        if (AutoexecQueueThread.addCommand(commandVo) == -1) {
             throw new JobQueueFullException();
+        } else if (AutoexecQueueThread.addCommand(commandVo) == 0) {
+            logger.debug("队列里已存在相同的执行命令：{}", String.join(",", commandList));
         }
         return null;
     }

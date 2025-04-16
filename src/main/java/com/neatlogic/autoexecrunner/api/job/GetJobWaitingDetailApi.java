@@ -24,6 +24,7 @@ import com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -43,16 +44,22 @@ public class GetJobWaitingDetailApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String jobId = jsonObj.getString("jobId");
         Integer groupSort = jsonObj.getInteger("groupSort");
-        List<CommandVo> list = AutoexecQueueThread.getBlockingQueueByJobIdAndGroupSort(jobId,groupSort);
+        List<CommandVo> list = AutoexecQueueThread.getBlockingQueueByJobIdAndGroupSort();
         JSONObject result = new JSONObject();
         for (int i = 0; i < list.size(); i++) {
             CommandVo commandVo = list.get(i);
             JSONObject commandJson = new JSONObject();
+            commandJson.put("groupSortList",commandVo.getJobGroupSortList());
+            commandJson.put("nodeSqlList",commandVo.getJobPhaseNodeSqlList());
+            commandJson.put("phaseNameList",commandVo.getJobPhaseNameList());
+            commandJson.put("resourceIdList",commandVo.getJobPhaseResourceIdList());
             commandJson.put("fcd",commandVo.getFcd().getTime());
             commandJson.put("command",commandVo.getCommandList().stream().map(Object::toString).collect(Collectors.joining("','")));
-            result.put(String.valueOf(i + 1), commandJson);
+            if (Objects.equals(commandVo.getJobId(), jobId) && (groupSort == null || commandVo.getJobGroupSortList().contains(groupSort))) {
+                result.put(String.valueOf(i + 1), commandJson);
+            }
         }
-        result.put("count", list.size());
+        result.put("count", AutoexecQueueThread.getBlockingQueueSize());
         return result;
     }
 

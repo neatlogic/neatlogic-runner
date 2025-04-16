@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class NeatLogicUniqueBlockingQueue<T> {
@@ -40,7 +41,11 @@ public class NeatLogicUniqueBlockingQueue<T> {
         this.taskMap = new ConcurrentHashMap<>();
     }
 
-    public boolean offer(T t) {
+    /**
+     * 添加队列成员
+     * 返回-1：队列已满，1：添加成功，0:重复添加
+     */
+    public int offer(T t) {
         Task<T> task = new Task<>(t);
         // 保证任务唯一性
         if (taskMap.putIfAbsent(task.getUniqueKey(), Boolean.TRUE) == null) {
@@ -51,14 +56,29 @@ public class NeatLogicUniqueBlockingQueue<T> {
                 // 如果队列已满，移除任务标记
                 taskMap.remove(task.getUniqueKey());
                 logger.error("Queue is full!");
+                return -1;
             }
-            return added;
+            return 1;
         } else {
             if (t != null) {
                 logger.debug("NeatLogicUniqueBlockingQueue repeat： {}", JSON.toJSONString(t));
             }
+            return 0;
         }
-        return false; // 已存在任务，直接返回 false
+    }
+
+    public boolean remove(Predicate<Task<T>> condition) {
+        for (Task<T> task : blockingQueue) {
+            if (condition.test(task)) {
+                boolean removed = blockingQueue.remove(task);
+                if (removed) {
+                    taskMap.remove(task.getUniqueKey());
+                    logger.debug("Removed task: {}", JSON.toJSONString(task));
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public T take() throws InterruptedException {

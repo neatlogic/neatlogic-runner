@@ -138,9 +138,20 @@ public class AutoexecQueueThread implements IStartUp {
         running = false;
     }
 
-    public static boolean addCommand(CommandVo commandVo) {
+    /**
+     * 进入队列
+     * 返回-1：队列已满，1：添加成功，0:重复添加
+     */
+    public static int addCommand(CommandVo commandVo) {
         commandVo.setFcd(new Date());
         return blockingQueue.offer(commandVo);
+    }
+
+    /**
+     * 删除命令
+     */
+    public static boolean removeCommand(CommandVo commandVo) {
+        return blockingQueue.remove(task -> task.getT().getJobId().equals(commandVo.getJobId()));
     }
 
     public static void addProcess(Process process) {
@@ -167,14 +178,7 @@ public class AutoexecQueueThread implements IStartUp {
         return blockingQueue.size();
     }
 
-    public static List<CommandVo> getBlockingQueueByJobIdAndGroupSort(String jobId, Integer groupSort) {
-        List<CommandVo> list = blockingQueue.getQueue();
-        List<CommandVo> jobCommandList = new ArrayList<>();
-        for (CommandVo commandVo : list) {
-            if (Objects.equals(commandVo.getJobId(), jobId) && (groupSort == null || commandVo.getJobGroupIdList().contains(groupSort))) {
-                jobCommandList.add(commandVo);
-            }
-        }
-        return jobCommandList;
+    public static List<CommandVo> getBlockingQueueByJobIdAndGroupSort() {
+        return blockingQueue.getQueue();
     }
 }

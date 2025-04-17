@@ -22,9 +22,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class AutoexecQueueThread implements IStartUp {
-    private static final BlockingQueue<Process> processQueue = new LinkedBlockingQueue<>(Config.MAX_PROCESS_EXECUTE_COUNT() + 5);
+    private static final BlockingQueue<Process> processQueue = new LinkedBlockingQueue<>(Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT() + 5);
     private static final Logger logger = LoggerFactory.getLogger(AutoexecQueueThread.class);
-    private static final NeatLogicUniqueBlockingQueue<CommandVo> blockingQueue = new NeatLogicUniqueBlockingQueue<>(Config.MAX_PROCESS_QUEUE_SIZE());
+    private static final NeatLogicUniqueBlockingQueue<CommandVo> blockingQueue = new NeatLogicUniqueBlockingQueue<>(Config.SUBPROCESS_COMMAND_QUEUE_MAX_SIZE());
     private volatile boolean running = true;
 
     @Override
@@ -54,12 +54,12 @@ public class AutoexecQueueThread implements IStartUp {
                             CommandVo commandVo = null;
                             try {
                                 // 你的业务逻辑
-                                if (processQueue.size() <= Config.MAX_PROCESS_EXECUTE_COUNT()) {
+                                if (processQueue.size() <= Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT()) {
                                     commandVo = blockingQueue.take();
-                                    logger.debug("current autoexec sub process count:{} <= {},autoexec job:{} will create...", processQueue.size(), Config.MAX_PROCESS_EXECUTE_COUNT(), (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY)));
+                                    logger.debug("current autoexec sub process count:{} <= {},autoexec job:{} will create...", processQueue.size(), Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT(), (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY)));
                                     createSubProcessAndStart(commandVo);
                                 } else {
-                                    logger.debug("autoexec sub process limit count ：{}, need to wait process finish，then keep on creating sub process！", Config.MAX_PROCESS_EXECUTE_COUNT());
+                                    logger.debug("autoexec sub process limit count ：{}, need to wait process finish，then keep on creating sub process！", Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT());
                                 }
                                 Thread.sleep(2000);
                             } catch (InterruptedException e) {

@@ -27,19 +27,23 @@ public class UserContext implements Serializable {
 	private String timezone = "+8:00";
 	private String token;
 	private List<String> roleUuidList = new ArrayList<>();
-	
+
+	public UserContext copy() {
+		UserContext userContext = new UserContext();
+		userContext.setRequest(request);
+		userContext.setToken(token);
+		userContext.setTenant(tenant);
+		userContext.setUserName(userName);
+		userContext.setUserId(userId);
+		userContext.setUserUuid(userUuid);
+		userContext.setTimezone(timezone);
+		return userContext;
+	}
+
 	public static UserContext init(UserContext _userContext) {
 		UserContext context = new UserContext();
 		if (_userContext != null) {
-			context.setUserId(_userContext.getUserId());
-			context.setUserUuid(_userContext.getUserUuid());
-			context.setUserName(_userContext.getUserName());
-			context.setTenant(_userContext.getTenant());
-			context.setTimezone(_userContext.getTimezone());
-			context.setToken(_userContext.getToken());
-			// context.setRequest(_userContext.getRequest());
-			// context.setResponse(_userContext.getResponse());
-			context.setRoleUuidList(_userContext.getRoleUuidList());
+			context = _userContext.copy();
 		}
 		instance.set(context);
 		return context;

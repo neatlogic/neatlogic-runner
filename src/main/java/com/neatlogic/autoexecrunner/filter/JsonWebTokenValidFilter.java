@@ -2,6 +2,7 @@ package com.neatlogic.autoexecrunner.filter;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
@@ -41,7 +42,8 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
         UserVo userVo = null;
         JSONObject redirectObj = new JSONObject();
         String authType = null;
-
+        //初始化request上下文
+        RequestContext.init(request, request.getRequestURI(), response);
         //判断租户
         try {
             String tenant = request.getHeader("Tenant");

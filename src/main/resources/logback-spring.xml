@@ -1,10 +1,12 @@
 <!-- Logback configuration. See http://logback.qos.ch/manual/index.html -->
 <configuration scan="true" scanPeriod="10 seconds" debug="false">
+    <conversionRule conversionWord="tenant" converterClass="com.neatlogic.autoexecrunner.logback.TenantConverter"/>
+    <conversionRule conversionWord="requestUrl" converterClass="com.neatlogic.autoexecrunner.logback.RequestUrlConverter"/>
     <springProperty scope="context" name="LOG_HOME" source="logging.home"/>
     <appender name="DEBUG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_HOME}/debug.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <FileNamePattern>debug.log.%i</FileNamePattern>
+            <FileNamePattern>${LOG_HOME}/debug.log.%i</FileNamePattern>
             <MinIndex>1</MinIndex>
             <MaxIndex>5</MaxIndex>
         </rollingPolicy>
@@ -18,14 +20,14 @@
             <MaxFileSize>100MB</MaxFileSize>
         </triggeringPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] - %msg%n</Pattern>
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
         </layout>
     </appender>
 
     <appender name="INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_HOME}/info.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <FileNamePattern>info.log.%i</FileNamePattern>
+            <FileNamePattern>${LOG_HOME}/info.log.%i</FileNamePattern>
             <MinIndex>1</MinIndex>
             <MaxIndex>5</MaxIndex>
         </rollingPolicy>
@@ -39,7 +41,7 @@
             <MaxFileSize>100MB</MaxFileSize>
         </triggeringPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] - %msg%n</Pattern>
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
         </layout>
     </appender>
 
@@ -47,7 +49,7 @@
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_HOME}/warn.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <FileNamePattern>warn.log.%i</FileNamePattern>
+            <FileNamePattern>${LOG_HOME}/warn.log.%i</FileNamePattern>
             <MinIndex>1</MinIndex>
             <MaxIndex>5</MaxIndex>
         </rollingPolicy>
@@ -61,14 +63,14 @@
             <MaxFileSize>100MB</MaxFileSize>
         </triggeringPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] - %msg%n</Pattern>
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
         </layout>
     </appender>
 
     <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <File>${LOG_HOME}/error.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-            <FileNamePattern>error.log.%i</FileNamePattern>
+            <FileNamePattern>${LOG_HOME}/error.log.%i</FileNamePattern>
             <MinIndex>1</MinIndex>
             <MaxIndex>5</MaxIndex>
         </rollingPolicy>
@@ -82,7 +84,27 @@
             <MaxFileSize>100MB</MaxFileSize>
         </triggeringPolicy>
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line]- %msg%n</Pattern>
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <appender name="AutoexecProcessAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_HOME}/process.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/process.%i</FileNamePattern>
+            <MinIndex>1</MinIndex>
+            <MaxIndex>5</MaxIndex>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>100MB</MaxFileSize>
+        </triggeringPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
         </layout>
     </appender>
 
@@ -110,7 +132,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] - %msg%n</Pattern>
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
             <charset>UTF-8</charset> <!-- 此处设置字符集 -->
             <outputPatternAsPresentationHeader>false</outputPatternAsPresentationHeader>
         </encoder>
@@ -137,5 +159,12 @@
     <logger name="java.sql.PreparedStatement" level="WARN" additivity="false"/>
     <logger name="jdbc.connection" level="WARN" additivity="false"/>
 
+    <logger name="com.neatlogic.autoexecrunner.startup.handler.AutoexecQueueThread" level="DEBUG" additivity="false">
+        <appender-ref ref="AutoexecProcessAppender"/>
+    </logger>
+
+    <logger name="com.neatlogic.autoexecrunner.autoexec.ProcessWaitTask" level="DEBUG" additivity="false">
+        <appender-ref ref="AutoexecProcessAppender"/>
+    </logger>
 
 </configuration>

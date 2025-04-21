@@ -56,7 +56,7 @@ public class AutoexecQueueThread implements IStartUp {
                                 // 你的业务逻辑
                                 if (processQueue.size() <= Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT()) {
                                     commandVo = blockingQueue.take();
-                                    logger.debug("current autoexec sub process count:{} <= {},autoexec job:{} will create...", processQueue.size(), Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT(), (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY)));
+                                    logger.debug("current autoexec sub process count:{} <= {},autoexec job:{} ,{} will create...", processQueue.size(), Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT(), (commandVo.getTenant() + "-" + commandVo.getJobId() + "-" + (MapUtils.isNotEmpty(commandVo.getPassThroughEnv()) ? commandVo.getPassThroughEnv().getString("groupSort") : StringUtils.EMPTY)), JSON.toJSONString(commandVo.getCommandList()));
                                     createSubProcessAndStart(commandVo);
                                 } else {
                                     logger.debug("autoexec sub process limit count ：{}, need to wait process finish，then keep on creating sub process！", Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT());
@@ -144,6 +144,7 @@ public class AutoexecQueueThread implements IStartUp {
      */
     public static int addCommand(CommandVo commandVo) {
         commandVo.setFcd(new Date());
+        logger.debug("autoexec offer command:{}", JSON.toJSONString(commandVo.getCommandList()));
         return blockingQueue.offer(commandVo);
     }
 

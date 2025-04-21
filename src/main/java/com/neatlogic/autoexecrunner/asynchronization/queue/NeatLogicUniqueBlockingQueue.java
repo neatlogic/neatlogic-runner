@@ -49,7 +49,7 @@ public class NeatLogicUniqueBlockingQueue<T> {
         Task<T> task = new Task<>(t);
         // 保证任务唯一性
         if (taskMap.putIfAbsent(task.getUniqueKey(), Boolean.TRUE) == null) {
-            logger.debug("====TagentUpdateInfo-addQueue:" + JSON.toJSONString(task));
+            logger.debug("====addQueue:" + JSON.toJSONString(task));
             // 如果任务是新任务，放入队列
             boolean added = blockingQueue.offer(task);
             if (!added) {
@@ -131,20 +131,26 @@ public class NeatLogicUniqueBlockingQueue<T> {
     }
 
 //    public static void main(String[] args) throws InterruptedException {
-//        NeatLogicUniqueBlockingQueue<UserSessionVo> queue = new NeatLogicUniqueBlockingQueue<>(1);
+//        NeatLogicUniqueBlockingQueue<CommandVo> queue = new NeatLogicUniqueBlockingQueue<>(1);
 //
 //        // 模拟任务插入
-//        UserSessionVo a = new UserSessionVo();
-//        a.setToken("1111");
+//        CommandVo a = new CommandVo();
+//        a.setCommandList(Arrays.asList("--nodes"));
 //        System.out.println(queue.offer(a)); // 返回 true，任务插入成功
-//        UserSessionVo b = new UserSessionVo();
-//        b.setToken("222");
-//        System.out.println(queue.offer(b)); // 返回 false，任务已存在
+//        System.out.println(queue.size());
+//        Thread.sleep(2000);
+//        CommandVo b = new CommandVo();
+//        b.setCommandList(Arrays.asList("--nodes1"));
+//        System.out.println(queue.offer(b)); // 返回 true，任务插入成功
+//        System.out.println(queue.size());
+//
 //
 //        // 模拟任务消费
-//        UserSessionVo task = queue.take(); // 消费 "task1"
-//        UserSessionVo task2 = queue.take(); // 消费 "task1"
-//        UserSessionVo task3 = queue.take(); // 消费 "task1"
+//        queue.take(); // 消费 "task1"
+//        System.out.println(queue.size());
+//        Thread.sleep(2000);
+//        System.out.println(queue.size());
+//        queue.take(); // 消费 "task1"
 //    }
 }
 

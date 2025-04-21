@@ -87,9 +87,11 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        if (AutoexecQueueThread.addCommand(commandVo) == -1) {
+
+        int addResult = AutoexecQueueThread.addCommand(commandVo);
+        if (addResult == -1) {
             throw new JobQueueFullException();
-        } else if (AutoexecQueueThread.addCommand(commandVo) == 0) {
+        } else if (addResult == 0) {
             logger.debug("队列里已存在相同的执行命令：{}", String.join(",", commandList));
         }
         return null;

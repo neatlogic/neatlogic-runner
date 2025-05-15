@@ -103,6 +103,8 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 String host = node.getString("host");
                 Integer port = node.getInteger("port");
                 nodeStatusPath.append(host).append("-").append(port == null ? StringUtils.EMPTY : port).append("-").append(node.getString("resourceId")).append(File.separator).append(node.getString("sqlFile")).append(".txt");
+                //删除对应status文件记录
+                FileUtil.deleteDirectoryOrFile(nodeStatusPath.toString());
             }
         } else {
             //重置整个phase

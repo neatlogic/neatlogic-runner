@@ -70,10 +70,11 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
         String execMode = jsonObj.getString("execMode");
         JSONArray phaseNodeList = jsonObj.getJSONArray("phaseNodeList");
         JSONArray jobPhaseNodeSqlList = jsonObj.getJSONArray("jobPhaseNodeSqlList");
-        StringBuilder nodeStatusPath = new StringBuilder(Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator);
+
         //重置单个或多个节点
         if (CollectionUtils.isNotEmpty(phaseNodeList)) {
             for (int i = 0; i < phaseNodeList.size(); i++) {
+                StringBuilder nodeStatusPath = new StringBuilder(Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator);
                 //删除db对应的status记录
                 JSONObject node = phaseNodeList.getJSONObject(i);
                 String host = node.getString("host");
@@ -99,6 +100,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
         }
         if (CollectionUtils.isNotEmpty(jobPhaseNodeSqlList)) {
             for (int i = 0; i < jobPhaseNodeSqlList.size(); i++) {
+                StringBuilder nodeStatusPath = new StringBuilder(Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator);
                 JSONObject node = jobPhaseNodeSqlList.getJSONObject(i);
                 String host = node.getString("host");
                 Integer port = node.getInteger("port");
@@ -108,6 +110,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
             }
         } else {
             //重置整个phase
+            String nodeStatusPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
             Document document = new Document();
             document.put("jobId", jobId.toString());
             document.put("phase", phase);
@@ -118,7 +121,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 throw new MongodbException();
             }
             //删除对应status文件记录
-            FileUtil.deleteDirectoryOrFile(nodeStatusPath.toString());
+            FileUtil.deleteDirectoryOrFile(nodeStatusPath);
         }
         return null;
     }

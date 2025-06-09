@@ -97,8 +97,7 @@ public class JobPhaseNodeStatusResetApi extends PrivateApiComponentBase {
                 }
                 FileUtil.deleteDirectoryOrFile(nodeStatusPath.toString());
             }
-        }
-        if (CollectionUtils.isNotEmpty(jobPhaseNodeSqlList)) {
+        } else if (CollectionUtils.isNotEmpty(jobPhaseNodeSqlList)) {
             for (int i = 0; i < jobPhaseNodeSqlList.size(); i++) {
                 StringBuilder nodeStatusPath = new StringBuilder(Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator);
                 JSONObject node = jobPhaseNodeSqlList.getJSONObject(i);

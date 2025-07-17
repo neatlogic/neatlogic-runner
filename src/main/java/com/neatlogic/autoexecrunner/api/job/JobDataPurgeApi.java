@@ -18,10 +18,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.constvalue.JobAction;
 import com.neatlogic.autoexecrunner.core.ExecProcessCommand;
 import com.neatlogic.autoexecrunner.dto.CommandVo;
+import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
-import com.neatlogic.autoexecrunner.threadpool.CommonThreadPool;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.DataInputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +40,8 @@ import java.util.List;
  **/
 @Component
 public class JobDataPurgeApi extends PrivateApiComponentBase {
+    private static final Logger logger = LoggerFactory.getLogger(ExecProcessCommand.class);
+
     @Override
     public String getName() {
         return "清除历史作业";
@@ -44,13 +54,23 @@ public class JobDataPurgeApi extends PrivateApiComponentBase {
         //set command
         List<String> commandList = Arrays.asList("autoexec", "--purgejobdata", jsonObj.getString("expiredDays"));
         commandList = new ArrayList<>(commandList);
-        if(commandVo.getPassThroughEnv() != null){
-            commandList.add("--passthroughenv");
-            commandList.add(commandVo.getPassThroughEnv().toString());
+//        if (commandVo.getPassThroughEnv() != null) {
+//            commandList.add("--passthroughenv");
+//            commandList.add(commandVo.getPassThroughEnv().toString());
+//        }
+
+        ProcessBuilder builder = new ProcessBuilder(commandList);
+        Process proc = builder.start();
+        proc.waitFor();
+        DataInputStream input = new DataInputStream(proc.getErrorStream());
+        StringWriter writer = new StringWriter();
+        InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8);
+        IOUtils.copy(reader, writer);
+        if (StringUtils.isNotBlank(writer.toString())) {
+            logger.error(writer.toString());
+            throw new ApiRuntimeException(writer.toString());
         }
-        commandVo.setCommandList(commandList);
-        ExecProcessCommand processCommand = new ExecProcessCommand(commandVo);
-        CommonThreadPool.execute(processCommand);
+
         return null;
     }
 

@@ -37,6 +37,8 @@ public class Config {
     private static String DATA_HOME;//文件根目录
     private static String DEPLOY_HOME;//发布目录
     private static String GITLAB_PASSWORD;// gitlab private_token
+    private static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;//自动化作业命令等待队列的最大容量，超过此数量的新命令将被拒绝或丢弃
+    private static Integer SUBPROCESS_EXECUTION_MAX_CONCURRENT;//自动化作业最大并发子进程数，超过此数量的命令将进入等待队列
 
     //neatlogic
     private static String NEATLOGIC_ROOT;
@@ -168,6 +170,13 @@ public class Config {
         return AUTOEXEC_TOKEN;
     }
 
+    public static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE() {
+        return SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;
+    }
+    public static Integer SUBPROCESS_EXECUTION_MAX_CONCURRENT() {
+        return SUBPROCESS_EXECUTION_MAX_CONCURRENT;
+    }
+
     @PostConstruct
     public void init() {
         try {
@@ -238,6 +247,10 @@ public class Config {
             AUTOEXEC_TOKEN = prop.getProperty("autoexec.token", "499922b4317c251c2ce525f7b83e3d94");
 
             UPDATE_RUNNER_STATUS_PERIOD = Integer.parseInt(prop.getProperty("update.runner.status.period", "1800000"));
+
+            SUBPROCESS_COMMAND_QUEUE_MAX_SIZE = Integer.parseInt(prop.getProperty("subprocess.command.queue.max-size", "1000"));
+
+            SUBPROCESS_EXECUTION_MAX_CONCURRENT = Integer.parseInt(prop.getProperty("subprocess.execution.max-concurrent", "20"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

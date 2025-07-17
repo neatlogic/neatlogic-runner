@@ -9,10 +9,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -30,9 +27,10 @@ public class CommandVo {
     private JSONObject passThroughEnv;//web端传到runner贯穿autoexec 回调web端会携带该变量
     private List<String> jobPhaseNameList;//需要执行的phaseNameList
     private List<Long> jobPhaseResourceIdList;//需要执行的resourceIdList
-    private List<Integer> jobGroupIdList;//需要执行的组
+    private List<Integer> jobGroupSortList;//需要执行的组
     private JSONArray jobPhaseNodeSqlList;
     private JSONObject environment;//设置环境变量
+    private Date fcd;
 
     private String consoleLogPath;
 
@@ -73,9 +71,9 @@ public class CommandVo {
         if (CollectionUtils.isNotEmpty(jobPhaseResourceIdArray)) {
             this.jobPhaseResourceIdList = jobPhaseResourceIdArray.toJavaList(Long.class);
         }
-        JSONArray jobGroupIdArray = jsonObj.getJSONArray("jobGroupIdList");
+        JSONArray jobGroupIdArray = jsonObj.getJSONArray("jobGroupSortList");
         if (CollectionUtils.isNotEmpty(jobGroupIdArray)) {
-            this.jobGroupIdList = jobGroupIdArray.toJavaList(Integer.class);
+            this.jobGroupSortList = jobGroupIdArray.toJavaList(Integer.class);
         }
 
         JSONArray jobPhaseNodeSqlList = jsonObj.getJSONArray("jobPhaseNodeSqlList");
@@ -189,8 +187,8 @@ public class CommandVo {
         return jobPhaseResourceIdList;
     }
 
-    public List<Integer> getJobGroupIdList() {
-        return jobGroupIdList;
+    public List<Integer> getJobGroupSortList() {
+        return jobGroupSortList;
     }
 
     public JSONArray getJobPhaseNodeSqlList() {
@@ -218,5 +216,42 @@ public class CommandVo {
     public String getConsoleLogPath() {
         this.consoleLogPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(getJobId(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
         return consoleLogPath;
+    }
+
+    public Date getFcd() {
+        return fcd;
+    }
+
+    public void setFcd(Date fcd) {
+        this.fcd = fcd;
+    }
+
+    private String getFilteredCommandString() {
+        if (commandList == null) return "";
+        List<String> filtered = new ArrayList<>();
+        Iterator<String> iterator = commandList.iterator();
+        while (iterator.hasNext()) {
+            String item = iterator.next();
+            if ("--execid".equals(item)) {
+                // 跳过 "--execid" 和它后面的那个参数
+                if (iterator.hasNext()) iterator.next();
+                continue;
+            }
+            filtered.add(item);
+        }
+        return String.join(",", filtered);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CommandVo)) return false;
+        CommandVo that = (CommandVo) o;
+        return Objects.equals(getFilteredCommandString(), that.getFilteredCommandString());
+    }
+
+    @Override
+    public int hashCode() {
+        return getFilteredCommandString().hashCode();
     }
 }

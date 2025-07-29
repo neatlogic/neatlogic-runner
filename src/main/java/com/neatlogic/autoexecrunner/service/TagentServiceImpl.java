@@ -1,5 +1,6 @@
 package com.neatlogic.autoexecrunner.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.common.tagent.IpUtil;
@@ -33,7 +34,7 @@ public class TagentServiceImpl implements TagentService {
         restVo.setToken(userVo.getAuthorization());
         String httpResult = RestUtil.sendRequest(restVo);
         if (StringUtils.isNotBlank(httpResult)) {
-            JSONObject resultJson = JSONObject.parseObject(httpResult);
+            JSONObject resultJson = JSON.parseObject(httpResult);
             String httpStatus = resultJson.getString("Status");
             if ("OK".equals(httpStatus)) {
                 status = true;

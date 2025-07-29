@@ -45,7 +45,7 @@ public class TagentServiceImpl implements TagentService {
                 status = true;
                 jsonObj.put("data", resultJson);
             } else {
-                execInfo.append("Server Error,").append(httpResult);
+                execInfo.append("Server Error,").append(httpRequestUtil.getResult());
             }
         } else {
             execInfo.append("neatlogic return message is blank");

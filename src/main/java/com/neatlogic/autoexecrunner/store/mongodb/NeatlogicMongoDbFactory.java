@@ -21,14 +21,15 @@ import com.alibaba.fastjson.JSONObject;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
+import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.MongoDbVo;
-import com.neatlogic.autoexecrunner.dto.RestVo;
-import com.neatlogic.autoexecrunner.exception.MongoDataSourceNotFoundException;
 import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
-import com.neatlogic.autoexecrunner.util.RestUtil;
+import com.neatlogic.autoexecrunner.exception.MongoDataSourceNotFoundException;
+import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
+import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,17 +53,25 @@ public class NeatlogicMongoDbFactory extends SimpleMongoClientDatabaseFactory {
     @Override
     protected MongoDatabase doGetMongoDatabase(String dbName) {
         if (!mongoDbMap.containsKey(TenantContext.get().getTenantUuid())) {
-            String result = StringUtils.EMPTY;
             String CALLBACK_PROCESS_UPDATE_URL = "mongodb/datasource/get";
             String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), CALLBACK_PROCESS_UPDATE_URL);
-            result = RestUtil.sendRequest(new RestVo(url, new JSONObject(), AuthenticateType.HMAC.getValue(), TenantContext.get().getTenantUuid()));
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString())
+                    .setAuthType(AuthenticateType.HMAC)
+                    .setTenant(TenantContext.get().getTenantUuid())
+                    .setToken(SystemUser.AUTOEXEC.getToken())
+                    .setUsername(SystemUser.AUTOEXEC.getUserId())
+                    .sendRequest();
+            if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
+                        url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
+            }
+            JSONObject resultJson = httpRequestUtil.getResultJson();
             try {
-                JSONObject resultJson = JSONObject.parseObject(result);
                 if (MapUtils.isNotEmpty(resultJson) && !Objects.equals(resultJson.getString("Status"), "OK")) {
                     if (resultJson.containsKey("Message")) {
-                        throw new RuntimeException(resultJson.getString("Message"));
+                        throw new ApiRuntimeException(resultJson.getString("Message"));
                     } else {
-                        throw new RuntimeException(resultJson.toJSONString());
+                        throw new ApiRuntimeException(httpRequestUtil.getResult());
                     }
                 }
                 JSONObject returnJson = resultJson.getJSONObject("Return");
@@ -76,7 +85,7 @@ public class NeatlogicMongoDbFactory extends SimpleMongoClientDatabaseFactory {
                 return client.getDatabase(mongoDbVo.getDatabase());
             } catch (JSONException ex) {
                 logger.error(ex.getMessage(), ex);
-                throw new ConnectRefusedException(url + ":" + result);
+                throw new ConnectRefusedException(url + ":" + httpRequestUtil.getResult());
             }
         } else {
             return mongoDbMap.get(TenantContext.get().getTenantUuid()).getDatabase(mongoDatabaseMap.get(TenantContext.get().getTenantUuid()));

@@ -15,10 +15,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package com.neatlogic.autoexecrunner.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.parser.Feature;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
+import com.neatlogic.autoexecrunner.dto.FileVo;
 import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.exception.HttpMethodIrregularException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
@@ -48,7 +51,11 @@ public class HttpRequestUtil {
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestUtil.class);
 
     public enum ContentType {
-        CONTENT_TYPE_APPLICATION_JSON("application/json"), CONTENT_TYPE_MULTIPART_FORM_DATA("multipart/form-data; boundary=" + FORM_DATA_BOUNDARY), CONTENT_TYPE_TEXT_HTML("text/html"), CONTENT_TYPE_APPLICATION_FORM("application/x-www-form-urlencoded");
+        CONTENT_TYPE_APPLICATION_JSON("application/json"),
+        CONTENT_TYPE_MULTIPART_FORM_DATA("multipart/form-data; boundary=" + FORM_DATA_BOUNDARY),
+        CONTENT_TYPE_TEXT_HTML("text/html"),
+        CONTENT_TYPE_APPLICATION_FORM("application/x-www-form-urlencoded"),
+        CONTENT_TYPE_MULTIPART_FORM_DATA_FILE_STREAM("multipart/form-data; boundary=" + FORM_DATA_BOUNDARY);
         private final String value;
 
         ContentType(String value) {
@@ -65,7 +72,7 @@ public class HttpRequestUtil {
     //默认boundary
     private static final String FORM_DATA_BOUNDARY = "----MyFormBoundarySMFEtUYQG6r5B920";
     //连接地址
-    private final String url;
+    private String url;
     private String method;
     private ContentType contentType = ContentType.CONTENT_TYPE_APPLICATION_JSON;
     private Charset charset = StandardCharsets.UTF_8;
@@ -82,6 +89,8 @@ public class HttpRequestUtil {
     //表单数据
     private JSONObject formData;
     private OutputStream outputStream;
+    //附件列表
+    private List<FileVo> fileList;
     //文件流map(文件名 -> InputStream)
     private Map<String, InputStream> fileStreamMap;
     //认证方式
@@ -123,6 +132,82 @@ public class HttpRequestUtil {
         }
     }
 
+    /**
+     * 拼接url queryString
+     *
+     * @param params url 入参
+     */
+    private void setUrlWithQueryString(JSONObject params) {
+        StringBuilder builder = new StringBuilder(this.url);
+        if (this.url.contains("?")) {
+            builder.append("&");
+        } else {
+            builder.append("?");
+        }
+
+        int i = 0;
+        for (String key : params.keySet()) {
+            String value = params.getString(key);
+            if (value == null) { // 过滤空的key
+                continue;
+            }
+
+            if (i != 0) {
+                builder.append('&');
+            }
+
+            builder.append(key);
+            builder.append('=');
+            builder.append(encode(value));
+
+            i++;
+        }
+
+        this.url = builder.toString();
+    }
+
+    /**
+     * 对输入的字符串进行URL编码, 即转换为%20这种形式
+     *
+     * @param input 原文
+     * @return URL编码. 如果编码失败, 则返回原文
+     */
+    public static String encode(String input) {
+        if (input == null) {
+            return "";
+        }
+
+        try {
+            return URLEncoder.encode(input, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return input;
+    }
+
+    public static class FormDataVo {
+        private String type;
+
+        private Object value;
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+    }
+
     static {
         OutputStreamHandlerMap.put(ContentType.CONTENT_TYPE_APPLICATION_JSON, (out, _this) -> {
             if (StringUtils.isNotBlank(_this.payload)) {
@@ -147,6 +232,31 @@ public class HttpRequestUtil {
         });
 
         OutputStreamHandlerMap.put(ContentType.CONTENT_TYPE_MULTIPART_FORM_DATA, (out, _this) -> {
+            StringBuilder dataBuilder = new StringBuilder("\r\n");
+            // strParams 1:key 2:value
+            if (MapUtils.isNotEmpty(_this.formData)) {
+                Set<String> keySet = _this.formData.keySet();
+                for (String key : keySet) {
+                    String type = StringUtils.EMPTY;
+                    Object value = _this.formData.get(key);
+                    if (value instanceof FormDataVo) {
+                        FormDataVo formDataVo = (FormDataVo) value;
+                        value = formDataVo.getValue();
+                        type = formDataVo.type;
+                    }
+                    dataBuilder.append("Content-Disposition: form-data; name=").append(key).append("\r\n");
+                    if (StringUtils.isNotBlank(type)) {
+                        dataBuilder.append(type).append("\r\n");
+                    }
+                    dataBuilder.append("\r\n").append("\r\n").append(value).append("\r\n").append("--").append(FORM_DATA_BOUNDARY).append("--");
+                }
+            }
+            String boundaryMessage = dataBuilder.toString();
+
+            out.write(("--" + FORM_DATA_BOUNDARY + boundaryMessage).getBytes(_this.charset));
+        });
+
+        OutputStreamHandlerMap.put(ContentType.CONTENT_TYPE_MULTIPART_FORM_DATA_FILE_STREAM, (out, _this) -> {
             StringBuilder dataBuilder = new StringBuilder("\r\n");
             String endBoundary = "\r\n--" + FORM_DATA_BOUNDARY + "--\r\n";
             // strParams 1:key 2:value
@@ -289,6 +399,13 @@ public class HttpRequestUtil {
         return this;
     }
 
+    public HttpRequestUtil setQueryString(JSONObject queryString) {
+        if (MapUtils.isNotEmpty(queryString)) {
+            setUrlWithQueryString(queryString);
+        }
+        return this;
+    }
+
     /**
      * 设置读超时，单位：毫秒
      *
@@ -329,6 +446,16 @@ public class HttpRequestUtil {
      */
     public HttpRequestUtil setFormData(JSONObject formData) {
         this.formData = formData;
+        return this;
+    }
+
+    /**
+     * 设置需要上传的附件列表
+     *
+     * @param fileList 附件列表
+     */
+    public HttpRequestUtil setFileList(List<FileVo> fileList) {
+        this.fileList = fileList;
         return this;
     }
 
@@ -398,6 +525,10 @@ public class HttpRequestUtil {
         restVo.setUsername(username);
         restVo.setPassword(password);
         restVo.setToken(token);
+        restVo.setUrl(url);
+        if(StringUtils.isNotBlank(payload)) {
+            restVo.setPayload(JSON.parseObject(payload, Feature.OrderedField));
+        }
         return restVo;
     }
 
@@ -414,7 +545,7 @@ public class HttpRequestUtil {
             //设置连接参数
             connection.setRequestMethod(method);
             connection.setUseCaches(false);
-            if (Objects.equals(this.method, "POST") || Objects.equals(this.method, "PUT")) {
+            if (Objects.equals(this.method, "POST")) {
                 connection.setDoOutput(true);
             }
             connection.setDoInput(true);
@@ -436,21 +567,22 @@ public class HttpRequestUtil {
             if (this.authType != null) {
                 IAuthenticateHandler handler = AuthenticateHandlerFactory.getHandler(this.authType.getValue());
                 if (handler != null) {
-                    RestVo restVo = new RestVo();
                     handler.authenticate(connection, this.getAuthConfig());
                 }
             }
             connection.connect();
             return connection;
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            logger.error(this.url + "-" + ex.getMessage(), ex);
             this.error = ExceptionUtils.getStackTrace(ex);
+            this.errorMsg = ex.getMessage();
         }
         return null;
     }
 
     private String result;
     private String error;
+    private String errorMsg; // 异常的简略信息
     private int responseCode;
     //用于将请求的response的header 设置到当前上下文response中
     private List<String> responseHeaderList;
@@ -460,9 +592,10 @@ public class HttpRequestUtil {
 
     public HttpRequestUtil sendRequest() {
         HttpURLConnection connection = getConnection();
+        DataInputStream input = null;
         if (connection != null) {
             try {
-                if (Objects.equals(this.method, "POST") || Objects.equals(this.method, "PUT")) {
+                if (Objects.equals(this.method, "POST")) {
                     try (DataOutputStream out = new DataOutputStream(connection.getOutputStream())) {
                         OutputStreamHandlerMap.get(this.contentType).execute(out, this);
                         out.flush();
@@ -487,7 +620,7 @@ public class HttpRequestUtil {
                 // 处理返回值
                 this.responseCode = connection.getResponseCode();
                 if (100 <= this.responseCode && this.responseCode <= 399) {
-                    DataInputStream input = new DataInputStream(connection.getInputStream());
+                    input = new DataInputStream(connection.getInputStream());
                     if (this.outputStream == null) {
                         StringWriter writer = new StringWriter();
                         InputStreamReader reader = new InputStreamReader(input, this.charset);
@@ -498,26 +631,48 @@ public class HttpRequestUtil {
                         this.outputStream.flush();
                     }
                 } else {
-                    DataInputStream input = new DataInputStream(connection.getErrorStream());
-                    StringWriter writer = new StringWriter();
-                    InputStreamReader reader = new InputStreamReader(input, this.charset);
-                    IOUtils.copy(reader, writer);
-                    throw new ApiRuntimeException(writer.toString());
+                    InputStream errorStream = connection.getErrorStream();
+                    if (errorStream != null) {
+                        input = new DataInputStream(errorStream);
+                        StringWriter writer = new StringWriter();
+                        InputStreamReader reader = new InputStreamReader(input, this.charset);
+                        IOUtils.copy(reader, writer);
+                        throw new ApiRuntimeException(writer.toString());
+                    }
                 }
             } catch (ApiRuntimeException e) {
                 this.error = e.getMessage();
+                // 以下针对内部系统之间的接口调用
+                String message = e.getMessage();
+                try {
+                    JSONObject object = JSON.parseObject(message);
+                    message = object.getString("Message");
+                } catch (Exception ignored) {
+                }
+                this.errorMsg = message;
             } catch (Exception e) {
                 logger.error(e.getMessage(), e);
                 this.error = ExceptionUtils.getStackTrace(e);
+                this.errorMsg = e.getMessage();
             } finally {
                 connection.disconnect();
                 if (UserContext.get() != null && UserContext.get().getResponse() != null && !UserContext.get().getResponse().isCommitted()) {
                     resetResponse(UserContext.get().getResponse());
                 }
+                IOUtils.closeQuietly(input); // 关闭输入流
+                IOUtils.closeQuietly(this.outputStream); // 关闭输出流
             }
+        }
+
+        if (StringUtils.isNotBlank(this.error)) {
+            this.error = String.format("failed! url:%s, errorMsg:%s", this.url, this.error);
+        }
+        if (StringUtils.isNotBlank(this.errorMsg)) {
+            this.errorMsg = String.format("failed! url:%s, errorMsg:%s", this.url, this.errorMsg);
         }
         return this;
     }
+
 
     public String getResult() {
         return result;
@@ -525,6 +680,10 @@ public class HttpRequestUtil {
 
     public String getError() {
         return error;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
     }
 
     public HttpRequestUtil setResponseHeaders(List<String> responseHeaderList) {
@@ -540,9 +699,10 @@ public class HttpRequestUtil {
         return responseCode;
     }
 
+
     public JSONObject getResultJson() {
         if (StringUtils.isNotBlank(result)) {
-            return JSONObject.parseObject(result);
+            return JSON.parseObject(result);
         } else {
             return null;
         }
@@ -550,7 +710,7 @@ public class HttpRequestUtil {
 
     public JSONArray getResultJsonArray() {
         if (StringUtils.isNotBlank(result)) {
-            return JSONObject.parseArray(result);
+            return JSON.parseArray(result);
         } else {
             return null;
         }

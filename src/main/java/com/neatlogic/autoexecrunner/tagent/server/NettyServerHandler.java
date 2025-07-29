@@ -2,19 +2,18 @@ package com.neatlogic.autoexecrunner.tagent.server;
 
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.common.tagent.NettyUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
-import com.neatlogic.autoexecrunner.dto.RestVo;
-import com.neatlogic.autoexecrunner.exception.ConnectRefusedException;
+import com.neatlogic.autoexecrunner.constvalue.SystemUser;
+import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNettyTenantIsNullException;
 import com.neatlogic.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
-import com.neatlogic.autoexecrunner.util.RestUtil;
+import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -73,7 +72,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         log.error(cause.getMessage());
     }
 
-    private void agentInactive(ChannelHandlerContext ctx) throws Exception {
+    private void agentInactive(ChannelHandlerContext ctx) {
         String agentIp = null;
         Integer listenPort = null;
         String tenant = null;
@@ -113,20 +112,22 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             params.put("port", listenPort.toString());
             //params.put("runnerIp", runnerIp);
             params.put("status", "disconnected");
-            String result = StringUtils.EMPTY;
-            JSONObject resultJson = new JSONObject();
-            RestVo restVo = null;
             String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
-            try {
-                restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.HMAC.getValue(), tenant);
-                result = RestUtil.sendRequest(restVo);
-                resultJson = JSON.parseObject(result);
-                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new TagentActionFailedException(String.format("host:%s tagent update info failed,error details:%n%s:%s", agentIp, url, resultJson.getString("Message")));
-                }
-            } catch (JSONException ex) {
-                throw new ConnectRefusedException(url + " " + result);
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(params))
+                    .setAuthType(AuthenticateType.HMAC)
+                    .setTenant(tenant)
+                    .setToken(SystemUser.AUTOEXEC.getToken())
+                    .setUsername(SystemUser.AUTOEXEC.getUserId())
+                    .sendRequest();
+            if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
+                        url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
             }
+            JSONObject resultJson = httpRequestUtil.getResultJson();
+            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new TagentActionFailedException(String.format("host:%s tagent update info failed,error details:%n%s:%s", agentIp, url, resultJson.getString("Message")));
+            }
+
         }
     }
 
@@ -148,11 +149,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             try {
                 String agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
                 if (StringUtils.isBlank(agentIp)) {
-                    throw new RuntimeException("无法从 ChannelHandlerContext 获取 agent IP ");
+                    throw new ApiRuntimeException("无法从 ChannelHandlerContext 获取 agent IP ");
                 }
 
                 if (msg != null && ("null".equals(msg) || msg.startsWith("[") && msg.endsWith("]") || msg.startsWith("{") && msg.endsWith("}"))) {
-                    JSONObject agentData = JSONObject.parseObject(msg);
+                    JSONObject agentData = JSON.parseObject(msg);
                     //优先使用mgmtIp
                     if (agentData.containsKey("mgmtIp") && StringUtils.isNotBlank(agentData.getString("mgmtIp"))) {
                         agentIp = agentData.getString("mgmtIp");
@@ -161,10 +162,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                     Integer listenPort = agentData.getInteger("port");
                     agentKey = agentIp + ":" + listenPort;
                     ctx.channel().attr(AGENT_LISTEN_PORT_KEY).set(listenPort);
-                    log.info("received heartbeat from " + agentKey);
+                    log.info("received heartbeat from {}", agentKey);
                     if (agentData.getString("type").equals("monitor")) {
                         agentData.put("ip", agentIp);
-                        Map<String, String> params = JSONObject.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
+                        Map<String, String> params = JSON.parseObject(agentData.toJSONString(), new TypeReference<Map<String, String>>() {
                         });
                         //conf文件缺少tenant配置的情况，异常抛在tagent端
                         if (StringUtils.isBlank(params.get("tenant"))) {
@@ -173,8 +174,6 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         Constant.tagentMap.put(params.get("tenant") + agentKey, ctx);
                         ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).set(params.get("tenant"));
                         params.put("status", "connected");
-                        //String groupId = agentData.getString("runnerGroupId");
-                        //String groupInfo = agentData.getString("runnerGroup");
                         String tagentId = agentData.getString("agentId");
                         String ipString = agentData.getString("ipString");
                         /*
@@ -190,11 +189,20 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO);
                         String tenant = params.get("tenant");
-                        RestVo restVo = new RestVo(url, JSON.parseObject(JSON.toJSONString(params)), AuthenticateType.HMAC.getValue(), tenant);
-                        String agentActionExecRes = RestUtil.sendRequest(restVo);
+                        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(params))
+                                .setAuthType(AuthenticateType.HMAC)
+                                .setTenant(tenant)
+                                .setToken(SystemUser.AUTOEXEC.getToken())
+                                .setUsername(SystemUser.AUTOEXEC.getUserId())
+                                .sendRequest();
+                        if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                            throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
+                                    url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
+                        }
+                        String agentActionExecRes = httpRequestUtil.getResult();
                         JSONObject resultJson = JSON.parseObject(agentActionExecRes);
                         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                            throw new TagentActionFailedException(String.format("host:%s tagent update info failed,error details:%n%s:%s", agentIp, restVo.getUrl(), resultJson.getString("Message")));
+                            throw new TagentActionFailedException(String.format("host:%s tagent update info failed,error details:%n%s:%s", agentIp, url, resultJson.getString("Message")));
                         }
                         if (agentActionExecRes != null && ("null".equals(agentActionExecRes) || agentActionExecRes.startsWith("[") && agentActionExecRes.endsWith("]") || agentActionExecRes.startsWith("{") && agentActionExecRes.endsWith("}"))) {
                             JSONObject groupData = resultJson.getJSONObject("Return").getJSONObject("Data");
@@ -204,13 +212,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                             }
                             result.put("serverId", resultJson.getJSONObject("Return").getLong("serverId"));
                         } else {
-                            log.error(String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO) + "返回的数据不是json格式，参数：" + agentData + "，返回值：" + agentActionExecRes);
+                            log.error("{}/api/rest/{},返回的数据不是json格式，参数：{}，返回值：{}", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO, agentData, agentActionExecRes);
                         }
 
                         Constant.tagentIpMap.put(tagentId, agentData.getString("ipString"));
                     }
                 } else {
-                    log.error(agentIp + "返回的数据不是json格式");
+                    log.error("{} 返回的数据不是json格式", agentIp);
                 }
             } catch (Exception e) {
                 status = false;

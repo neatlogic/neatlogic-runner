@@ -22,7 +22,7 @@ public class NettyServer {
     private NettyServerInitializer nettyServerInitializer;
 
     @PostConstruct
-    public void serverStart() throws InterruptedException {
+    public void serverStart() {
         Thread t = new Thread(() -> {
             EventLoopGroup bossGroup = new NioEventLoopGroup();//可理解为一个线程池，内部维护了一组线程，每个线程负责处理多个Channel上的事件，而一个Channel只对应于一个线程
             EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -38,6 +38,7 @@ public class NettyServer {
                 f.channel().closeFuture().sync();
             } catch (InterruptedException e) {
                 log.error("netty server create error", e);
+                Thread.currentThread().interrupt();
             } finally {
                 bossGroup.shutdownGracefully();
                 workerGroup.shutdownGracefully();

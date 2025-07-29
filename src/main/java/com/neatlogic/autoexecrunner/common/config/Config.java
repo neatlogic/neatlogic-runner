@@ -39,7 +39,6 @@ public class Config {
     private static String GITLAB_PASSWORD;// gitlab private_token
     private static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;//自动化作业命令等待队列的最大容量，超过此数量的新命令将被拒绝或丢弃
     private static Integer SUBPROCESS_EXECUTION_MAX_CONCURRENT;//自动化作业最大并发子进程数，超过此数量的命令将进入等待队列
-
     //neatlogic
     private static String NEATLOGIC_ROOT;
 
@@ -116,7 +115,7 @@ public class Config {
 
     private static Integer UPDATE_RUNNER_STATUS_PERIOD;// runner推送到neatlogic的间隔时间,半个小时执行一次
 
-    public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<String>();
+    public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<>();
 
     public static String JWT_SECRET() {
         return JWT_SECRET;
@@ -173,9 +172,11 @@ public class Config {
     public static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE() {
         return SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;
     }
+
     public static Integer SUBPROCESS_EXECUTION_MAX_CONCURRENT() {
         return SUBPROCESS_EXECUTION_MAX_CONCURRENT;
     }
+
 
     @PostConstruct
     public void init() {

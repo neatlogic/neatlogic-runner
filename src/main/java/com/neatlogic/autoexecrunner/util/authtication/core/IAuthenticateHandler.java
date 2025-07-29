@@ -6,7 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 
 public interface IAuthenticateHandler {
-	public String getType();
+    String getType();
 
-	public void authenticate(HttpURLConnection connection, RestVo rest) throws MalformedURLException;
+    void authenticate(HttpURLConnection connection, RestVo rest) throws MalformedURLException;
 }

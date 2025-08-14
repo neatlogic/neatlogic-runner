@@ -17,13 +17,55 @@
 
 package com.neatlogic.autoexecrunner.dto.informant;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 public class InformantVo {
     private String uuid;
     private String type;
+    @JSONField(serialize = false)
     private boolean isValid = true;
+    @JSONField(serialize = false)
     private String tenant;
     private String sign;
     private Long timestamp;
+    private String ip;
+    private Long runnerId;
+    private int udpPort;
+    private int httpPort;
+    private int httpsPort;
+
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public int getUdpPort() {
+        return udpPort;
+    }
+
+    public void setUdpPort(int udpPort) {
+        this.udpPort = udpPort;
+    }
+
+    public int getHttpPort() {
+        return httpPort;
+    }
+
+    public void setHttpPort(int httpPort) {
+        this.httpPort = httpPort;
+    }
+
+    public int getHttpsPort() {
+        return httpsPort;
+    }
+
+    public void setHttpsPort(int httpsPort) {
+        this.httpsPort = httpsPort;
+    }
 
     public String getUuid() {
         return uuid;
@@ -71,5 +113,13 @@ public class InformantVo {
 
     public void setValid(boolean valid) {
         isValid = valid;
+    }
+
+    public Long getRunnerId() {
+        return runnerId;
+    }
+
+    public void setRunnerId(Long runnerId) {
+        this.runnerId = runnerId;
     }
 }

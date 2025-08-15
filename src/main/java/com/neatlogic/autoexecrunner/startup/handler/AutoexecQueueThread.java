@@ -13,6 +13,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@Component
 public class AutoexecQueueThread implements IStartUp {
     private static final BlockingQueue<Process> processQueue = new LinkedBlockingQueue<>(Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT() + 5);
     private static final Logger logger = LoggerFactory.getLogger(AutoexecQueueThread.class);

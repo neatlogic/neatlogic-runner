@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RootConfigurationLoader implements BeanDefinitionRegistryPostProcessor, PriorityOrdered {
 
-    private static final String BASE_PACKAGE = "com.neatlogic"; // 修改成你项目的根包
+    private static final String BASE_PACKAGE = "com.neatlogic";
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {

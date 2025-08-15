@@ -8,7 +8,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -178,8 +177,7 @@ public class Config {
     }
 
 
-    @PostConstruct
-    public void init() {
+    public Config() {
         try {
             Properties prop = new Properties();
             prop.load(new InputStreamReader(Objects.requireNonNull(Config.class.getClassLoader().getResourceAsStream(CONFIG_FILE)), StandardCharsets.UTF_8));

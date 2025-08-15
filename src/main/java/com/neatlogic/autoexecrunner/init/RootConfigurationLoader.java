@@ -18,30 +18,32 @@ public class RootConfigurationLoader implements BeanDefinitionRegistryPostProces
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        // 创建扫描器（不使用默认过滤器，这样能扫到所有类）
+        // 这里只注册BeanDefinition，不创建实例
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
-
-        // 添加只匹配 @RootConfiguration 的过滤器
         scanner.addIncludeFilter(new AnnotationTypeFilter(RootConfiguration.class));
 
-        // 扫描包
         scanner.findCandidateComponents(BASE_PACKAGE).forEach(beanDefinition -> {
-            String beanName = beanDefinition.getBeanClassName();
-            // 注册 BeanDefinition
-            registry.registerBeanDefinition(beanName, beanDefinition);
-            System.out.println("📌 提前注册 RootConfiguration: " + beanName);
+            String beanClassName = beanDefinition.getBeanClassName();
+            if (!registry.containsBeanDefinition(beanClassName)) {
+                registry.registerBeanDefinition(beanClassName, beanDefinition);
+                System.out.println("📌 提前注册 RootConfiguration: " + beanClassName);
+            }
         });
     }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // 这里不需要处理
+        // 在BeanFactory阶段提前实例化这些Root配置类
+        String[] rootConfigBeans = beanFactory.getBeanNamesForAnnotation(RootConfiguration.class);
+        for (String beanName : rootConfigBeans) {
+            System.out.println("🚀 提前实例化 RootConfiguration Bean: " + beanName);
+            beanFactory.getBean(beanName); // 触发实例化 + @PostConstruct
+        }
     }
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE; // 确保最优先执行
+        return Ordered.HIGHEST_PRECEDENCE; // 最优先执行
     }
 }
-

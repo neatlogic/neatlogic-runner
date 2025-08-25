@@ -1,5 +1,6 @@
 package com.neatlogic.autoexecrunner.restful.core;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
@@ -31,12 +32,12 @@ public class ApiValidateAndHelpBase {
         Object value = paramObj.get(key);
         if (value instanceof String) {
             try {
-                JSONObject valObj = JSONObject.parseObject(value.toString());
+                JSONObject valObj = JSON.parseObject(value.toString());
                 escapeXss(valObj);
                 paramObj.replace(key, valObj.toJSONString());
             } catch (Exception ex) {
                 try {
-                    JSONArray valList = JSONArray.parseArray(value.toString());
+                    JSONArray valList = JSON.parseArray(value.toString());
                     encodeHtml(valList);
                     paramObj.replace(key, valList.toJSONString());
                 } catch (Exception e) {
@@ -262,10 +263,10 @@ public class ApiValidateAndHelpBase {
                         String content = example.example();
                         if (StringUtils.isNotBlank(content)) {
                             try {
-                                content = JSONObject.parseObject(content).toString();
+                                content = JSON.parseObject(content).toString();
                             } catch (Exception ex) {
                                 try {
-                                    content = JSONArray.parseArray(content).toString();
+                                    content = JSON.parseArray(content).toString();
                                 } catch (Exception ignored) {
 
                                 }

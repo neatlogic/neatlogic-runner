@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TenantUtil {
-	private static Set<String> tenantSet = new HashSet<>();
+	private static final Set<String> tenantSet = new HashSet<>();
 
 	public static boolean hasTenant(String tenant) {
 		if (StringUtils.isNotBlank(tenant)) {

@@ -15,26 +15,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package com.neatlogic.autoexecrunner.web;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.common.config.Config;
-import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.ApiHandlerVo;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
 import com.neatlogic.autoexecrunner.exception.AnonymousExceptionMessage;
 import com.neatlogic.autoexecrunner.exception.ApiNotFoundException;
 import com.neatlogic.autoexecrunner.exception.ComponentNotFoundException;
-import com.neatlogic.autoexecrunner.exception.TenantNotFoundException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.core.IApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IBinaryStreamApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IJsonStreamApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentFactory;
 import com.neatlogic.autoexecrunner.util.RC4Util;
-import com.neatlogic.autoexecrunner.util.TenantUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -55,11 +52,14 @@ import java.util.Enumeration;
 import java.util.Objects;
 
 @Controller
-@RequestMapping("anonymous/api/")
+@RequestMapping({"anonymous/api/", "any/api/"})
 public class AnonymousApiDispatcher {
     Logger logger = LoggerFactory.getLogger(AnonymousApiDispatcher.class);
 
     private void doIt(HttpServletRequest request, HttpServletResponse response, String token, boolean tokenHasEncrypted, ApiVo.Type apiType, JSONObject paramObj, JSONObject returnObj, String action) throws Exception {
+        //初始化request上下文
+        RequestContext.init(request, request.getRequestURI(), response);
+
         ApiVo interfaceVo = PrivateApiComponentFactory.getApiByToken(token);
 
         if (interfaceVo == null) {
@@ -91,7 +91,7 @@ public class AnonymousApiDispatcher {
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        returnObj.putAll(JSON.parseObject(JSON.toJSONString(returnV)));
                     }
                 } else {
                     returnObj.putAll(restComponent.help());
@@ -115,7 +115,7 @@ public class AnonymousApiDispatcher {
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        returnObj.putAll(JSON.parseObject(JSON.toJSONString(returnV)));
                     }
                 } else {
                     returnObj.putAll(restComponent.help());
@@ -139,7 +139,7 @@ public class AnonymousApiDispatcher {
                         returnObj.put("Return", returnV);
                         returnObj.put("Status", "OK");
                     } else {
-                        returnObj.putAll(JSONObject.parseObject(JSONObject.toJSONString(returnV)));
+                        returnObj.putAll(JSON.parseObject(JSON.toJSONString(returnV)));
                     }
                 } else {
                     returnObj.putAll(restComponent.help());
@@ -155,14 +155,14 @@ public class AnonymousApiDispatcher {
     public void dispatcherForGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
-        String tenant;
+        //String tenant;
         boolean tokenHasEncrypted = true;
         JSONObject paramObj = new JSONObject();
         if (token.startsWith(RC4Util.PRE) || token.startsWith(RC4Util.PRE_OLD)) {
             String decryptData = RC4Util.decrypt(token);
             String[] split = decryptData.split("\\?", 2);
             token = split[0].substring(0, split[0].lastIndexOf("/"));
-            tenant = split[0].substring(split[0].lastIndexOf("/") + 1);
+            //tenant = split[0].substring(split[0].lastIndexOf("/") + 1);
             if (split.length == 2) {
                 String[] params = split[1].split("&");
                 for (String param : params) {
@@ -174,9 +174,9 @@ public class AnonymousApiDispatcher {
             }
         } else {
             tokenHasEncrypted = false;
-            String originToken = token;
+            //String originToken = token;
             token = token.substring(0, token.lastIndexOf("/"));
-            tenant = originToken.substring(originToken.lastIndexOf("/") + 1);
+            //tenant = originToken.substring(originToken.lastIndexOf("/") + 1);
             Enumeration<String> paraNames = request.getParameterNames();
             while (paraNames.hasMoreElements()) {
                 String p = paraNames.nextElement();
@@ -188,11 +188,11 @@ public class AnonymousApiDispatcher {
                 }
             }
         }
-        if (TenantUtil.hasTenant(tenant)) {
+        /*if (TenantUtil.hasTenant(tenant)) {
             TenantContext.init();
             TenantContext.get().switchTenant(tenant);
             UserContext.init(SystemUser.ANONYMOUS.getUserVo(), SystemUser.ANONYMOUS.getTimezone(), request, response);
-        }
+        }*/
         JSONObject returnObj = new JSONObject();
         try {
             doIt(request, response, token, tokenHasEncrypted, ApiVo.Type.OBJECT, paramObj, returnObj, "doservice");
@@ -200,7 +200,7 @@ public class AnonymousApiDispatcher {
             response.setStatus(520);
             returnObj.put("Status", "ERROR");
             returnObj.put("Message", ex.getMessage());
-        }  catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(520);
             returnObj.put("Status", "ERROR");
@@ -224,24 +224,24 @@ public class AnonymousApiDispatcher {
         /* 为兼容gitlab webhook等场景下无法从header传入tenant的问题，
          先从header里获取tenant，如果没有，则从token中获取，token形如（明文或解密后的token）：deploy/ci/gitlab/event/callback/develop，develop即为tenant
         */
-        String tenant = request.getHeader("Tenant");
+        /*String tenant = request.getHeader("Tenant");
         if (StringUtils.isBlank(tenant)) {
-            tenant = token.substring(token.lastIndexOf("/") + 1);
+            //tenant = token.substring(token.lastIndexOf("/") + 1);
             token = token.substring(0, token.lastIndexOf("/"));
-        }
+        }*/
         JSONObject returnObj = new JSONObject();
         JSONObject paramObj;
         try {
-            if (TenantUtil.hasTenant(tenant)) {
+            /*if (TenantUtil.hasTenant(tenant)) {
                 TenantContext.init();
                 TenantContext.get().switchTenant(tenant);
                 UserContext.init(SystemUser.ANONYMOUS.getUserVo(), SystemUser.ANONYMOUS.getTimezone(), request, response);
             } else {
                 throw new TenantNotFoundException(tenant);
-            }
+            }*/
             if (StringUtils.isNotBlank(jsonStr)) {
                 try {
-                    paramObj = JSONObject.parseObject(jsonStr);
+                    paramObj = JSON.parseObject(jsonStr);
                 } catch (Exception e) {
                     throw new ApiRuntimeException("请求参数需要符合JSON格式");
                 }
@@ -323,11 +323,6 @@ public class AnonymousApiDispatcher {
                 }
             }
         }
-        if (TenantUtil.hasTenant(tenant)) {
-            TenantContext.init();
-            TenantContext.get().switchTenant(tenant);
-            UserContext.init(SystemUser.ANONYMOUS.getUserVo(), SystemUser.ANONYMOUS.getTimezone(), request, response);
-        }
         JSONObject returnObj = new JSONObject();
         try {
             doIt(request, response, token, tokenHasEncrypted, ApiVo.Type.BINARY, paramObj, returnObj, "doservice");
@@ -335,7 +330,7 @@ public class AnonymousApiDispatcher {
             response.setStatus(520);
             returnObj.put("Status", "ERROR");
             returnObj.put("Message", ex.getMessage());
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(520);
             returnObj.put("Status", "ERROR");

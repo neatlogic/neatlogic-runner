@@ -155,12 +155,12 @@ public class HeartbeatHandler implements IStartUp {
                             .setToken(SystemUser.AUTOEXEC.getToken())
                             .setUsername(SystemUser.AUTOEXEC.getUserId())
                             .sendRequest();
-                    System.out.println("已经发送请求到：" + url + "，参数：" + JSON.toJSONString(informantVo));
+                    //System.out.println("已经发送请求到：" + url + "，参数：" + JSON.toJSONString(informantVo));
                     if (util.getError() != null) {
-                        System.out.println("请求异常：" + util.getError());
+                        //System.out.println("请求异常：" + util.getError());
                     }
                     if (util.getResponseCode() == 200) {
-                        System.out.println("已经收到返回结果：" + util.getResult());
+                        //System.out.println("已经收到返回结果：" + util.getResult());
                         byte[] sendData = util.getResult().getBytes(StandardCharsets.UTF_8);
                         try (DatagramSocket udpSocket = new DatagramSocket()) {
                             DatagramPacket packet = new DatagramPacket(
@@ -170,7 +170,7 @@ public class HeartbeatHandler implements IStartUp {
                                     informantVo.getUdpPort()
                             );
                             udpSocket.send(packet);
-                            System.out.println("已通过UDP通知 agent（" + informantVo.getIp() + ":" + informantVo.getUdpPort() + ")");
+                            //System.out.println("已通过UDP通知 agent（" + informantVo.getIp() + ":" + informantVo.getUdpPort() + ")");
                         }
                     }
 

@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebFilter(filterName = "jsonWebTokenValidFilter",urlPatterns = {"/api/*"})
+@WebFilter(filterName = "jsonWebTokenValidFilter", urlPatterns = {"/api/*"})
 public class JsonWebTokenValidFilter extends OncePerRequestFilter {
 
     /**
@@ -76,7 +76,7 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
                 //兼容“处理response,对象toString可能会异常”的场景，过了filter，应该是520异常
                 try {
                     filterChain.doFilter(request, response);
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     logger.error(ex.getMessage(), ex);
                     response.setStatus(520);
                     redirectObj.put("Status", "ERROR");

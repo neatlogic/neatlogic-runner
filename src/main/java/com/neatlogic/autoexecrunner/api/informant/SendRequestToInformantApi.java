@@ -2,6 +2,7 @@ package com.neatlogic.autoexecrunner.api.informant;
 
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
+import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.restful.annotation.Description;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
@@ -12,11 +13,11 @@ import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 @Service
-public class GetInformantDataApi extends PrivateApiComponentBase {
+public class SendRequestToInformantApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取tagent配置";
+        return "从neatlogic请求informant数据";
     }
 
 
@@ -34,7 +35,6 @@ public class GetInformantDataApi extends PrivateApiComponentBase {
     @Description(desc = "tagent 获取配置")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
         String url = jsonObj.getString("url");
         String ip = jsonObj.getString("ip");
         Integer port = jsonObj.getInteger("port");
@@ -42,7 +42,7 @@ public class GetInformantDataApi extends PrivateApiComponentBase {
         JSONObject param = jsonObj.getJSONObject("param");
         JSONObject header = jsonObj.getJSONObject("header");
         HttpRequestUtil httpUtil;
-        String finalUrl = "http://" + ip + ":" + port + "/" + url;
+        String finalUrl = "http://" + ip + ":" + port + (url.startsWith("/") ? url : "/" + url);
         if (method.equals("get")) {
             httpUtil = HttpRequestUtil.get(finalUrl);
             if (MapUtils.isNotEmpty(param)) {
@@ -59,14 +59,14 @@ public class GetInformantDataApi extends PrivateApiComponentBase {
                 httpUtil.addHeader(headerKey, header.get(headerKey).toString());
             }
         }
-        System.out.println("发送请求到：" + finalUrl + " 数据：" + param + " 头部：" + header);
+        //System.out.println("发送请求到：" + finalUrl + " 数据：" + param + " 头部：" + header);
         httpUtil.sendRequest();
         if (httpUtil.getError() != null) {
-            System.out.println("请求异常：" + httpUtil.getError());
+            //System.out.println("请求异常：" + httpUtil.getError());
+            throw new ApiRuntimeException(httpUtil.getError());
         }
-        String returnStr = httpUtil.getResult();
-        System.out.println("返回值：" + returnStr);
-        return returnStr;
+        //System.out.println("返回值：" + returnStr);
+        return httpUtil.getResult();
     }
 
     @Override

@@ -47,8 +47,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HeartbeatHandler implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
     private final AtomicBoolean running = new AtomicBoolean(true);
-    //private static final Semaphore semaphore = new Semaphore(3);//最多3个线程心跳
-    //private static final LinkedBlockingQueue<InformantVo> informantQueue = new LinkedBlockingQueue<>();
     private static final Map<String, InformantVo> informantMap = new ConcurrentHashMap<>();
     private static final DelayQueue<InformantItem> informantStateQueue = new DelayQueue<>();
     private static final Map<String, InformantState> informantStateMap = new ConcurrentHashMap<>();

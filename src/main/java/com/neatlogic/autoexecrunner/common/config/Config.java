@@ -41,6 +41,8 @@ public class Config {
     //neatlogic
     private static String NEATLOGIC_ROOT;
 
+    private static Integer INFORMANT_HEARTBEAT_INTERVAL;//单位是秒，超过心跳周期没收到心跳则会发送下线请求
+
 
     //codehub
     public static String NEATLOGIC_HOME;
@@ -168,6 +170,10 @@ public class Config {
         return AUTOEXEC_TOKEN;
     }
 
+    public static Integer INFORMANT_HEARTBEAT_INTERVAL() {
+        return INFORMANT_HEARTBEAT_INTERVAL;
+    }
+
     public static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE() {
         return SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;
     }
@@ -250,6 +256,8 @@ public class Config {
             SUBPROCESS_COMMAND_QUEUE_MAX_SIZE = Integer.parseInt(prop.getProperty("subprocess.command.queue.max-size", "1000"));
 
             SUBPROCESS_EXECUTION_MAX_CONCURRENT = Integer.parseInt(prop.getProperty("subprocess.execution.max-concurrent", "20"));
+
+            INFORMANT_HEARTBEAT_INTERVAL = Integer.parseInt(prop.getProperty("informant.heartbeat.interval", "300"));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }

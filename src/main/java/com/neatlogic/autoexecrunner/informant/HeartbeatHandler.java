@@ -19,8 +19,8 @@ package com.neatlogic.autoexecrunner.informant;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.asynchronization.AsyncTaskManager;
 import com.neatlogic.autoexecrunner.asynchronization.NeatLogicThread;
-import com.neatlogic.autoexecrunner.asynchronization.threadpool.CachedThreadPool;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
@@ -39,17 +39,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class HeartbeatHandler implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
     private final AtomicBoolean running = new AtomicBoolean(true);
-    private static final Semaphore semaphore = new Semaphore(3);//最多3个线程心跳
-    private static final LinkedBlockingQueue<InformantVo> informantQueue = new LinkedBlockingQueue<>();
+    //private static final Semaphore semaphore = new Semaphore(3);//最多3个线程心跳
+    //private static final LinkedBlockingQueue<InformantVo> informantQueue = new LinkedBlockingQueue<>();
     private static final Map<String, InformantVo> informantMap = new ConcurrentHashMap<>();
+    private static final DelayQueue<InformantItem> informantStateQueue = new DelayQueue<>();
+    private static final Map<String, InformantState> informantStateMap = new ConcurrentHashMap<>();
 
     @Override
     public String getName() {
@@ -63,7 +65,55 @@ public class HeartbeatHandler implements IStartUp {
 
     @Override
     public void doService() {
-        System.out.println("创建INFORMANT-HEARTBEAT-LISTENER");
+        AsyncTaskManager<InformantVo> informantHeartbeatHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBEAT-HANDLER", 3,
+                informantVo -> {
+                    informantMap.remove(informantVo.getUuid());
+                    try {
+                        String url = "";
+                        if (Objects.equals("register", informantVo.getType())) {
+                            url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/register");
+                        } else if (Objects.equals("heartbeat", informantVo.getType())) {
+                            url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbeat");
+                            //收到一次心跳后保存agent状态，如果5分钟之内没有收到新的心跳，判断为离线
+                            InformantState informantState = informantStateMap.get(informantVo.getUuid());
+                            if (informantState == null) {
+                                informantState = new InformantState(informantVo.getUuid(), informantVo.getTenant(), Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                                informantStateMap.put(informantVo.getUuid(), informantState);
+                                informantStateQueue.put(new InformantItem(informantState));
+                            } else {
+                                //如果状态已存在，直接更新超时时间，处理下线代理是会自动重新放回队列
+                                informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                            }
+                        }
+
+                        if (StringUtils.isNotBlank(url)) {
+                            HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
+                                    .setAuthType(AuthenticateType.HMAC)
+                                    .setTenant(informantVo.getTenant())
+                                    .setToken(SystemUser.AUTOEXEC.getToken())
+                                    .setUsername(SystemUser.AUTOEXEC.getUserId())
+                                    .sendRequest();
+                            if (StringUtils.isNotBlank(util.getError())) {
+                                logger.error(util.getError());
+                            }
+                            if (util.getResponseCode() == 200) {
+                                byte[] sendData = util.getResult().getBytes(StandardCharsets.UTF_8);
+                                try (DatagramSocket udpSocket = new DatagramSocket()) {
+                                    DatagramPacket packet = new DatagramPacket(
+                                            sendData,
+                                            sendData.length,
+                                            InetAddress.getByName(informantVo.getIp()),
+                                            informantVo.getUdpPort()
+                                    );
+                                    udpSocket.send(packet);
+                                }
+                            }
+                        }
+                    } catch (Exception ex) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                });
+
         Thread listener = new Thread(new NeatLogicThread("INFORMANT-HEARTBEAT-LISTENER") {
             @Override
             protected void execute() {
@@ -77,18 +127,17 @@ public class HeartbeatHandler implements IStartUp {
                         String senderIp = senderAddress.getHostAddress();
                         String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
                         if (StringUtils.isNotBlank(message)) {
-                            System.out.println("收到来自" + senderPort + ":" + senderIp + "的udp信息: " + message + " 时间" + System.currentTimeMillis());
+                            //System.out.println("收到来自" + senderPort + ":" + senderIp + "的udp信息: " + message + " 时间" + System.currentTimeMillis());
                             JSONObject jsonObject = JSON.parseObject(message);
                             InformantVo informantVo = JSON.toJavaObject(jsonObject, InformantVo.class);
                             informantVo.setIp(senderIp);
                             informantVo.setUdpPort(senderPort);
                             if (StringUtils.isNotBlank(informantVo.getUuid()) && StringUtils.isNotBlank(informantVo.getType())) {
-                                //遇到相同的agent心跳先设为忽略，避免重复发起
-                                if (informantMap.get(informantVo.getUuid()) != null) {
-                                    informantMap.get(informantVo.getUuid()).setValid(false);
+                                //遇到相同的agent心跳忽略，避免重复发起
+                                if (informantMap.get(informantVo.getUuid()) == null) {
+                                    informantMap.put(informantVo.getUuid(), informantVo);
+                                    informantHeartbeatHandlerManager.submitTask(informantVo);
                                 }
-                                informantMap.put(informantVo.getUuid(), informantVo);
-                                informantQueue.put(informantVo);
                             } else {
                                 logger.warn("心跳信息异常：{}", jsonObject);
                             }
@@ -102,85 +151,54 @@ public class HeartbeatHandler implements IStartUp {
         listener.setDaemon(true);
         listener.start();
 
-        Thread handler = new Thread(new NeatLogicThread("INFORMANT-HEARTBEAT-HANDLER") {
+
+        AsyncTaskManager<InformantVo> informantHeartbreakHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBREAK-HANDLER", 3,
+                informantVo -> {
+                    try {
+                        //清除状态信息
+                        informantStateMap.remove(informantVo.getUuid());
+                        String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
+                        if (StringUtils.isNotBlank(url)) {
+                            HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
+                                    .setAuthType(AuthenticateType.HMAC)
+                                    .setTenant(informantVo.getTenant())
+                                    .setToken(SystemUser.AUTOEXEC.getToken())
+                                    .setUsername(SystemUser.AUTOEXEC.getUserId())
+                                    .sendRequest();
+                            if (StringUtils.isNotBlank(util.getError())) {
+                                logger.error(util.getError());
+                            }
+                        }
+                    } catch (Exception ex) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                });
+
+        //处理下线的代理
+        Thread heartbreakThread = new Thread(new NeatLogicThread("INFORMANT-HEARTBREAK-HANDLER") {
             @Override
             protected void execute() {
-                InformantVo informantVo;
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        informantVo = informantQueue.take();
-                        if (!informantVo.isValid()) {
-                            continue;
+                        InformantItem task = informantStateQueue.take();
+                        InformantState state = task.getInformantState();
+                        if (state.getExpiredTime() > System.currentTimeMillis()) {
+                            //收到了新心跳，超时时间已经后延，重新放回队列
+                            informantStateQueue.put(new InformantItem(state));
+                        } else {
+                            //发送下线更改请求
+                            InformantVo informantVo = new InformantVo();
+                            informantVo.setTenant(state.getTenant());
+                            informantVo.setUuid(state.getUuid());
+                            informantHeartbreakHandlerManager.submitTask(informantVo);
                         }
-                        semaphore.acquire();
+                    } catch (Exception ex) {
 
-                        informantMap.remove(informantVo.getUuid());
-
-                        CachedThreadPool.execute(new InformantHandler(informantVo));
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        break;
                     }
                 }
             }
         });
-        handler.setDaemon(true);
-        handler.start();
-    }
-
-    // 处理逻辑线程
-    static class InformantHandler extends NeatLogicThread {
-        private final InformantVo informantVo;
-
-        public InformantHandler(InformantVo informantVo) {
-            super("INFORMANT-HEARTBEAT-HANDLER-" + informantVo.getUuid());
-            this.informantVo = informantVo;
-        }
-
-        @Override
-        public void execute() {
-            try {
-                String url = "";
-                if (Objects.equals("register", informantVo.getType())) {
-                    url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/register");
-                } else if (Objects.equals("heartbeat", informantVo.getType())) {
-                    url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbeat");
-                }
-
-
-                if (StringUtils.isNotBlank(url)) {
-                    HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
-                            .setAuthType(AuthenticateType.HMAC)
-                            .setTenant(informantVo.getTenant())
-                            .setToken(SystemUser.AUTOEXEC.getToken())
-                            .setUsername(SystemUser.AUTOEXEC.getUserId())
-                            .sendRequest();
-                    //System.out.println("已经发送请求到：" + url + "，参数：" + JSON.toJSONString(informantVo));
-                    if (util.getError() != null) {
-                        //System.out.println("请求异常：" + util.getError());
-                    }
-                    if (util.getResponseCode() == 200) {
-                        //System.out.println("已经收到返回结果：" + util.getResult());
-                        byte[] sendData = util.getResult().getBytes(StandardCharsets.UTF_8);
-                        try (DatagramSocket udpSocket = new DatagramSocket()) {
-                            DatagramPacket packet = new DatagramPacket(
-                                    sendData,
-                                    sendData.length,
-                                    InetAddress.getByName(informantVo.getIp()),
-                                    informantVo.getUdpPort()
-                            );
-                            udpSocket.send(packet);
-                            //System.out.println("已通过UDP通知 agent（" + informantVo.getIp() + ":" + informantVo.getUdpPort() + ")");
-                        }
-                    }
-
-                }
-            } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
-            } finally {
-                //一定要释放资源
-                semaphore.release();
-            }
-        }
+        heartbreakThread.setDaemon(true);
+        heartbreakThread.start();
     }
 }

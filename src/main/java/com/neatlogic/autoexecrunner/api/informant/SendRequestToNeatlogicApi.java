@@ -55,6 +55,7 @@ public class SendRequestToNeatlogicApi extends PrivateApiComponentBase {
         requestParam.put("param", param);
         HttpServletRequest request = RequestContext.get().getRequest();
         String tenant = request.getHeader("Tenant");
+        System.out.println("发送请求到neatlogic:" + url + ",参数:" + requestParam);
         HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.HMAC)
                 .setTenant(tenant)
                 .setToken(SystemUser.AUTOEXEC.getToken())

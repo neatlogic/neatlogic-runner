@@ -85,7 +85,7 @@ public class HeartbeatHandler implements IStartUp {
                         }
 
                         if (StringUtils.isNotBlank(url)) {
-                            System.out.println("发送请求到：" + url + "，参数：" + JSON.toJSONString(informantVo));
+                            //System.out.println("发送请求到：" + url + "，参数：" + JSON.toJSONString(informantVo));
                             HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
                                     .setAuthType(AuthenticateType.HMAC)
                                     .setTenant(informantVo.getTenant())
@@ -126,7 +126,7 @@ public class HeartbeatHandler implements IStartUp {
                         String senderIp = senderAddress.getHostAddress();
                         String message = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.UTF_8);
                         if (StringUtils.isNotBlank(message)) {
-                            System.out.println("收到来自" + senderPort + ":" + senderIp + "的udp信息: " + message + " 时间" + System.currentTimeMillis());
+                            //System.out.println("收到来自" + senderPort + ":" + senderIp + "的udp信息: " + message + " 时间" + System.currentTimeMillis());
                             JSONObject jsonObject = JSON.parseObject(message);
                             InformantVo informantVo = JSON.toJavaObject(jsonObject, InformantVo.class);
                             informantVo.setIp(senderIp);

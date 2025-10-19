@@ -51,7 +51,7 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         } else {
             httpUtil = HttpRequestUtil.post(finalUrl);
             if (MapUtils.isNotEmpty(param)) {
-                httpUtil.setPayload(param.toJSONString());
+                httpUtil.setFormData(param);
             }
         }
         if (MapUtils.isNotEmpty(header)) {

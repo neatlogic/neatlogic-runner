@@ -43,7 +43,7 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         JSONObject header = jsonObj.getJSONObject("header");
         HttpRequestUtil httpUtil;
         String finalUrl = "http://" + ip + ":" + port + (url.startsWith("/") ? url : "/" + url);
-        if (method.equals("get")) {
+        if (method.equalsIgnoreCase("get")) {
             httpUtil = HttpRequestUtil.get(finalUrl);
             if (MapUtils.isNotEmpty(param)) {
                 httpUtil.setQueryString(param);
@@ -54,6 +54,7 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
                 httpUtil.setFormData(param);
             }
         }
+        httpUtil.setContentType(HttpRequestUtil.ContentType.CONTENT_TYPE_APPLICATION_FORM);
         if (MapUtils.isNotEmpty(header)) {
             for (String headerKey : header.keySet()) {
                 httpUtil.addHeader(headerKey, header.get(headerKey).toString());

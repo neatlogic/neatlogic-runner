@@ -33,6 +33,9 @@ public class InformantVo {
     private int udpPort;
     private int httpPort;
     private int httpsPort;
+    private String version;
+    private String healthState;
+    private String preHealthState;
 
 
     public String getIp() {
@@ -121,5 +124,29 @@ public class InformantVo {
 
     public void setRunnerId(Long runnerId) {
         this.runnerId = runnerId;
+    }
+
+    public String getHealthState() {
+        return healthState;
+    }
+
+    public void setHealthState(String healthState) {
+        this.healthState = healthState;
+    }
+
+    public String getPreHealthState() {
+        return preHealthState;
+    }
+
+    public void setPreHealthState(String preHealthState) {
+        this.preHealthState = preHealthState;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
     }
 }

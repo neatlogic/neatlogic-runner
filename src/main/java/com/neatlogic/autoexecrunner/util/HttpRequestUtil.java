@@ -225,9 +225,7 @@ public class HttpRequestUtil {
                     str += (key + "=" + URLEncoder.encode(_this.formData.getString(key), _this.charset.name()));
                 }
                 out.write(str.getBytes(_this.charset));
-                System.out.println("send post param:" + str);
             }
-
         });
 
         OutputStreamHandlerMap.put(ContentType.CONTENT_TYPE_TEXT_HTML, (out, _this) -> {

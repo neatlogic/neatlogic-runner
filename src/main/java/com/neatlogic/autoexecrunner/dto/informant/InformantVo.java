@@ -34,9 +34,26 @@ public class InformantVo {
     private int httpPort;
     private int httpsPort;
     private String version;
+    private String osType;
+    private String cpuArch;
     private String healthState;
     private String preHealthState;
 
+    public String getOsType() {
+        return osType;
+    }
+
+    public void setOsType(String osType) {
+        this.osType = osType;
+    }
+
+    public String getCpuArch() {
+        return cpuArch;
+    }
+
+    public void setCpuArch(String cpuArch) {
+        this.cpuArch = cpuArch;
+    }
 
     public String getIp() {
         return ip;

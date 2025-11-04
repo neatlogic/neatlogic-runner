@@ -26,6 +26,7 @@ import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentB
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
@@ -114,9 +115,13 @@ public class UpdateJobPhaseNodeStatusApi extends PrivateApiComponentBase {
                 }
                 try {
                     String nodeStatusJsonStr = FileUtil.getReadFileContent(nodeStatusPath);
-                    JSONObject nodeStatusJson = JSONObject.parseObject(nodeStatusJsonStr);
-                    nodeStatusJson.put("status", nodeStatus);
-                    FileUtil.saveFile(nodeStatusJson.toJSONString(), nodeStatusPath);
+                    if(StringUtils.isNotBlank(nodeStatusJsonStr)) {
+                        JSONObject nodeStatusJson = JSONObject.parseObject(nodeStatusJsonStr);
+                        if(MapUtils.isNotEmpty(nodeStatusJson)) {
+                            nodeStatusJson.put("status", nodeStatus);
+                            FileUtil.saveFile(nodeStatusJson.toJSONString(), nodeStatusPath);
+                        }
+                    }
                 } catch (Exception ex) {
                     logger.error(ex.getMessage(), ex);
                 }

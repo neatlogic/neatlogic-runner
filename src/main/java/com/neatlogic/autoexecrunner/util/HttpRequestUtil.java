@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.FileVo;
@@ -593,20 +594,23 @@ public class HttpRequestUtil {
     public HttpRequestUtil sendRequest() {
         HttpURLConnection connection = getConnection();
         DataInputStream input = null;
+        HttpServletResponse servletResponse = RequestContext.get() != null ? RequestContext.get().getResponse() : null;
+
         if (connection != null) {
             try {
+                // ----------------- 发送请求体 -----------------
                 if (Objects.equals(this.method, "POST")) {
                     try (DataOutputStream out = new DataOutputStream(connection.getOutputStream())) {
                         OutputStreamHandlerMap.get(this.contentType).execute(out, this);
                         out.flush();
                     }
                 }
-                //默认使用原来的Content-Disposition，保留原来文件名
+                // ----------------- 处理响应头 -----------------
                 String contentDisPosition = connection.getHeaderField("Content-Disposition");
-                if (StringUtils.isNotBlank(contentDisPosition)) {
-                    UserContext.get().getResponse().setHeader("Content-Disposition", contentDisPosition);
+                if (StringUtils.isNotBlank(contentDisPosition) && servletResponse != null) {
+                    servletResponse.setHeader("Content-Disposition", contentDisPosition);
                 }
-                //这里返回response里携带的header信息
+
                 responseHeadersMap = connection.getHeaderFields();
                 if (CollectionUtils.isNotEmpty(responseHeaderList)) {
                     Map<String, List<String>> headersMap = connection.getHeaderFields();
@@ -617,7 +621,7 @@ public class HttpRequestUtil {
                         }
                     }
                 }
-                // 处理返回值
+                // ----------------- 读取响应体 -----------------
                 this.responseCode = connection.getResponseCode();
                 if (100 <= this.responseCode && this.responseCode <= 399) {
                     input = new DataInputStream(connection.getInputStream());
@@ -627,10 +631,20 @@ public class HttpRequestUtil {
                         IOUtils.copy(reader, writer);
                         result = writer.toString();
                     } else {
+                        // 文件下载类请求
                         IOUtils.copy(input, this.outputStream);
                         this.outputStream.flush();
+
+                        // 强制提交响应，防止 isCommitted 为 false
+                        if (servletResponse != null && !servletResponse.isCommitted()) {
+                            try {
+                                servletResponse.flushBuffer();
+                            } catch (IOException ignored) {
+                            }
+                        }
                     }
                 } else {
+                    // ----------------- 错误流处理 -----------------
                     InputStream errorStream = connection.getErrorStream();
                     if (errorStream != null) {
                         input = new DataInputStream(errorStream);
@@ -656,8 +670,9 @@ public class HttpRequestUtil {
                 this.errorMsg = e.getMessage();
             } finally {
                 connection.disconnect();
-                if (UserContext.get() != null && UserContext.get().getResponse() != null && !UserContext.get().getResponse().isCommitted()) {
-                    resetResponse(UserContext.get().getResponse());
+                // 普通请求：未提交响应时重置
+                if (servletResponse != null && !servletResponse.isCommitted()) {
+                    resetResponse(servletResponse);
                 }
                 IOUtils.closeQuietly(input); // 关闭输入流
                 IOUtils.closeQuietly(this.outputStream); // 关闭输出流

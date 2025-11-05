@@ -45,11 +45,13 @@ import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping({"anonymous/api/", "any/api/"})
@@ -221,24 +223,9 @@ public class AnonymousApiDispatcher {
             tokenHasEncrypted = true;
             token = RC4Util.decrypt(token);
         }
-        /* 为兼容gitlab webhook等场景下无法从header传入tenant的问题，
-         先从header里获取tenant，如果没有，则从token中获取，token形如（明文或解密后的token）：deploy/ci/gitlab/event/callback/develop，develop即为tenant
-        */
-        /*String tenant = request.getHeader("Tenant");
-        if (StringUtils.isBlank(tenant)) {
-            //tenant = token.substring(token.lastIndexOf("/") + 1);
-            token = token.substring(0, token.lastIndexOf("/"));
-        }*/
         JSONObject returnObj = new JSONObject();
         JSONObject paramObj;
         try {
-            /*if (TenantUtil.hasTenant(tenant)) {
-                TenantContext.init();
-                TenantContext.get().switchTenant(tenant);
-                UserContext.init(SystemUser.ANONYMOUS.getUserVo(), SystemUser.ANONYMOUS.getTimezone(), request, response);
-            } else {
-                throw new TenantNotFoundException(tenant);
-            }*/
             if (StringUtils.isNotBlank(jsonStr)) {
                 try {
                     paramObj = JSON.parseObject(jsonStr);
@@ -286,43 +273,48 @@ public class AnonymousApiDispatcher {
 
     }
 
-    @RequestMapping(value = "/binary/**", method = RequestMethod.GET)
+
+    @RequestMapping(value = "/binary/**", method = {RequestMethod.GET, RequestMethod.POST})
     public void dispatcherForPostBinary(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
-        String tenant;
-        boolean tokenHasEncrypted = true;
-        JSONObject paramObj = new JSONObject();
+        boolean tokenHasEncrypted = false;
         if (token.startsWith(RC4Util.PRE) || token.startsWith(RC4Util.PRE_OLD)) {
-            String decryptData = RC4Util.decrypt(token);
-            String[] split = decryptData.split("\\?", 2);
-            token = split[0].substring(0, split[0].lastIndexOf("/"));
-            tenant = split[0].substring(split[0].lastIndexOf("/") + 1);
-            if (split.length == 2) {
-                String[] params = split[1].split("&");
-                for (String param : params) {
-                    String[] array = param.split("=", 2);
-                    if (array.length == 2) {
-                        paramObj.put(array[0], array[1]);
+            tokenHasEncrypted = true;
+            token = RC4Util.decrypt(token);
+        }
+        JSONObject paramObj = new JSONObject();
+
+        // 获取普通参数
+        Enumeration<String> paraNames = request.getParameterNames();
+        while (paraNames.hasMoreElements()) {
+            String p = paraNames.nextElement();
+            String[] vs = request.getParameterValues(p);
+            if (vs.length > 1) {
+                paramObj.put(p, vs);
+            } else {
+                paramObj.put(p, request.getParameter(p));
+            }
+        }
+
+        //  如果是 POST 且 Content-Type 含 JSON，则从 body 中读取 payload
+        if ("POST".equalsIgnoreCase(request.getMethod())) {
+            String contentType = request.getContentType();
+            if (contentType != null && contentType.toLowerCase().contains("application/json")) {
+                String body = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8))
+                        .lines().collect(Collectors.joining("\n"));
+                if (StringUtils.isNotBlank(body)) {
+                    try {
+                        JSONObject bodyJson = JSON.parseObject(body);
+                        for (String key : bodyJson.keySet()) {
+                            paramObj.put(key, bodyJson.get(key));
+                        }
+                    } catch (Exception ignored) {
                     }
                 }
             }
-        } else {
-            tokenHasEncrypted = false;
-            String originToken = token;
-            token = token.substring(0, token.lastIndexOf("/"));
-            tenant = originToken.substring(originToken.lastIndexOf("/") + 1);
-            Enumeration<String> paraNames = request.getParameterNames();
-            while (paraNames.hasMoreElements()) {
-                String p = paraNames.nextElement();
-                String[] vs = request.getParameterValues(p);
-                if (vs.length > 1) {
-                    paramObj.put(p, vs);
-                } else {
-                    paramObj.put(p, request.getParameter(p));
-                }
-            }
         }
+
         JSONObject returnObj = new JSONObject();
         try {
             doIt(request, response, token, tokenHasEncrypted, ApiVo.Type.BINARY, paramObj, returnObj, "doservice");

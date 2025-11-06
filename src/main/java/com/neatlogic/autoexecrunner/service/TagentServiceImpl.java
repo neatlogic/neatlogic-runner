@@ -1,7 +1,7 @@
 package com.neatlogic.autoexecrunner.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.common.tagent.IpUtil;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
@@ -24,7 +24,7 @@ public class TagentServiceImpl implements TagentService {
         if (jsonObj.containsKey("mgmtIp") && StringUtils.isNotBlank(jsonObj.getString("mgmtIp"))) {
             jsonObj.put("ip", jsonObj.getString("mgmtIp"));
         } else {
-            jsonObj.put("ip", IpUtil.getIpAddr(UserContext.get().getRequest()));
+            jsonObj.put("ip", IpUtil.getIpAddr(RequestContext.get().getRequest()));
         }
         HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(jsonObj.toJSONString())
                 .setAuthType(AuthenticateType.HMAC)

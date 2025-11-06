@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
@@ -91,8 +92,8 @@ public class PublicApiDispatcher {
         } else {
             userVo = new UserVo(SystemUser.SYSTEM.getUserUuid());
         }
-        UserContext.init(userVo, "+8:00", request, response);
-        UserContext.get().setRequest(request);
+        UserContext.init(userVo, "+8:00");
+        RequestContext.init(request, request.getRequestURI(), response);
 
         if (apiType.equals(ApiVo.Type.OBJECT)) {
             IApiComponent restComponent = PublicApiComponentFactory.getInstance(interfaceVo.getHandler());

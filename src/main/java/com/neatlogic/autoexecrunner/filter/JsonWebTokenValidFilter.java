@@ -64,7 +64,7 @@ public class JsonWebTokenValidFilter extends OncePerRequestFilter {
                     }
                 }
                 if (userVo != null && StringUtils.isNotBlank(userVo.getUuid())) {
-                    UserContext.init(userVo, timezone, request, response);
+                    UserContext.init(userVo, timezone);
                     TenantContext.init();
                     TenantContext.get().switchTenant(tenant);
                     UserContext.get().setToken(userVo.getAuthorization());

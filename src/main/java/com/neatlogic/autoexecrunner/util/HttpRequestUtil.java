@@ -20,7 +20,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.parser.Feature;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
-import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.FileVo;
 import com.neatlogic.autoexecrunner.dto.RestVo;
@@ -617,7 +616,7 @@ public class HttpRequestUtil {
                     for (String header : responseHeaderList) {
                         List<String> buildStatusList = headersMap.get(header);
                         if (CollectionUtils.isNotEmpty(buildStatusList)) {
-                            UserContext.get().getResponse().setHeader(header, buildStatusList.get(0));
+                            RequestContext.get().getResponse().setHeader(header, buildStatusList.get(0));
                         }
                     }
                 }

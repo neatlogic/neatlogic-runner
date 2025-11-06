@@ -669,11 +669,11 @@ public class HttpRequestUtil {
                 this.error = ExceptionUtils.getStackTrace(e);
                 this.errorMsg = e.getMessage();
             } finally {
-                connection.disconnect();
                 // 普通请求：未提交响应时重置
                 if (servletResponse != null && !servletResponse.isCommitted()) {
                     resetResponse(servletResponse);
                 }
+                connection.disconnect();
                 IOUtils.closeQuietly(input); // 关闭输入流
                 IOUtils.closeQuietly(this.outputStream); // 关闭输出流
             }

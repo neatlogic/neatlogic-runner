@@ -26,6 +26,7 @@ public class InformantVo {
     private boolean isValid = true;
     @JSONField(serialize = false)
     private String tenant;
+    private String hostname;
     private String sign;
     private Long timestamp;
     private String ip;
@@ -53,6 +54,14 @@ public class InformantVo {
 
     public void setCpuArch(String cpuArch) {
         this.cpuArch = cpuArch;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
     public String getIp() {

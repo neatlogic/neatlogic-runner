@@ -37,6 +37,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
     private static final AttributeKey<Integer> AGENT_LISTEN_PORT_KEY = AttributeKey.valueOf("listenPort");
     private static final AttributeKey<String> AGENT_LISTEN_TENANT_KEY = AttributeKey.valueOf("tenant");
+    private static final AttributeKey<String> AGENT_LISTEN_ID_KEY = AttributeKey.valueOf("tagentId");
 
     //业务ip，为了方便开墙
     private static final AttributeKey<String> MGMT_IP_KEY = AttributeKey.valueOf("mgmtIp");
@@ -76,10 +77,12 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         String agentIp = null;
         Integer listenPort = null;
         String tenant = null;
+        String tagentId = null;
         try {
             agentIp = NettyUtil.getConnectInfo(ctx, "remote")[0];
             listenPort = ctx.channel().attr(AGENT_LISTEN_PORT_KEY).get();
             tenant = ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).get();
+            tagentId = ctx.channel().attr(AGENT_LISTEN_ID_KEY).get();
             String mgmtIp = StringUtils.EMPTY;
 
             if (ctx.channel().attr(MGMT_IP_KEY) != null) {
@@ -111,6 +114,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
             params.put("ip", agentIp);
             params.put("port", listenPort.toString());
             //params.put("runnerIp", runnerIp);
+            params.put("tagentId", tagentId);
             params.put("status", "disconnected");
             String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT);
             HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(params))
@@ -176,6 +180,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         params.put("status", "connected");
                         String tagentId = agentData.getString("agentId");
                         String ipString = agentData.getString("ipString");
+                        ctx.channel().attr(AGENT_LISTEN_ID_KEY).set(tagentId);
                         /*
                          * if (!Constant.runnerGroupMap.containsKey(groupId) ||
                          * StringUtils.isBlank(Constant.runnerGroupMap.get(groupId)) ||

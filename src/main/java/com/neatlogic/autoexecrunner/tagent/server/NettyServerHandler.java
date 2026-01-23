@@ -175,7 +175,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         if (StringUtils.isBlank(params.get("tenant"))) {
                             throw new TagentNettyTenantIsNullException();
                         }
-                        Constant.tagentMap.put(params.get("tenant") + agentKey, ctx);
+
                         ctx.channel().attr(AGENT_LISTEN_TENANT_KEY).set(params.get("tenant"));
                         params.put("status", "connected");
                         String tagentId = agentData.getString("agentId");
@@ -219,7 +219,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
                         } else {
                             log.error("{}/api/rest/{},返回的数据不是json格式，参数：{}，返回值：{}", Config.NEATLOGIC_ROOT(), Constant.ACTION_UPDATE_TAGENT_INFO, agentData, agentActionExecRes);
                         }
-
+                        Constant.tagentMap.put(params.get("tenant") + agentKey, ctx);
                         Constant.tagentIpMap.put(tagentId, agentData.getString("ipString"));
                     }
                 } else {

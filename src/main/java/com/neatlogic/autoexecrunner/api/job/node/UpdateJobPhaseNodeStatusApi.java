@@ -13,9 +13,13 @@ package com.neatlogic.autoexecrunner.api.job.node;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
-import com.neatlogic.autoexecrunner.exception.MongodbException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
@@ -25,6 +29,7 @@ import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +38,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
 
 
 /**
@@ -80,19 +79,42 @@ public class UpdateJobPhaseNodeStatusApi extends PrivateApiComponentBase {
         String nodeStatus = jsonObj.getString("nodeStatus");
         //更新mongodb 节点状态
         if (!Objects.equals("sqlfile", execMode)) {
-            List<Long> resourceIdList = new ArrayList<>();
             if (Objects.equals(execMode, "runner")) {
-                resourceIdList.add(0L);
-            } else {
-                resourceIdList = phaseNodeList.stream().map(o -> (JSONObject.parseObject(JSONObject.toJSONString(o))).getLong("resourceId")).collect(Collectors.toList());
+                JSONObject localNode = new JSONObject();
+                localNode.put("resourceId", 0);
+                localNode.put("host", "local");
+                localNode.put("port", 0);
+                phaseNodeList.add(localNode);
             }
-            Bson filterDoc = combine(in("resourceId", resourceIdList), eq("phase", phase));
-            Bson updateDoc = set("data.status", nodeStatus);
-            try {
-                mongoTemplate.getCollection("_node_status").updateMany(filterDoc, updateDoc);
-            } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
-                throw new MongodbException();
+
+            int batchSize = 100;
+            List<WriteModel<Document>> batch = new ArrayList<>(batchSize);
+
+            for (int i = 0; i < phaseNodeList.size(); i++) {
+                JSONObject phaseNode = phaseNodeList.getJSONObject(i);
+
+                Bson filter = combine(
+                        eq("phase", phase),
+                        eq("resourceId", phaseNode.getLong("resourceId"))
+                );
+
+                Document update = new Document()
+                        .append("$set", new Document()
+                                .append("data.status", nodeStatus)
+                        )
+                        .append("$setOnInsert", new Document()
+                                .append("createDate", new Date())
+                                .append("jobId", jobId.toString())
+                                .append("host", phaseNode.getString("host"))
+                                .append("port", phaseNode.getString("port"))
+                        );
+                batch.add(new UpdateOneModel<>(filter, update, new UpdateOptions().upsert(true)));
+
+                if (batch.size() >= batchSize || i == (phaseNodeList.size() - 1)) {
+                    BulkWriteResult result = mongoTemplate.getCollection("_node_status").bulkWrite(batch, new BulkWriteOptions().ordered(false));
+                    logger.info("Batch upserted: {} docs", result.getUpserts().size());
+                    batch.clear();
+                }
             }
         }
         //更新节点状态文件
@@ -112,9 +134,9 @@ public class UpdateJobPhaseNodeStatusApi extends PrivateApiComponentBase {
                 }
                 try {
                     String nodeStatusJsonStr = FileUtil.getReadFileContent(nodeStatusPath);
-                    if(StringUtils.isNotBlank(nodeStatusJsonStr)) {
+                    if (StringUtils.isNotBlank(nodeStatusJsonStr)) {
                         JSONObject nodeStatusJson = JSONObject.parseObject(nodeStatusJsonStr);
-                        if(MapUtils.isNotEmpty(nodeStatusJson)) {
+                        if (MapUtils.isNotEmpty(nodeStatusJson)) {
                             nodeStatusJson.put("status", nodeStatus);
                             FileUtil.saveFile(nodeStatusJson.toJSONString(), nodeStatusPath);
                         }

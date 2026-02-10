@@ -31,9 +31,6 @@ public final class TokenRateLimiter {
     // QPS 提供函数：可根据 token 动态返回配额（默认 500）
     private static Function<String, Integer> qpsProvider = TokenRateLimiter::defaultQpsProvider;
 
-    // 突发容量倍数（burst = qps * multiplier）
-    private static final double BURST_MULTIPLIER = 1.2;
-
     private TokenRateLimiter() {
         // 工具类，禁止实例化
     }
@@ -41,7 +38,7 @@ public final class TokenRateLimiter {
     /**
      * 尝试获取令牌（非阻塞）
      *
-     * @param token API Token（如 "user123", "app_abc"）
+     * @param token API Token
      * @return true 表示允许请求，false 表示被限流
      */
     public static boolean tryAcquire(String token) {

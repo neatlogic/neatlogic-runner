@@ -3,13 +3,14 @@ package com.neatlogic.autoexecrunner.api.tagent;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
+import com.neatlogic.autoexecrunner.restful.annotation.QpsLimitKey;
 import com.neatlogic.autoexecrunner.service.TagentService;
 import com.neatlogic.autoexecrunner.restful.core.publicapi.PublicApiComponentBase;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-
+@QpsLimitKey("qps.limit.tagent.register")
 @Service
 public class TagentRegisterApi extends PublicApiComponentBase {
     private final Object lock = new Object();

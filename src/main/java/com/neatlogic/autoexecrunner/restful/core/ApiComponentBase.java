@@ -1,8 +1,10 @@
 package com.neatlogic.autoexecrunner.restful.core;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.api.ratelimit.TokenRateLimiter;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
+import com.neatlogic.autoexecrunner.exception.core.TooManyRequestsException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.aop.support.AopUtils;
@@ -12,13 +14,16 @@ import java.lang.reflect.Method;
 
 public abstract class ApiComponentBase extends ApiValidateAndHelpBase implements MyApiComponent {
 
-
     public final Object doService(ApiVo apiVo, JSONObject paramObj) throws Exception {
         String error = "";
         Object result = null;
         long startTime = System.currentTimeMillis();
         try {
             try {
+                //限流
+                if (!TokenRateLimiter.tryAcquire(apiVo.getToken())) {
+                    throw new TooManyRequestsException("Rate limit exceeded. Check your plan or retry later.");
+                }
                 Object proxy = AopContext.currentProxy();
                 Class<?> targetClass = AopUtils.getTargetClass(proxy);
                 validApi(targetClass, paramObj, JSONObject.class);

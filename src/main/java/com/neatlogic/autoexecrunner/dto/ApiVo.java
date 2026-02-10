@@ -70,6 +70,8 @@ public class ApiVo implements Serializable {
     private String description;
     @EntityField(name = "接口类型", type = ApiParamType.STRING)
     private String type;
+    @EntityField(name = "接口qps限流配置key", type = ApiParamType.STRING)
+    private String qpsLimitConfigKey;
     @JSONField(serialize = false)
     private transient JSONObject pathVariableObj;
     @JSONField(serialize = false)
@@ -151,5 +153,11 @@ public class ApiVo implements Serializable {
         this.pathVariableList = pathVariableList;
     }
 
+    public String getQpsLimitConfigKey() {
+        return qpsLimitConfigKey;
+    }
 
+    public void setQpsLimitConfigKey(String qpsLimitConfigKey) {
+        this.qpsLimitConfigKey = qpsLimitConfigKey;
+    }
 }

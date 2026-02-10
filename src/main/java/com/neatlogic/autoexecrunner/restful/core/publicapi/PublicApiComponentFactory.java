@@ -3,8 +3,10 @@ package com.neatlogic.autoexecrunner.restful.core.publicapi;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.dto.ApiHandlerVo;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
+import com.neatlogic.autoexecrunner.restful.annotation.QpsLimitKey;
 import com.neatlogic.autoexecrunner.restful.core.IApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IBinaryStreamApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IJsonStreamApiComponent;
@@ -146,6 +148,15 @@ public class PublicApiComponentFactory implements ApplicationListener<ContextRef
                     apiVo.setHandlerName(component.getName());
                     apiVo.setName(component.getName());
                     apiVo.setType(ApiVo.Type.OBJECT.getValue());
+                    // 限流
+                    QpsLimitKey qpsLimitKey = component.getClass().getAnnotation(QpsLimitKey.class);
+                    if (qpsLimitKey != null) {
+                        String qpsLimitConfigKey = qpsLimitKey.value();
+                        String value = Config.getConfigProperty(qpsLimitConfigKey,null);
+                        if(value != null) {
+                            apiVo.setQpsLimitConfigKey(qpsLimitConfigKey);
+                        }
+                    }
                     if (token.contains("{")) {
                         Matcher m = p.matcher(token);
                         StringBuffer temp = new StringBuffer();
@@ -199,6 +210,15 @@ public class PublicApiComponentFactory implements ApplicationListener<ContextRef
                     apiVo.setHandlerName(component.getName());
                     apiVo.setName(component.getName());
                     apiVo.setType(ApiVo.Type.OBJECT.getValue());
+                    // 限流
+                    QpsLimitKey qpsLimitKey = component.getClass().getAnnotation(QpsLimitKey.class);
+                    if (qpsLimitKey != null) {
+                        String qpsLimitConfigKey = qpsLimitKey.value();
+                        String value = Config.getConfigProperty(qpsLimitConfigKey,null);
+                        if(value != null) {
+                            apiVo.setQpsLimitConfigKey(qpsLimitConfigKey);
+                        }
+                    }
                     if (token.contains("{")) {
                         Matcher m = p.matcher(token);
                         StringBuffer temp = new StringBuffer();

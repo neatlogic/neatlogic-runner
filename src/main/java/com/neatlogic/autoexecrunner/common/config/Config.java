@@ -116,6 +116,8 @@ public class Config {
 
     private static Integer UPDATE_RUNNER_STATUS_PERIOD;// runner推送到neatlogic的间隔时间,半个小时执行一次
 
+    public static Properties properties = new Properties();
+
     public static final List<String> RES_POSSIBLY_CHARSETS = new ArrayList<>();
 
     public static String JWT_SECRET() {
@@ -258,10 +260,16 @@ public class Config {
             SUBPROCESS_EXECUTION_MAX_CONCURRENT = Integer.parseInt(prop.getProperty("subprocess.execution.max-concurrent", "20"));
 
             INFORMANT_HEARTBEAT_INTERVAL = Integer.parseInt(prop.getProperty("informant.heartbeat.interval", "300"));
+
+            properties = prop;
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
 
+    }
+
+    public static String getConfigProperty(String key, String defaultValue) {
+        return properties.getProperty(key, defaultValue);
     }
 
 }

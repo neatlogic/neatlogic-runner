@@ -10,6 +10,7 @@ import com.neatlogic.autoexecrunner.dto.ApiVo;
 import com.neatlogic.autoexecrunner.exception.ApiNotFoundException;
 import com.neatlogic.autoexecrunner.exception.ComponentNotFoundException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
+import com.neatlogic.autoexecrunner.exception.core.TooManyRequestsException;
 import com.neatlogic.autoexecrunner.restful.core.IApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IBinaryStreamApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IJsonStreamApiComponent;
@@ -177,7 +178,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, paramObj, "doservice");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -222,6 +229,12 @@ public class ApiDispatcher {
             }
 
             returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, json, "doservice");
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
@@ -261,7 +274,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.STREAM, paramObj, "doservice");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -301,7 +320,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -340,7 +365,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -379,7 +410,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.BINARY, paramObj, "doservice");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -407,7 +444,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.OBJECT, null, "help");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -433,7 +476,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.STREAM, null, "help");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");
@@ -459,7 +508,13 @@ public class ApiDispatcher {
         JSON returnObj;
         try {
             returnObj = doIt(request, response, token, ApiVo.Type.BINARY, null, "help");
-        } catch (ApiRuntimeException ex) {
+        } catch (TooManyRequestsException ex) {
+            response.setStatus(529);
+            JSONObject rObj = new JSONObject();
+            rObj.put("Status", "ERROR");
+            rObj.put("Message", ex.getMessage());
+            returnObj = rObj;
+        }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
             JSONObject rObj = new JSONObject();
             rObj.put("Status", "ERROR");

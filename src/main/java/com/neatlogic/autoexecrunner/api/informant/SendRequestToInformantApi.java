@@ -24,7 +24,8 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "url", type = ApiParamType.STRING, desc = "url", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "informant ip", isRequired = true),
-            @Param(name = "port", type = ApiParamType.INTEGER, desc = "informant 端口", isRequired = true),
+            @Param(name = "httpPort", type = ApiParamType.INTEGER, desc = "informant http 端口"),
+            @Param(name = "httpsPort", type = ApiParamType.INTEGER, desc = "informant https 端口"),
             @Param(name = "method", type = ApiParamType.STRING, desc = "请求方法", isRequired = true),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, desc = "参数"),
             @Param(name = "header", type = ApiParamType.JSONOBJECT, desc = "请求头", isRequired = true)
@@ -37,12 +38,34 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String url = jsonObj.getString("url");
         String ip = jsonObj.getString("ip");
-        Integer port = jsonObj.getInteger("port");
+        Integer httpPort = jsonObj.getInteger("httpPort");
+        Integer httpsPort = jsonObj.getInteger("httpsPort");
         String method = jsonObj.getString("method");
         JSONObject param = jsonObj.getJSONObject("param");
         JSONObject header = jsonObj.getJSONObject("header");
+
+        Exception httpsException = null;
+        if (httpsPort != null) {
+            try {
+                return sendRequest("https", ip, httpsPort, url, method, param, header);
+            } catch (Exception ex) {
+                httpsException = ex;
+            }
+        }
+
+        if (httpPort != null) {
+            return sendRequest("http", ip, httpPort, url, method, param, header);
+        }
+
+        if (httpsException != null) {
+            throw httpsException;
+        }
+        throw new ApiRuntimeException("httpPort和httpsPort不能同时为空");
+    }
+
+    private Object sendRequest(String protocol, String ip, Integer port, String url, String method, JSONObject param, JSONObject header) throws Exception {
         HttpRequestUtil httpUtil;
-        String finalUrl = "http://" + ip + ":" + port + (url.startsWith("/") ? url : "/" + url);
+        String finalUrl = protocol + "://" + ip + ":" + port + (url.startsWith("/") ? url : "/" + url);
         if (method.equalsIgnoreCase("get")) {
             httpUtil = HttpRequestUtil.get(finalUrl);
             if (MapUtils.isNotEmpty(param)) {
@@ -60,13 +83,11 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
                 httpUtil.addHeader(headerKey, header.get(headerKey).toString());
             }
         }
-        //System.out.println("发送请求到：" + finalUrl + " 数据：" + param + " 头部：" + header);
+
         httpUtil.sendRequest();
         if (httpUtil.getError() != null) {
-            //System.out.println("请求异常：" + httpUtil.getError());
             throw new ApiRuntimeException(httpUtil.getError());
         }
-        //System.out.println("返回值：" + returnStr);
         return httpUtil.getResult();
     }
 

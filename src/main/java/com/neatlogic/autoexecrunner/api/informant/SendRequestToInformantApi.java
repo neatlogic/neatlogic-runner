@@ -33,7 +33,7 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "port", type = ApiParamType.JSONOBJECT, desc = "tagent 配置", isRequired = true)
     })
-    @Description(desc = "tagent 获取配置")
+    @Description(desc = "从neatlogic请求informant数据")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String url = jsonObj.getString("url");

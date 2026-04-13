@@ -301,7 +301,7 @@ public class ApiDispatcher {
     }
 
     @RequestMapping(value = "/binary/**", method = RequestMethod.GET)
-    public void dispatcherForPostBinary(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void dispatcherForGetBinary(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
         String token = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
 

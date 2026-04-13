@@ -43,7 +43,7 @@ public class NettyServer {
                 bossGroup.shutdownGracefully();
                 workerGroup.shutdownGracefully();
             }
-        });
+        },"NETTY-SERVER-THREAD");
         t.start();
     }
 }

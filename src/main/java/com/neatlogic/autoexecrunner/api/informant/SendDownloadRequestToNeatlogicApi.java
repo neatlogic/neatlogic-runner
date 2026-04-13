@@ -46,12 +46,28 @@ public class SendDownloadRequestToNeatlogicApi extends PrivateBinaryStreamApiCom
         Long timestamp = jsonObj.getLong("timestamp");
         url = String.format("%s/api/binary/%s", Config.NEATLOGIC_ROOT(), url);
         JSONObject param = jsonObj.getJSONObject("param");
+        if (param == null) {
+            String paramStr = jsonObj.getString("param");
+            if (paramStr != null && paramStr.startsWith("{")) {
+                param = JSONObject.parseObject(paramStr);
+            }
+        }
+        if (param == null) {
+            param = new JSONObject();
+        }
+        Long fileId = jsonObj.getLong("fileId");
+        if (fileId != null && param.getLong("fileId") == null) {
+            param.put("fileId", fileId);
+        }
         JSONObject requestParam = new JSONObject();
         requestParam.put("sign", sign);
         requestParam.put("timestamp", timestamp);
         requestParam.put("uuid", uuid);
         requestParam.put("param", param);
         String tenant = request.getHeader("Tenant");
+        if (tenant == null || tenant.isBlank()) {
+            tenant = jsonObj.getString("tenant");
+        }
         System.out.println("发送下载请求到neatlogic:" + url + ",参数:" + requestParam);
         HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.HMAC)
                 .setTenant(tenant)

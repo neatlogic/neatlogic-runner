@@ -26,6 +26,7 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
             @Param(name = "ip", type = ApiParamType.STRING, desc = "informant ip", isRequired = true),
             @Param(name = "httpPort", type = ApiParamType.INTEGER, desc = "informant http 端口"),
             @Param(name = "httpsPort", type = ApiParamType.INTEGER, desc = "informant https 端口"),
+            @Param(name = "protocol", type = ApiParamType.STRING, desc = "协议", isRequired = true),
             @Param(name = "method", type = ApiParamType.STRING, desc = "请求方法", isRequired = true),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, desc = "参数"),
             @Param(name = "header", type = ApiParamType.JSONOBJECT, desc = "请求头", isRequired = true)
@@ -40,27 +41,24 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         Integer httpPort = jsonObj.getInteger("httpPort");
         Integer httpsPort = jsonObj.getInteger("httpsPort");
+        String protocol = jsonObj.getString("protocol");
         String method = jsonObj.getString("method");
         JSONObject param = jsonObj.getJSONObject("param");
         JSONObject header = jsonObj.getJSONObject("header");
 
-        Exception httpsException = null;
-        if (httpsPort != null) {
-            try {
-                return sendRequest("https", ip, httpsPort, url, method, param, header);
-            } catch (Exception ex) {
-                httpsException = ex;
+        if ("https".equalsIgnoreCase(protocol)) {
+            if (httpsPort == null) {
+                throw new ApiRuntimeException("httpsPort不能为空");
             }
+            return sendRequest("https", ip, httpsPort, url, method, param, header);
         }
-
-        if (httpPort != null) {
+        if ("http".equalsIgnoreCase(protocol)) {
+            if (httpPort == null) {
+                throw new ApiRuntimeException("httpPort不能为空");
+            }
             return sendRequest("http", ip, httpPort, url, method, param, header);
         }
-
-        if (httpsException != null) {
-            throw httpsException;
-        }
-        throw new ApiRuntimeException("httpPort和httpsPort不能同时为空");
+        throw new ApiRuntimeException("protocol不合法");
     }
 
     private Object sendRequest(String protocol, String ip, Integer port, String url, String method, JSONObject param, JSONObject header) throws Exception {

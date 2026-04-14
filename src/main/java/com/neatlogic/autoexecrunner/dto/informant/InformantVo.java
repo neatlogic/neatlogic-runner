@@ -29,6 +29,7 @@ public class InformantVo {
     private int udpPort;
     private int httpPort;
     private int httpsPort;
+    private String protocol;
     private String version;
     private String osType;
     private String cpuArch;
@@ -89,6 +90,14 @@ public class InformantVo {
 
     public void setHttpsPort(int httpsPort) {
         this.httpsPort = httpsPort;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     public String getUuid() {

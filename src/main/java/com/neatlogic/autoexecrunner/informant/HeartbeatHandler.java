@@ -60,7 +60,7 @@ public class HeartbeatHandler implements IStartUp {
     public void doService() {
         AsyncTaskManager<InformantVo> informantHeartbeatHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBEAT-HANDLER", 3,
                 informantVo -> {
-                    informantMap.remove(informantVo.getUuid());
+                    informantMap.remove(getInformantTaskKey(informantVo));
                     try {
                         String url = "";
                         if (Objects.equals("register", informantVo.getType())) {
@@ -77,6 +77,9 @@ public class HeartbeatHandler implements IStartUp {
                                 //如果状态已存在，直接更新超时时间，处理下线代理是会自动重新放回队列
                                 informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
                             }
+                        } else if (Objects.equals("heartbreak", informantVo.getType())) {
+                            informantStateMap.remove(informantVo.getUuid());
+                            url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
 
                         if (StringUtils.isNotBlank(url)) {
@@ -128,8 +131,9 @@ public class HeartbeatHandler implements IStartUp {
                             informantVo.setUdpPort(senderPort);
                             if (StringUtils.isNotBlank(informantVo.getUuid()) && StringUtils.isNotBlank(informantVo.getType())) {
                                 //遇到相同的agent心跳忽略，避免重复发起
-                                if (informantMap.get(informantVo.getUuid()) == null) {
-                                    informantMap.put(informantVo.getUuid(), informantVo);
+                                String taskKey = getInformantTaskKey(informantVo);
+                                if (informantMap.get(taskKey) == null) {
+                                    informantMap.put(taskKey, informantVo);
                                     informantHeartbeatHandlerManager.submitTask(informantVo);
                                 }
                             } else {
@@ -179,7 +183,7 @@ public class HeartbeatHandler implements IStartUp {
                         if (state.getExpiredTime() > System.currentTimeMillis()) {
                             //收到了新心跳，超时时间已经后延，重新放回队列
                             informantStateQueue.put(new InformantItem(state));
-                        } else {
+                        } else if (informantStateMap.containsKey(state.getUuid())) {
                             //发送下线更改请求
                             InformantVo informantVo = new InformantVo();
                             informantVo.setTenant(state.getTenant());
@@ -194,5 +198,9 @@ public class HeartbeatHandler implements IStartUp {
         });
         heartbreakThread.setDaemon(true);
         heartbreakThread.start();
+    }
+
+    private static String getInformantTaskKey(InformantVo informantVo) {
+        return informantVo.getType() + ":" + informantVo.getUuid();
     }
 }

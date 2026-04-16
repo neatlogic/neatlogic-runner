@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class InformantState {
     private final String uuid;
-    private long expiredTime;
+    private volatile long expiredTime;
     private final String tenant;
 
     public InformantState(String uuid, String tenant, long delay, TimeUnit unit) {

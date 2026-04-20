@@ -14,6 +14,8 @@ package com.neatlogic.autoexecrunner.dto.informant;
 
 import com.alibaba.fastjson.annotation.JSONField;
 
+import java.util.List;
+
 public class InformantVo {
     private String uuid;
     private String type;
@@ -35,6 +37,8 @@ public class InformantVo {
     private String cpuArch;
     private String healthState;
     private String preHealthState;
+    private List<String> ipv4Address;
+    private List<String> ipv6Address;
 
     public String getOsType() {
         return osType;
@@ -179,4 +183,25 @@ public class InformantVo {
     public void setVersion(String version) {
         this.version = version;
     }
+
+    @JSONField(name = "ipv4_address")
+    public List<String> getIpv4Address() {
+        return ipv4Address;
+    }
+
+    @JSONField(name = "ipv4_address")
+    public void setIpv4Address(List<String> ipv4Address) {
+        this.ipv4Address = ipv4Address;
+    }
+
+    @JSONField(name = "ipv6_address")
+    public List<String> getIpv6Address() {
+        return ipv6Address;
+    }
+
+    @JSONField(name = "ipv6_address")
+    public void setIpv6Address(List<String> ipv6Address) {
+        this.ipv6Address = ipv6Address;
+    }
+
 }

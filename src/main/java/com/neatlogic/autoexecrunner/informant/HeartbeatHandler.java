@@ -116,7 +116,7 @@ public class HeartbeatHandler implements IStartUp {
             protected void execute() {
                 try (DatagramSocket socket = new DatagramSocket(Config.SERVER_PORT())) {
                     while (running.get()) {
-                        byte[] buffer = new byte[1024];
+                        byte[] buffer = new byte[65535];
                         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                         socket.receive(packet);
                         InetAddress senderAddress = packet.getAddress();

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SendRequestToInformantApi extends PrivateApiComponentBase {
+    private static final int DEFAULT_INFORMANT_CONNECT_TIMEOUT = 10000;
+    private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 30000;
 
     @Override
     public String getName() {
@@ -29,6 +31,8 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
             @Param(name = "protocol", type = ApiParamType.STRING, desc = "协议", isRequired = true),
             @Param(name = "method", type = ApiParamType.STRING, desc = "请求方法", isRequired = true),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, desc = "参数"),
+            @Param(name = "connectTimeout", type = ApiParamType.INTEGER, desc = "连接超时，单位毫秒"),
+            @Param(name = "readTimeout", type = ApiParamType.INTEGER, desc = "读取超时，单位毫秒"),
             @Param(name = "header", type = ApiParamType.JSONOBJECT, desc = "请求头", isRequired = true)
     })
     @Output({
@@ -45,25 +49,36 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         String method = jsonObj.getString("method");
         JSONObject param = jsonObj.getJSONObject("param");
         JSONObject header = jsonObj.getJSONObject("header");
+        Integer connectTimeout = jsonObj.getInteger("connectTimeout");
+        Integer readTimeout = jsonObj.getInteger("readTimeout");
 
         if ("https".equalsIgnoreCase(protocol)) {
             if (httpsPort == null) {
                 throw new ApiRuntimeException("httpsPort不能为空");
             }
-            return sendRequest("https", ip, httpsPort, url, method, param, header);
+            return sendRequest("https", ip, httpsPort, url, method, param, header, connectTimeout, readTimeout);
         }
         if ("http".equalsIgnoreCase(protocol)) {
             if (httpPort == null) {
                 throw new ApiRuntimeException("httpPort不能为空");
             }
-            return sendRequest("http", ip, httpPort, url, method, param, header);
+            return sendRequest("http", ip, httpPort, url, method, param, header, connectTimeout, readTimeout);
         }
         throw new ApiRuntimeException("protocol不合法");
     }
 
-    private Object sendRequest(String protocol, String ip, Integer port, String url, String method, JSONObject param, JSONObject header) throws Exception {
-        HttpRequestUtil httpUtil;
+    private Object sendRequest(String protocol, String ip, Integer port, String url, String method, JSONObject param, JSONObject header, Integer connectTimeout, Integer readTimeout) {
         String finalUrl = protocol + "://" + ip + ":" + port + (url.startsWith("/") ? url : "/" + url);
+        HttpRequestUtil httpUtil = buildHttpRequest(finalUrl, method, param, header, connectTimeout, readTimeout);
+        httpUtil.sendRequest();
+        if (httpUtil.getError() != null) {
+            throw new ApiRuntimeException(httpUtil.getError());
+        }
+        return httpUtil.getResult();
+    }
+
+    private HttpRequestUtil buildHttpRequest(String finalUrl, String method, JSONObject param, JSONObject header, Integer connectTimeout, Integer readTimeout) {
+        HttpRequestUtil httpUtil;
         if (method.equalsIgnoreCase("get")) {
             httpUtil = HttpRequestUtil.get(finalUrl);
             if (MapUtils.isNotEmpty(param)) {
@@ -81,12 +96,10 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
                 httpUtil.addHeader(headerKey, header.get(headerKey).toString());
             }
         }
-
-        httpUtil.sendRequest();
-        if (httpUtil.getError() != null) {
-            throw new ApiRuntimeException(httpUtil.getError());
-        }
-        return httpUtil.getResult();
+        httpUtil.addHeader("Connection", "close");
+        httpUtil.setConnectTimeout(connectTimeout != null ? connectTimeout : DEFAULT_INFORMANT_CONNECT_TIMEOUT);
+        httpUtil.setReadTimeout(readTimeout != null ? readTimeout : DEFAULT_INFORMANT_READ_TIMEOUT);
+        return httpUtil;
     }
 
     @Override

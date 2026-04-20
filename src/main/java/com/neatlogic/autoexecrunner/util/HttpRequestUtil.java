@@ -124,7 +124,7 @@ public class HttpRequestUtil {
         @Override
         public boolean verify(String hostname, SSLSession session) {
             //FIXME 后续要补充验证逻辑
-            System.out.println("verify " + hostname);
+            //System.out.println("verify " + hostname);
             return true;
         }
     }

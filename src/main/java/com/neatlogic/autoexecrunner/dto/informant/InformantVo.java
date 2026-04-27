@@ -207,32 +207,26 @@ public class InformantVo {
         this.ipv6Address = ipv6Address;
     }
 
-    @JSONField(name = "cpu_usage")
     public Double getCpuUsage() {
         return cpuUsage;
     }
 
-    @JSONField(name = "cpu_usage")
     public void setCpuUsage(Double cpuUsage) {
         this.cpuUsage = cpuUsage;
     }
 
-    @JSONField(name = "mem_size")
     public Double getMemSize() {
         return memSize;
     }
 
-    @JSONField(name = "mem_size")
     public void setMemSize(Double memSize) {
         this.memSize = memSize;
     }
 
-    @JSONField(name = "disk_used")
     public Double getDiskUsed() {
         return diskUsed;
     }
 
-    @JSONField(name = "disk_used")
     public void setDiskUsed(Double diskUsed) {
         this.diskUsed = diskUsed;
     }

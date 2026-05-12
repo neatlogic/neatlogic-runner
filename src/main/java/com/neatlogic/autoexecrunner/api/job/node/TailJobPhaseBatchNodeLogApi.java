@@ -106,7 +106,7 @@ public class TailJobPhaseBatchNodeLogApi extends PrivateBinaryStreamApiComponent
     public static void main(String[] args) throws IOException {
         String path = "C:\\Users\\Aieano\\Desktop\\user.xml";
         String content = FileUtil.getFileContentWithLimit(path, 10);
-        System.out.println(content);
+        //System.out.println(content);
     }
 
 

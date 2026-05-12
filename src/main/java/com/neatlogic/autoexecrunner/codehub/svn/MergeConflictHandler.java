@@ -20,7 +20,7 @@ public class MergeConflictHandler implements ISVNConflictHandler {
 	public SVNConflictResult handleConflict(SVNConflictDescription conflictDescription) throws SVNException {
 		SVNConflictReason reason = conflictDescription.getConflictReason();
 		SVNMergeFileSet mergeFiles = conflictDescription.getMergeFiles();
-		System.out.println("Conflict discovered in:" + mergeFiles.getWCPath());
+		//System.out.println("Conflict discovered in:" + mergeFiles.getWCPath());
 		return null;
 	}
 

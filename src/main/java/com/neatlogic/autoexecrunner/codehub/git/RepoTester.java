@@ -33,33 +33,33 @@ public class RepoTester {
 		//wcGit.createBranch("test-branch", "master");
 		//wcGit.deleteBranch("test-branch");
 		List<CommitInfo> commits = gitRepo.getCommitsForBranch("release", "develop2.0.0", null, 0, 0, true);
-		System.out.println(commits);
+		//System.out.println(commits);
 
-		System.out.println("Remote branches==============");
+		//System.out.println("Remote branches==============");
 		List<String> branches = wcGit.getRemoteBranchList();
 		for(String branch:branches) {
-			System.out.println(branch);
+			//System.out.println(branch);
 		}
 
 		//wcGit.createTag("test-tag", "master");
 		//wcGit.deleteTag("test-tag");
-		System.out.println("Remote tages==============");
+		//System.out.println("Remote tages==============");
 		List<String> tags = wcGit.getRemoteTagList();
 		for(String tag:tags) {
-			System.out.println(tag);
+			//System.out.println(tag);
 		}
 		
 		long startTime = 0;
 		List<CommitInfo> commitInfoList = null;
 		
 		
-		System.out.println("Commit logs==============");
+		//System.out.println("Commit logs==============");
 		startTime = System.currentTimeMillis();
 		commitInfoList = wcGit.getCommits(null, 3, 0, false);
 		for(CommitInfo commitInfo: commitInfoList) {
-			System.out.println(commitInfo);
+			//System.out.println(commitInfo);
 		}
-		System.out.println("\n====Consume time:" + (System.currentTimeMillis()-startTime) + "\n");
+		//System.out.println("\n====Consume time:" + (System.currentTimeMillis()-startTime) + "\n");
 		
 		
 		/*
@@ -90,13 +90,13 @@ public class RepoTester {
 		}
 		*/
 		
-		System.out.println("Get diff info ==============");
+		//System.out.println("Get diff info ==============");
 		List<FileDiffInfo> fileDiffInfoList = wcGit.getDiffInfo("refs/remotes/origin/2.0.0", "refs/remotes/origin/1.0.0");
 		for(FileDiffInfo diffInfo:fileDiffInfoList) {
-			System.out.println(diffInfo);
+			//System.out.println(diffInfo);
 		}
 		
-		System.out.println("Get default branch =======");
-		System.out.println(gitRepo.getDefaultBranch());
+		//System.out.println("Get default branch =======");
+		//System.out.println(gitRepo.getDefaultBranch());
 	}
 }

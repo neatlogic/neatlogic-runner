@@ -195,7 +195,7 @@ public class SVNLogParser {
 			currentComment = new StringBuffer();
 		} else {
 			String name = line.substring(FILE_START_INDEX);
-			System.out.println("File: " + name);
+			//System.out.println("File: " + name);
 			status = GET_FILE;
 		}
 	}

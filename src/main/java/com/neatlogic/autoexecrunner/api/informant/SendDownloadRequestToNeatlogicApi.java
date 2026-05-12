@@ -11,6 +11,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -65,10 +66,10 @@ public class SendDownloadRequestToNeatlogicApi extends PrivateBinaryStreamApiCom
         requestParam.put("uuid", uuid);
         requestParam.put("param", param);
         String tenant = request.getHeader("Tenant");
-        if (tenant == null || tenant.isBlank()) {
+        if (StringUtils.isBlank(tenant)) {
             tenant = jsonObj.getString("tenant");
         }
-        System.out.println("发送下载请求到neatlogic:" + url + ",参数:" + requestParam);
+        //System.out.println("发送下载请求到neatlogic:" + url + ",参数:" + requestParam);
         HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.HMAC)
                 .setTenant(tenant)
                 .setOutputStream(response.getOutputStream())

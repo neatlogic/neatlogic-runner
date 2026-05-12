@@ -51,6 +51,6 @@ public class RegexUtils {
   }
 
   private static void test(String pattern, String str) {
-      System.out.println(pattern+" " + str + " =>> " + wildcardMatch(pattern, str));        
+      //System.out.println(pattern+" " + str + " =>> " + wildcardMatch(pattern, str));        
   }
 }

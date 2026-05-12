@@ -23,7 +23,7 @@ public class RepoTester {
 
 		long startTime = 0;
         startTime = System.currentTimeMillis();
-		System.out.println("Get logs start==============");
+		//System.out.println("Get logs start==============");
 		String startCommitId = "9825";
 		String endCommitId = "9489";
 		//endCommitId = null;
@@ -33,10 +33,10 @@ public class RepoTester {
         //branch = "fengt_src_branch2";
         int maxCount = 10;
 		List<CommitInfo> commitInfoList  = wcSvn.getBranchCommitListByCommitIdRange(branch,startCommitId,endCommitId,maxCount);
-        System.out.println("\n====Consume time:" + (System.currentTimeMillis()-startTime) + "\n");
-		System.out.println("commitInfoList.size():" + commitInfoList.size());
+        //System.out.println("\n====Consume time:" + (System.currentTimeMillis()-startTime) + "\n");
+		//System.out.println("commitInfoList.size():" + commitInfoList.size());
 		for(CommitInfo commitInfo: commitInfoList) {
-			System.out.println( commitInfo);
+			//System.out.println( commitInfo);
 		}
 
 

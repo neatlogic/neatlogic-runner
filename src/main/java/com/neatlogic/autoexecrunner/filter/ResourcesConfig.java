@@ -25,7 +25,7 @@ public class ResourcesConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        System.out.println("ResourcesConfig addResourceHandlers registry = " + registry);
+        //System.out.println("ResourcesConfig addResourceHandlers registry = " + registry);
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/")
                 .setCachePeriod(3600)
@@ -33,8 +33,8 @@ public class ResourcesConfig implements WebMvcConfigurer {
                 .addResolver(new PathResourceResolver() {
                     @Override
                     protected Resource getResource(String resourcePath, Resource location) throws IOException {
-                        System.out.println("ResourcesConfig addResourceHandlers resourcePath = " + resourcePath);
-                        System.out.println("ResourcesConfig addResourceHandlers location = " + location);
+                        //System.out.println("ResourcesConfig addResourceHandlers resourcePath = " + resourcePath);
+                        //System.out.println("ResourcesConfig addResourceHandlers location = " + location);
                         // 检查路径是否合法，避免路径遍历
                         if (resourcePath.contains("./") || resourcePath.contains("..")) {
                             return null; // 返回 null 表示不允许访问

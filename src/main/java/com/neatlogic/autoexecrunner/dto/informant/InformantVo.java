@@ -39,6 +39,9 @@ public class InformantVo {
     private String preHealthState;
     private List<String> ipv4Address;
     private List<String> ipv6Address;
+    private Double cpuUsage;
+    private Double memSize;
+    private Double diskUsed;
 
     public String getOsType() {
         return osType;
@@ -202,6 +205,30 @@ public class InformantVo {
     @JSONField(name = "ipv6_address")
     public void setIpv6Address(List<String> ipv6Address) {
         this.ipv6Address = ipv6Address;
+    }
+
+    public Double getCpuUsage() {
+        return cpuUsage;
+    }
+
+    public void setCpuUsage(Double cpuUsage) {
+        this.cpuUsage = cpuUsage;
+    }
+
+    public Double getMemSize() {
+        return memSize;
+    }
+
+    public void setMemSize(Double memSize) {
+        this.memSize = memSize;
+    }
+
+    public Double getDiskUsed() {
+        return diskUsed;
+    }
+
+    public void setDiskUsed(Double diskUsed) {
+        this.diskUsed = diskUsed;
     }
 
 }

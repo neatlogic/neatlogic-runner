@@ -34,16 +34,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.DelayQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Component
 public class HeartbeatHandler implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
+    private static final int HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS = 10;
     private final AtomicBoolean running = new AtomicBoolean(true);
     private static final Map<String, InformantVo> informantMap = new ConcurrentHashMap<>();
-    private static final DelayQueue<InformantItem> informantStateQueue = new DelayQueue<>();
     private static final Map<String, InformantState> informantStateMap = new ConcurrentHashMap<>();
 
     @Override
@@ -66,19 +65,8 @@ public class HeartbeatHandler implements IStartUp {
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/register");
                         } else if (Objects.equals("heartbeat", informantVo.getType())) {
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbeat");
-                            //收到一次心跳后保存agent状态，如果5分钟之内没有收到新的心跳，判断为离线
-                            InformantState informantState = informantStateMap.get(informantVo.getUuid());
-                            if (informantState == null) {
-                                informantState = new InformantState(informantVo.getUuid(), informantVo.getTenant(), Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
-                                informantStateMap.put(informantVo.getUuid(), informantState);
-                                informantStateQueue.put(new InformantItem(informantState));
-                            } else {
-                                //如果状态已存在，直接更新超时时间，处理下线代理是会自动重新放回队列
-                                informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
-                            }
                         } else if (Objects.equals("heartbreak", informantVo.getType())) {
                             System.out.println("收到离线请求：" + informantVo.getUuid());
-                            informantStateMap.remove(informantVo.getUuid());
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
 
@@ -132,6 +120,7 @@ public class HeartbeatHandler implements IStartUp {
                             informantVo.setIp(senderIp);
                             informantVo.setUdpPort(senderPort);
                             if (StringUtils.isNotBlank(informantVo.getUuid()) && StringUtils.isNotBlank(informantVo.getType())) {
+                                updateInformantState(informantVo);
                                 //遇到相同的agent心跳忽略，避免重复发起
                                 String taskKey = getInformantTaskKey(informantVo);
                                 if (informantMap.get(taskKey) == null) {
@@ -155,8 +144,6 @@ public class HeartbeatHandler implements IStartUp {
         AsyncTaskManager<InformantVo> informantHeartbreakHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBREAK-HANDLER", 3,
                 informantVo -> {
                     try {
-                        //清除状态信息
-                        informantStateMap.remove(informantVo.getUuid());
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         if (StringUtils.isNotBlank(url)) {
                             HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
@@ -175,26 +162,27 @@ public class HeartbeatHandler implements IStartUp {
                 });
 
         //处理下线的代理
-        Thread heartbreakThread = new Thread(new NeatLogicThread("INFORMANT-HEARTBREAK-HANDLER") {
+        Thread heartbreakThread = new Thread(new NeatLogicThread("INFORMANT-HEARTBREAK-SCANNER") {
             @Override
             protected void execute() {
                 while (!Thread.currentThread().isInterrupted()) {
                     try {
-                        InformantItem task = informantStateQueue.take();
-                        InformantState state = task.getInformantState();
-                        if (state.getExpiredTime() > System.currentTimeMillis()) {
-                            //收到了新心跳，超时时间已经后延，重新放回队列
-                            informantStateQueue.put(new InformantItem(state));
-                        } else if (informantStateMap.containsKey(state.getUuid())) {
-                            System.out.println("心跳超时：" + state.getUuid());
-                            //发送下线更改请求
-                            InformantVo informantVo = new InformantVo();
-                            informantVo.setTenant(state.getTenant());
-                            informantVo.setUuid(state.getUuid());
-                            informantHeartbreakHandlerManager.submitTask(informantVo);
+                        TimeUnit.SECONDS.sleep(HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS);
+                        long now = System.currentTimeMillis();
+                        for (InformantState state : informantStateMap.values()) {
+                            if (state.getExpiredTime() <= now && informantStateMap.remove(state.getUuid(), state)) {
+                                System.out.println("心跳超时：" + state.getUuid() + ",超时时间：" + state.getExpiredTime() + ",当前时间：" + now + ",扫描间隔：" + HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS + "秒");
+                                //发送下线更改请求
+                                InformantVo informantVo = new InformantVo();
+                                informantVo.setTenant(state.getTenant());
+                                informantVo.setUuid(state.getUuid());
+                                informantHeartbreakHandlerManager.submitTask(informantVo);
+                            }
                         }
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
                     } catch (Exception ex) {
-
+                        logger.error(ex.getMessage(), ex);
                     }
                 }
             }
@@ -205,5 +193,19 @@ public class HeartbeatHandler implements IStartUp {
 
     private static String getInformantTaskKey(InformantVo informantVo) {
         return informantVo.getType() + ":" + informantVo.getUuid();
+    }
+
+    private static void updateInformantState(InformantVo informantVo) {
+        if (Objects.equals("heartbeat", informantVo.getType())) {
+            informantStateMap.compute(informantVo.getUuid(), (uuid, informantState) -> {
+                if (informantState == null) {
+                    return new InformantState(informantVo.getUuid(), informantVo.getTenant(), Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                }
+                informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                return informantState;
+            });
+        } else if (Objects.equals("heartbreak", informantVo.getType())) {
+            informantStateMap.remove(informantVo.getUuid());
+        }
     }
 }

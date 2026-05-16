@@ -58,9 +58,8 @@ public class HeartbeatHandler implements IStartUp {
 
     @Override
     public void doService() {
-        AsyncTaskManager<InformantVo> informantHeartbeatHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBEAT-HANDLER", 3,
+        AsyncTaskManager<InformantVo> informantHeartbeatHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBEAT-HANDLER", 10,
                 informantVo -> {
-                    informantMap.remove(getInformantTaskKey(informantVo));
                     try {
                         String url = "";
                         if (Objects.equals("register", informantVo.getType())) {
@@ -78,6 +77,7 @@ public class HeartbeatHandler implements IStartUp {
                                 informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
                             }
                         } else if (Objects.equals("heartbreak", informantVo.getType())) {
+                            System.out.println("收到离线请求：" + informantVo.getUuid());
                             informantStateMap.remove(informantVo.getUuid());
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
@@ -108,6 +108,8 @@ public class HeartbeatHandler implements IStartUp {
                         }
                     } catch (Exception ex) {
                         logger.error(ex.getMessage(), ex);
+                    } finally {
+                        informantMap.remove(getInformantTaskKey(informantVo));
                     }
                 });
 
@@ -184,6 +186,7 @@ public class HeartbeatHandler implements IStartUp {
                             //收到了新心跳，超时时间已经后延，重新放回队列
                             informantStateQueue.put(new InformantItem(state));
                         } else if (informantStateMap.containsKey(state.getUuid())) {
+                            System.out.println("心跳超时：" + state.getUuid());
                             //发送下线更改请求
                             InformantVo informantVo = new InformantVo();
                             informantVo.setTenant(state.getTenant());

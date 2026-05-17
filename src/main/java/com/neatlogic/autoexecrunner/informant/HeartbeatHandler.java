@@ -66,7 +66,7 @@ public class HeartbeatHandler implements IStartUp {
                         } else if (Objects.equals("heartbeat", informantVo.getType())) {
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbeat");
                         } else if (Objects.equals("heartbreak", informantVo.getType())) {
-                            System.out.println("收到离线请求：" + informantVo.getUuid());
+                            //System.out.println("收到离线请求：" + informantVo.getUuid());
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
 
@@ -171,7 +171,7 @@ public class HeartbeatHandler implements IStartUp {
                         long now = System.currentTimeMillis();
                         for (InformantState state : informantStateMap.values()) {
                             if (state.getExpiredTime() <= now && informantStateMap.remove(state.getUuid(), state)) {
-                                System.out.println("心跳超时：" + state.getUuid() + ",超时时间：" + state.getExpiredTime() + ",当前时间：" + now + ",扫描间隔：" + HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS + "秒");
+                                //System.out.println("心跳超时：" + state.getUuid() + ",超时时间：" + state.getExpiredTime() + ",当前时间：" + now + ",扫描间隔：" + HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS + "秒");
                                 //发送下线更改请求
                                 InformantVo informantVo = new InformantVo();
                                 informantVo.setTenant(state.getTenant());

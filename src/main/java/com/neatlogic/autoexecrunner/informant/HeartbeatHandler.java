@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class HeartbeatHandler implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
     private static final int HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS = 10;
+    private static final String INFORMANT_HEARTBREAK_MESSAGE = "Informant主动发送离线请求";
+    private static final String RUNNER_HEARTBEAT_TIMEOUT_MESSAGE = "Runner超过心跳周期未收到Informant心跳";
     private final AtomicBoolean running = new AtomicBoolean(true);
     private static final Map<String, InformantVo> informantMap = new ConcurrentHashMap<>();
     private static final Map<String, InformantState> informantStateMap = new ConcurrentHashMap<>();
@@ -67,6 +69,9 @@ public class HeartbeatHandler implements IStartUp {
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbeat");
                         } else if (Objects.equals("heartbreak", informantVo.getType())) {
                             //System.out.println("收到离线请求：" + informantVo.getUuid());
+                            if (StringUtils.isBlank(informantVo.getMessage())) {
+                                informantVo.setMessage(INFORMANT_HEARTBREAK_MESSAGE);
+                            }
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
 
@@ -176,6 +181,7 @@ public class HeartbeatHandler implements IStartUp {
                                 InformantVo informantVo = new InformantVo();
                                 informantVo.setTenant(state.getTenant());
                                 informantVo.setUuid(state.getUuid());
+                                informantVo.setMessage(RUNNER_HEARTBEAT_TIMEOUT_MESSAGE);
                                 informantHeartbreakHandlerManager.submitTask(informantVo);
                             }
                         }

@@ -37,6 +37,7 @@ public class InformantVo {
     private String cpuArch;
     private String healthState;
     private String preHealthState;
+    private String message;
     private List<String> ipv4Address;
     private List<String> ipv6Address;
     private Double cpuUsage;
@@ -177,6 +178,14 @@ public class InformantVo {
 
     public void setPreHealthState(String preHealthState) {
         this.preHealthState = preHealthState;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public String getVersion() {

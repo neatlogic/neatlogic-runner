@@ -66,8 +66,8 @@ public class AutoexecQueueThread implements IStartUp {
                                     createSubProcessAndStart(commandVo);
                                 } else {
                                     logger.debug("autoexec sub process limit count ：{}, need to wait process finish，then keep on creating sub process！", Config.SUBPROCESS_EXECUTION_MAX_CONCURRENT());
+                                    Thread.sleep(2000);
                                 }
-                                Thread.sleep(2000);
                             } catch (InterruptedException e) {
                                 logger.error(String.format("autoexec job thread is interrupted...params：%s ,errorMsg:%s%n", commandVo != null ? JSON.toJSONString(commandVo) : StringUtils.EMPTY, e.getMessage()), e);
                                 break;

@@ -84,7 +84,7 @@ public class JobExecApi extends PrivateApiComponentBase {
         }
         commandList.add("--reuseconslog");
         commandVo.setCommandList(commandList);
-        logger.debug(String.join(" ", commandVo.getCommandList()));
+        System.out.println(String.join(" ", commandVo.getCommandList()));
         int addResult = AutoexecQueueThread.addCommand(commandVo);
         if (addResult == -1) {
             throw new JobQueueFullException();

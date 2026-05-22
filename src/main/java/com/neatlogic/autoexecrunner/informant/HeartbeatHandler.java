@@ -84,7 +84,9 @@ public class HeartbeatHandler implements IStartUp {
                                     .setUsername(SystemUser.AUTOEXEC.getUserId())
                                     .sendRequest();
                             if (StringUtils.isNotBlank(util.getError())) {
-                                logger.error(util.getError());
+                                logger.error("Informant request failed, type:{}, uuid:{}, hostname:{}, ip:{}, udpPort:{}, tenant:{}, url:{}, responseCode:{}, error:{}",
+                                        informantVo.getType(), informantVo.getUuid(), informantVo.getHostname(), informantVo.getIp(), informantVo.getUdpPort(),
+                                        informantVo.getTenant(), url, util.getResponseCode(), util.getError());
                             }
                             if (util.getResponseCode() == 200) {
                                 byte[] sendData = util.getResult().getBytes(StandardCharsets.UTF_8);

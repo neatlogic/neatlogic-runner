@@ -23,12 +23,17 @@ public class HmacAuthenticateHandler implements IAuthenticateHandler {
         //将postdata加密 进而获取authorization
         String postData = rest.getRawPayload() == null ? "" : rest.getRawPayload();
         String postDataBase64 = Base64Utils.encodeToString(postData.getBytes(rest.getCharset()));
-        String sign = rest.getUsername() + "#" + new URL(rest.getUrl()).getPath() + "#" + postDataBase64;
+        URL url = new URL(rest.getUrl());
+        String requestUri = url.getPath();
+        if (url.getQuery() != null && !url.getQuery().isEmpty()) {
+            requestUri += "?" + url.getQuery();
+        }
+        String sign = rest.getUsername() + "#" + requestUri + "#" + postDataBase64;
         String authorization = encrypt(rest.getToken(), sign);//认证
         //设置请求头
-        connection.addRequestProperty("Authorization", "Hmac " + authorization);
-        connection.addRequestProperty("AuthType", "hmac");
-        connection.addRequestProperty("x-access-key", rest.getUsername());
+        connection.setRequestProperty("Authorization", "Hmac " + authorization);
+        connection.setRequestProperty("AuthType", "hmac");
+        connection.setRequestProperty("x-access-key", rest.getUsername());
     }
 
 

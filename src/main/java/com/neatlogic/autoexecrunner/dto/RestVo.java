@@ -4,6 +4,8 @@ package com.neatlogic.autoexecrunner.dto;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +20,8 @@ public class RestVo {
     private String method;
     private String tenant;
     private JSONObject payload;
+    private String rawPayload;
+    private Charset charset = StandardCharsets.UTF_8;
     List<String> paramNameList;
     List<String> paramValueList;
 
@@ -148,6 +152,22 @@ public class RestVo {
 
     public void setPayload(JSONObject payload) {
         this.payload = payload;
+    }
+
+    public String getRawPayload() {
+        return rawPayload;
+    }
+
+    public void setRawPayload(String rawPayload) {
+        this.rawPayload = rawPayload;
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    public void setCharset(Charset charset) {
+        this.charset = charset == null ? StandardCharsets.UTF_8 : charset;
     }
 
     public String getToken() {

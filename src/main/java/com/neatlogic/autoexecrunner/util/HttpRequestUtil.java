@@ -523,6 +523,8 @@ public class HttpRequestUtil {
         restVo.setPassword(password);
         restVo.setToken(token);
         restVo.setUrl(url);
+        restVo.setRawPayload(payload);
+        restVo.setCharset(charset);
         if (StringUtils.isNotBlank(payload)) {
             restVo.setPayload(JSON.parseObject(payload, Feature.OrderedField));
         }

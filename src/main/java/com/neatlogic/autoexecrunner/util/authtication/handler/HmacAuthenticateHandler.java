@@ -1,8 +1,6 @@
 package com.neatlogic.autoexecrunner.util.authtication.handler;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.util.authtication.core.IAuthenticateHandler;
@@ -23,7 +21,8 @@ public class HmacAuthenticateHandler implements IAuthenticateHandler {
     @Override
     public void authenticate(HttpURLConnection connection, RestVo rest) throws MalformedURLException {
         //将postdata加密 进而获取authorization
-        String postDataBase64 = Base64Utils.encodeToString(JSON.toJSONString(rest.getPayload(), SerializerFeature.WriteMapNullValue).getBytes());
+        String postData = rest.getRawPayload() == null ? "" : rest.getRawPayload();
+        String postDataBase64 = Base64Utils.encodeToString(postData.getBytes(rest.getCharset()));
         String sign = rest.getUsername() + "#" + new URL(rest.getUrl()).getPath() + "#" + postDataBase64;
         String authorization = encrypt(rest.getToken(), sign);//认证
         //设置请求头

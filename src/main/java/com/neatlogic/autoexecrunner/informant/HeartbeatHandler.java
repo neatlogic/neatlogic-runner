@@ -99,6 +99,11 @@ public class HeartbeatHandler implements IStartUp {
                                     );
                                     udpSocket.send(packet);
                                 }
+                                if (Objects.equals("register", informantVo.getType())) {
+                                    logger.info("Informant register response sent, uuid:{}, hostname:{}, ip:{}, udpPort:{}, tenant:{}, url:{}, responseCode:{}, responseSize:{}",
+                                            informantVo.getUuid(), informantVo.getHostname(), informantVo.getIp(), informantVo.getUdpPort(), informantVo.getTenant(),
+                                            url, util.getResponseCode(), sendData.length);
+                                }
                             }
                         }
                     } catch (Exception ex) {

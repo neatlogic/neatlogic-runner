@@ -46,8 +46,8 @@
         <profile>
             <id>commercial</id>
             <modules>
-                <module>neatlogic-runner-codehub</module>
-                <module>neatlogic-runner-resourcespool</module>
+                <module>../neatlogic-runner-codehub</module>
+                <module>../neatlogic-runner-resourcespool</module>
             </modules>
         </profile>
     </profiles>

@@ -11,3 +11,6 @@ build
 .idea
 logs
 .DS_Store
+
+neatlogic-runner-codehub
+neatlogic-runner-resourcespool

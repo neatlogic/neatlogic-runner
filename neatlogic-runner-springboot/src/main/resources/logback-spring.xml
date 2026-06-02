@@ -108,6 +108,24 @@
         </layout>
     </appender>
 
+    <appender name="ExecRToolAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${LOG_HOME}/execrtool.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <FileNamePattern>${LOG_HOME}/execrtool.log.%i</FileNamePattern>
+            <MinIndex>1</MinIndex>
+            <MaxIndex>5</MaxIndex>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>100MB</MaxFileSize>
+        </triggeringPolicy>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>[%-5level]%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %logger{36}[%line] [%tenant] %requestUrl- %msg%n</Pattern>
+        </layout>
+    </appender>
+
     <!--
 
     <appender name="pluginAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -165,6 +183,10 @@
 
     <logger name="com.neatlogic.autoexecrunner.autoexec.ProcessWaitTask" level="DEBUG" additivity="false">
         <appender-ref ref="AutoexecProcessAppender"/>
+    </logger>
+
+    <logger name="com.neatlogic.autoexecrunner.api.autoexec.ExecRToolApi" level="INFO" additivity="false">
+        <appender-ref ref="ExecRToolAppender"/>
     </logger>
 
 </configuration>

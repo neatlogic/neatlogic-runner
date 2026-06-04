@@ -68,7 +68,7 @@ public class ExecRToolApi extends PrivateApiComponentBase {
             @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
             @Param(name = "execId", type = ApiParamType.STRING, desc = "执行id", isRequired = true),
             @Param(name = "execrtoolSerialId", type = ApiParamType.LONG, desc = "execrtool流水id", isRequired = true),
-            @Param(name = "ip", type = ApiParamType.STRING, desc = "目标ip", isRequired = true),
+            @Param(name = "ip", type = ApiParamType.STRING, desc = "目标ip"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id")
     })
     @Output({

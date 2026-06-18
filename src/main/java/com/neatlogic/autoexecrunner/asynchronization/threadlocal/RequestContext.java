@@ -15,9 +15,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package com.neatlogic.autoexecrunner.asynchronization.threadlocal;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Locale;

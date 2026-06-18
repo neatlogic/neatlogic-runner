@@ -1,6 +1,6 @@
 package com.neatlogic.autoexecrunner.common.tagent;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class IpUtil {
     private IpUtil() {

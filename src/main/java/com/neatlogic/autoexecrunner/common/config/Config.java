@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import javax.activation.MimetypesFileTypeMap;
-import javax.annotation.Resource;
+import jakarta.activation.MimetypesFileTypeMap;
+import jakarta.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.FileNameMap;

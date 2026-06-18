@@ -6,8 +6,8 @@ import com.neatlogic.autoexecrunner.dto.ApiVo;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface IBinaryStreamApiComponent {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

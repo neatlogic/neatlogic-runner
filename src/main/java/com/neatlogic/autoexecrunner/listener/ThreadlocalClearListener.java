@@ -19,8 +19,8 @@ package com.neatlogic.autoexecrunner.listener;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 
-import javax.servlet.ServletRequestEvent;
-import javax.servlet.ServletRequestListener;
+import jakarta.servlet.ServletRequestEvent;
+import jakarta.servlet.ServletRequestListener;
 
 public class ThreadlocalClearListener implements ServletRequestListener {
     @Override

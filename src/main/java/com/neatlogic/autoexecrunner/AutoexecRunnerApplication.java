@@ -23,7 +23,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-import javax.servlet.ServletRequestListener;
+import jakarta.servlet.ServletRequestListener;
 import java.util.ArrayList;
 import java.util.List;
 

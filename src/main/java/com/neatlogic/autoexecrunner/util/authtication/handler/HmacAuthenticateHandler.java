@@ -6,13 +6,13 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.util.authtication.core.IAuthenticateHandler;
-import org.springframework.util.Base64Utils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 
 public class HmacAuthenticateHandler implements IAuthenticateHandler {
     @Override
@@ -23,7 +23,7 @@ public class HmacAuthenticateHandler implements IAuthenticateHandler {
     @Override
     public void authenticate(HttpURLConnection connection, RestVo rest) throws MalformedURLException {
         //将postdata加密 进而获取authorization
-        String postDataBase64 = Base64Utils.encodeToString(JSON.toJSONString(rest.getPayload(), SerializerFeature.WriteMapNullValue).getBytes());
+        String postDataBase64 = Base64.getEncoder().encodeToString(JSON.toJSONString(rest.getPayload(), SerializerFeature.WriteMapNullValue).getBytes());
         String sign = rest.getUsername() + "#" + new URL(rest.getUrl()).getPath() + "#" + postDataBase64;
         String authorization = encrypt(rest.getToken(), sign);//认证
         //设置请求头

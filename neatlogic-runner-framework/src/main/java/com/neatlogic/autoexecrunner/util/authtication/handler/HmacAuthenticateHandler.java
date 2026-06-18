@@ -4,13 +4,13 @@ package com.neatlogic.autoexecrunner.util.authtication.handler;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
 import com.neatlogic.autoexecrunner.dto.RestVo;
 import com.neatlogic.autoexecrunner.util.authtication.core.IAuthenticateHandler;
-import org.springframework.util.Base64Utils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
 
 public class HmacAuthenticateHandler implements IAuthenticateHandler {
     @Override
@@ -22,7 +22,7 @@ public class HmacAuthenticateHandler implements IAuthenticateHandler {
     public void authenticate(HttpURLConnection connection, RestVo rest) throws MalformedURLException {
         //将postdata加密 进而获取authorization
         String postData = rest.getRawPayload() == null ? "" : rest.getRawPayload();
-        String postDataBase64 = Base64Utils.encodeToString(postData.getBytes(rest.getCharset()));
+        String postDataBase64 = Base64.getEncoder().encodeToString(postData.getBytes(rest.getCharset()));
         URL url = new URL(rest.getUrl());
         String requestUri = url.getPath();
         if (url.getQuery() != null && !url.getQuery().isEmpty()) {

@@ -20,7 +20,7 @@ import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentB
 import com.neatlogic.autoexecrunner.service.AutoexecJobService;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * @author lvzk

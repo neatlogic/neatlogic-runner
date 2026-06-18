@@ -9,7 +9,7 @@ import com.neatlogic.autoexecrunner.restful.core.publicapi.PublicApiComponentBas
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 @QpsLimitKey("qps.limit.tagent.register")
 @Service
 public class TagentRegisterApi extends PublicApiComponentBase {

@@ -8,8 +8,8 @@ import org.springframework.aop.framework.AopContext;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.util.ClassUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 
 public abstract class BinaryStreamApiComponentBase extends ApiValidateAndHelpBase implements MyBinaryStreamApiComponent {

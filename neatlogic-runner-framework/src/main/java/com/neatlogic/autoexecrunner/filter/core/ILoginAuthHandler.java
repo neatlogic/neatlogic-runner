@@ -3,8 +3,8 @@ package com.neatlogic.autoexecrunner.filter.core;
 
 import com.neatlogic.autoexecrunner.dto.UserVo;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface ILoginAuthHandler {
 

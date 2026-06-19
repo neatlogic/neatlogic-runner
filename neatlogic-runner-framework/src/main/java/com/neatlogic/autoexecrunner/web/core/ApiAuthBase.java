@@ -3,7 +3,7 @@ package com.neatlogic.autoexecrunner.web.core;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 public abstract class ApiAuthBase implements IApiAuth {

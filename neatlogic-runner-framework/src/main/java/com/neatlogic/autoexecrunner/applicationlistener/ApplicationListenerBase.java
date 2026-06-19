@@ -17,7 +17,7 @@ import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 public abstract class ApplicationListenerBase implements ApplicationListener<ContextRefreshedEvent> {
 

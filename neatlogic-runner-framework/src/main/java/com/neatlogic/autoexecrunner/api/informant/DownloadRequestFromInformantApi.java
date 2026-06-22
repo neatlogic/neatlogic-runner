@@ -10,18 +10,18 @@ import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 
 @Service
 public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiComponentBase {
     private static final int DEFAULT_INFORMANT_CONNECT_TIMEOUT = 10000;
-    private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 30000;
+    private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 5 * 60 * 1000;
     private static final String DUMP_TXT_DOWNLOAD_URL = "/api/threaddump/dumptxt/download";
 
     @Override
@@ -84,20 +84,22 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
 
     private void download(String protocol, String ip, Integer port, String url, String method, JSONObject param, JSONObject header, Integer connectTimeout, Integer readTimeout, String downloadName, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String finalUrl = protocol + "://" + ip + ":" + port + url;
+        int actualConnectTimeout = connectTimeout != null ? connectTimeout : DEFAULT_INFORMANT_CONNECT_TIMEOUT;
+        int actualReadTimeout = readTimeout != null ? readTimeout : DEFAULT_INFORMANT_READ_TIMEOUT;
         if (!response.containsHeader("Content-Disposition")) {
             String userAgent = StringUtils.defaultString(request.getHeader("User-Agent"));
             String fileName = StringUtils.isBlank(userAgent) ? downloadName : FileUtil.getEncodedFileName(userAgent, downloadName);
             response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         }
         response.setContentType("application/octet-stream");
-        HttpRequestUtil httpUtil = buildHttpRequest(finalUrl, method, param, header, connectTimeout, readTimeout, response);
+        HttpRequestUtil httpUtil = buildHttpRequest(finalUrl, method, param, header, actualConnectTimeout, actualReadTimeout, response);
         httpUtil.sendRequest();
         if (httpUtil.getError() != null) {
-            throw new ApiRuntimeException(httpUtil.getError());
+            throw new ApiRuntimeException(buildInformantRequestError(protocol, finalUrl, actualConnectTimeout, actualReadTimeout, httpUtil));
         }
     }
 
-    private HttpRequestUtil buildHttpRequest(String finalUrl, String method, JSONObject param, JSONObject header, Integer connectTimeout, Integer readTimeout, HttpServletResponse response) throws Exception {
+    private HttpRequestUtil buildHttpRequest(String finalUrl, String method, JSONObject param, JSONObject header, int connectTimeout, int readTimeout, HttpServletResponse response) throws Exception {
         HttpRequestUtil httpUtil = HttpRequestUtil.download(finalUrl, method.toUpperCase(), response.getOutputStream())
                 .setContentType(HttpRequestUtil.ContentType.CONTENT_TYPE_APPLICATION_FORM)
                 .setResponseHeaders(Arrays.asList("Content-Type"));
@@ -114,9 +116,37 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
             }
         }
         httpUtil.addHeader("Connection", "close");
-        httpUtil.setConnectTimeout(connectTimeout != null ? connectTimeout : DEFAULT_INFORMANT_CONNECT_TIMEOUT);
-        httpUtil.setReadTimeout(readTimeout != null ? readTimeout : DEFAULT_INFORMANT_READ_TIMEOUT);
+        httpUtil.setConnectTimeout(connectTimeout);
+        // readTimeout also covers the HTTPS SSL handshake read after TCP connect succeeds.
+        httpUtil.setReadTimeout(readTimeout);
         return httpUtil;
+    }
+
+    private String buildInformantRequestError(String protocol, String finalUrl, int connectTimeout, int readTimeout, HttpRequestUtil httpUtil) {
+        String errorMsg = StringUtils.defaultIfBlank(httpUtil.getErrorMsg(), "unknown error");
+        StringBuilder errorBuilder = new StringBuilder();
+        errorBuilder.append("请求informant下载数据失败")
+                .append("，url=").append(finalUrl)
+                .append("，connectTimeout=").append(connectTimeout).append("ms")
+                .append("，readTimeout=").append(readTimeout).append("ms");
+        if (isSslHandshakeReadTimeout(protocol, httpUtil)) {
+            errorBuilder.append("，可能是SSL握手读取超时，请检查informant HTTPS端口、TLS响应和网络链路");
+        }
+        errorBuilder.append("，error=").append(errorMsg);
+        if (StringUtils.isNotBlank(httpUtil.getError())) {
+            errorBuilder.append("\n").append(httpUtil.getError());
+        }
+        return errorBuilder.toString();
+    }
+
+    private boolean isSslHandshakeReadTimeout(String protocol, HttpRequestUtil httpUtil) {
+        if (!"https".equalsIgnoreCase(protocol)) {
+            return false;
+        }
+        String error = StringUtils.defaultString(httpUtil.getError());
+        String errorMsg = StringUtils.defaultString(httpUtil.getErrorMsg());
+        return StringUtils.containsIgnoreCase(error + errorMsg, "Read timed out")
+                && error.contains("SSLSocketImpl.startHandshake");
     }
 
     @Override

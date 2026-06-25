@@ -44,6 +44,8 @@ public class HeartbeatHandler implements IStartUp {
     private static final String INFORMANT_HEARTBREAK_MESSAGE = "Informant主动发送离线请求";
     private static final String RUNNER_HEARTBEAT_TIMEOUT_MESSAGE = "Runner超过心跳周期未收到Informant心跳";
     private final AtomicBoolean running = new AtomicBoolean(true);
+    private final Object heartbeatSocketSendLock = new Object();
+    private volatile DatagramSocket heartbeatSocket;
     private static final Map<String, InformantVo> informantMap = new ConcurrentHashMap<>();
     private static final Map<String, InformantState> informantStateMap = new ConcurrentHashMap<>();
 
@@ -90,15 +92,7 @@ public class HeartbeatHandler implements IStartUp {
                             }
                             if (util.getResponseCode() == 200) {
                                 byte[] sendData = util.getResult().getBytes(StandardCharsets.UTF_8);
-                                try (DatagramSocket udpSocket = new DatagramSocket()) {
-                                    DatagramPacket packet = new DatagramPacket(
-                                            sendData,
-                                            sendData.length,
-                                            InetAddress.getByName(informantVo.getIp()),
-                                            informantVo.getUdpPort()
-                                    );
-                                    udpSocket.send(packet);
-                                }
+                                sendUdpResponse(informantVo, sendData);
                                 if (Objects.equals("register", informantVo.getType())) {
                                     logger.info("Informant register response sent, uuid:{}, hostname:{}, ip:{}, udpPort:{}, tenant:{}, url:{}, responseCode:{}, responseSize:{}",
                                             informantVo.getUuid(), informantVo.getHostname(), informantVo.getIp(), informantVo.getUdpPort(), informantVo.getTenant(),
@@ -116,7 +110,10 @@ public class HeartbeatHandler implements IStartUp {
         Thread listener = new Thread(new NeatLogicThread("INFORMANT-HEARTBEAT-LISTENER") {
             @Override
             protected void execute() {
-                try (DatagramSocket socket = new DatagramSocket(Config.SERVER_PORT())) {
+                DatagramSocket socket = null;
+                try {
+                    socket = new DatagramSocket(Config.SERVER_PORT());
+                    heartbeatSocket = socket;
                     while (running.get()) {
                         byte[] buffer = new byte[65535];
                         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -146,6 +143,13 @@ public class HeartbeatHandler implements IStartUp {
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
+                } finally {
+                    if (heartbeatSocket == socket) {
+                        heartbeatSocket = null;
+                    }
+                    if (socket != null) {
+                        socket.close();
+                    }
                 }
             }
         });
@@ -206,6 +210,25 @@ public class HeartbeatHandler implements IStartUp {
 
     private static String getInformantTaskKey(InformantVo informantVo) {
         return informantVo.getType() + ":" + informantVo.getUuid();
+    }
+
+    private void sendUdpResponse(InformantVo informantVo, byte[] sendData) throws Exception {
+        DatagramSocket socket = heartbeatSocket;
+        if (socket == null || socket.isClosed()) {
+            logger.warn("Informant response skipped because heartbeat socket is not ready, uuid:{}, ip:{}, udpPort:{}",
+                    informantVo.getUuid(), informantVo.getIp(), informantVo.getUdpPort());
+            return;
+        }
+        DatagramPacket packet = new DatagramPacket(
+                sendData,
+                sendData.length,
+                InetAddress.getByName(informantVo.getIp()),
+                informantVo.getUdpPort()
+        );
+        // 复用监听socket回包，确保runner响应源端口与心跳监听端口一致。
+        synchronized (heartbeatSocketSendLock) {
+            socket.send(packet);
+        }
     }
 
     private static void updateInformantState(InformantVo informantVo) {

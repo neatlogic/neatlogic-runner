@@ -12,6 +12,7 @@
 package com.neatlogic.autoexecrunner.api.file;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.exception.file.FileDownloadException;
 import com.neatlogic.autoexecrunner.exception.file.FileIsNotDirectoryException;
@@ -68,7 +69,9 @@ public class FileDownloadApi extends PrivateBinaryStreamApiComponentBase {
         String path = paramObj.getString("path");
         Integer isPack = paramObj.getInteger("isPack");
         String fileName = paramObj.getString("fileName");
-        path = FileUtil.getFullAbsolutePath(path);
+        if (!path.startsWith(Config.DATA_HOME())) {
+            path = FileUtil.getFullAbsolutePath(path);
+        }
         File file = new File(path);
         if (!file.exists()) {
             throw new FileNotFoundException(path);

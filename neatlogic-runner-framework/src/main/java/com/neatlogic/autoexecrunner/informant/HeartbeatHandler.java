@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.asynchronization.AsyncTaskManager;
 import com.neatlogic.autoexecrunner.asynchronization.NeatLogicThread;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.AuthenticateType;
+import com.neatlogic.autoexecrunner.constvalue.InformantHeartbreakReason;
 import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.dto.informant.InformantVo;
 import com.neatlogic.autoexecrunner.startup.IStartUp;
@@ -36,13 +37,12 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class HeartbeatHandler implements IStartUp {
     private static final Logger logger = LoggerFactory.getLogger(HeartbeatHandler.class);
     private static final int HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS = 10;
-    private static final String INFORMANT_HEARTBREAK_MESSAGE = "Informant主动发送离线请求";
-    private static final String RUNNER_HEARTBEAT_TIMEOUT_MESSAGE = "Runner超过心跳周期未收到Informant心跳";
     private final AtomicBoolean running = new AtomicBoolean(true);
     private final Object heartbeatSocketSendLock = new Object();
     private volatile DatagramSocket heartbeatSocket;
@@ -72,7 +72,7 @@ public class HeartbeatHandler implements IStartUp {
                         } else if (Objects.equals("heartbreak", informantVo.getType())) {
                             //System.out.println("收到离线请求：" + informantVo.getUuid());
                             if (StringUtils.isBlank(informantVo.getMessage())) {
-                                informantVo.setMessage(INFORMANT_HEARTBREAK_MESSAGE);
+                                informantVo.setMessage(InformantHeartbreakReason.ACTIVE_OFFLINE.getMessage());
                             }
                             url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         }
@@ -160,6 +160,11 @@ public class HeartbeatHandler implements IStartUp {
         AsyncTaskManager<InformantVo> informantHeartbreakHandlerManager = AsyncTaskManager.getInstance("INFORMANT-HEARTBREAK-HANDLER", 3,
                 informantVo -> {
                     try {
+                        // runner生成的超时下线事件进入异步队列后，可能已经收到新心跳，此时丢弃这条滞后事件。
+                        if (informantVo.getHeartbreakReason() == InformantHeartbreakReason.HEARTBEAT_TIMEOUT
+                                && informantStateMap.containsKey(informantVo.getUuid())) {
+                            return;
+                        }
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
                         if (StringUtils.isNotBlank(url)) {
                             HttpRequestUtil util = HttpRequestUtil.post(url).setPayload(JSON.toJSONString(informantVo))
@@ -186,13 +191,24 @@ public class HeartbeatHandler implements IStartUp {
                         TimeUnit.SECONDS.sleep(HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS);
                         long now = System.currentTimeMillis();
                         for (InformantState state : informantStateMap.values()) {
-                            if (state.getExpiredTime() <= now && informantStateMap.remove(state.getUuid(), state)) {
-                                //System.out.println("心跳超时：" + state.getUuid() + ",超时时间：" + state.getExpiredTime() + ",当前时间：" + now + ",扫描间隔：" + HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS + "秒");
+                            AtomicReference<InformantState> expiredStateRef = new AtomicReference<>();
+                            informantStateMap.computeIfPresent(state.getUuid(), (uuid, currentState) -> {
+                                if (currentState.getExpiredTime() <= now) {
+                                    expiredStateRef.set(currentState);
+                                    return null;
+                                }
+                                return currentState;
+                            });
+                            InformantState expiredState = expiredStateRef.get();
+                            if (expiredState != null) {
+                                //System.out.println("心跳超时：" + expiredState.getUuid() + ",超时时间：" + expiredState.getExpiredTime() + ",当前时间：" + now + ",扫描间隔：" + HEARTBEAT_TIMEOUT_SCAN_INTERVAL_SECONDS + "秒");
                                 //发送下线更改请求
                                 InformantVo informantVo = new InformantVo();
-                                informantVo.setTenant(state.getTenant());
-                                informantVo.setUuid(state.getUuid());
-                                informantVo.setMessage(RUNNER_HEARTBEAT_TIMEOUT_MESSAGE);
+                                informantVo.setTenant(expiredState.getTenant());
+                                informantVo.setUuid(expiredState.getUuid());
+                                informantVo.setTimestamp(now);
+                                informantVo.setHeartbreakReason(InformantHeartbreakReason.HEARTBEAT_TIMEOUT);
+                                informantVo.setMessage(InformantHeartbreakReason.HEARTBEAT_TIMEOUT.getMessage());
                                 informantHeartbreakHandlerManager.submitTask(informantVo);
                             }
                         }

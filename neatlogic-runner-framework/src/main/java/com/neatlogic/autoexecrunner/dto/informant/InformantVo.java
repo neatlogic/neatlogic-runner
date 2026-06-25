@@ -13,6 +13,7 @@
 package com.neatlogic.autoexecrunner.dto.informant;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.neatlogic.autoexecrunner.constvalue.InformantHeartbreakReason;
 
 import java.util.List;
 
@@ -38,6 +39,8 @@ public class InformantVo {
     private String healthState;
     private String preHealthState;
     private String message;
+    @JSONField(serialize = false, deserialize = false)
+    private InformantHeartbreakReason heartbreakReason;
     private List<String> ipv4Address;
     private List<String> ipv6Address;
     private Double cpuUsage;
@@ -186,6 +189,15 @@ public class InformantVo {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @JSONField(serialize = false, deserialize = false)
+    public InformantHeartbreakReason getHeartbreakReason() {
+        return heartbreakReason;
+    }
+
+    public void setHeartbreakReason(InformantHeartbreakReason heartbreakReason) {
+        this.heartbreakReason = heartbreakReason;
     }
 
     public String getVersion() {

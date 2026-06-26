@@ -17,12 +17,15 @@ import java.util.concurrent.TimeUnit;
 public class InformantState {
     private final String uuid;
     private volatile long expiredTime;
+    private volatile long lastHeartbeatTime;
+    private volatile Long runnerId;
     private final String tenant;
 
-    public InformantState(String uuid, String tenant, long delay, TimeUnit unit) {
+    public InformantState(String uuid, String tenant, Long runnerId, long delay, TimeUnit unit) {
         this.uuid = uuid;
         this.tenant = tenant;
-        this.expiredTime = System.currentTimeMillis() + unit.toMillis(delay);
+        this.runnerId = runnerId;
+        setExpiredTime(delay, unit);
     }
 
     public String getTenant() {
@@ -30,7 +33,8 @@ public class InformantState {
     }
 
     public void setExpiredTime(long delay, TimeUnit unit) {
-        this.expiredTime = System.currentTimeMillis() + unit.toMillis(delay);
+        this.lastHeartbeatTime = System.currentTimeMillis();
+        this.expiredTime = lastHeartbeatTime + unit.toMillis(delay);
     }
 
     public String getUuid() {
@@ -42,5 +46,15 @@ public class InformantState {
         return expiredTime;
     }
 
+    public long getLastHeartbeatTime() {
+        return lastHeartbeatTime;
+    }
 
+    public Long getRunnerId() {
+        return runnerId;
+    }
+
+    public void setRunnerId(Long runnerId) {
+        this.runnerId = runnerId;
+    }
 }

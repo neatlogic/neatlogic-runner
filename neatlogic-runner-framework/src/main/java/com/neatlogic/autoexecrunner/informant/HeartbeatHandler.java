@@ -161,8 +161,11 @@ public class HeartbeatHandler implements IStartUp {
                 informantVo -> {
                     try {
                         // runner生成的超时下线事件进入异步队列后，可能已经收到新心跳，此时丢弃这条滞后事件。
+                        InformantState currentState = informantStateMap.get(informantVo.getUuid());
                         if (informantVo.getHeartbreakReason() == InformantHeartbreakReason.HEARTBEAT_TIMEOUT
-                                && informantStateMap.containsKey(informantVo.getUuid())) {
+                                && currentState != null
+                                && informantVo.getTimestamp() != null
+                                && currentState.getLastHeartbeatTime() > informantVo.getTimestamp()) {
                             return;
                         }
                         String url = String.format("%s/api/rest/%s", Config.NEATLOGIC_ROOT(), "informant/heartbreak");
@@ -206,6 +209,7 @@ public class HeartbeatHandler implements IStartUp {
                                 InformantVo informantVo = new InformantVo();
                                 informantVo.setTenant(expiredState.getTenant());
                                 informantVo.setUuid(expiredState.getUuid());
+                                informantVo.setRunnerId(expiredState.getRunnerId());
                                 informantVo.setTimestamp(now);
                                 informantVo.setHeartbreakReason(InformantHeartbreakReason.HEARTBEAT_TIMEOUT);
                                 informantVo.setMessage(InformantHeartbreakReason.HEARTBEAT_TIMEOUT.getMessage());
@@ -251,7 +255,10 @@ public class HeartbeatHandler implements IStartUp {
         if (Objects.equals("heartbeat", informantVo.getType())) {
             informantStateMap.compute(informantVo.getUuid(), (uuid, informantState) -> {
                 if (informantState == null) {
-                    return new InformantState(informantVo.getUuid(), informantVo.getTenant(), Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                    return new InformantState(informantVo.getUuid(), informantVo.getTenant(), informantVo.getRunnerId(), Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
+                }
+                if (informantVo.getRunnerId() != null) {
+                    informantState.setRunnerId(informantVo.getRunnerId());
                 }
                 informantState.setExpiredTime(Config.INFORMANT_HEARTBEAT_INTERVAL(), TimeUnit.SECONDS);
                 return informantState;

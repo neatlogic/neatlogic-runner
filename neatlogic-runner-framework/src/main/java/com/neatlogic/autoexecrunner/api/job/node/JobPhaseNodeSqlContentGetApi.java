@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.springframework.stereotype.Component;
@@ -46,10 +47,11 @@ public class JobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         //非发布sql文件路径  /app/autoexec/data/job/638/151/568/343/048/sqlfile/execSql/test.sql
-        return FileUtil.getSqlFileContent(Config.AUTOEXEC_HOME() + File.separator
+        String sqlFileRootPath = Config.AUTOEXEC_HOME() + File.separator
                 + JobUtil.getJobPath(jsonObj.getLong("jobId").toString(), new StringBuilder())
-                + File.separator + "sqlfile" + File.separator + jsonObj.getString("phase")
-                + File.separator + jsonObj.getString("sqlName"), jsonObj.getString("encoding"));
+                + File.separator + "sqlfile";
+        File sqlFile = FileSafeUtil.getPath(jsonObj.getString("phase") + File.separator + jsonObj.getString("sqlName"), sqlFileRootPath);
+        return FileUtil.getSqlFileContent(sqlFile.getPath(), jsonObj.getString("encoding"));
     }
 
     @Override

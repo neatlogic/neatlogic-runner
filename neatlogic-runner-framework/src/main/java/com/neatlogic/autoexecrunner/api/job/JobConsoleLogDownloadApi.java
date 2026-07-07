@@ -17,6 +17,7 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.springframework.stereotype.Component;
@@ -44,8 +45,9 @@ public class JobConsoleLogDownloadApi extends PrivateBinaryStreamApiComponentBas
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
-        FileUtil.downloadFileByPath(logPath, response);
+        String logRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log";
+        File logFile = FileSafeUtil.getDownloadFile("console.txt", logRootPath);
+        FileUtil.downloadFileByPath(logFile.getPath(), response);
         return null;
     }
 

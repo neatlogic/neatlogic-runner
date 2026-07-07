@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +48,9 @@ public class GetDeployVersionCommitDiffApi extends PrivateApiComponentBase {
         Long appId = jsonObj.getLong("appSystemId");
         Long moduleId = jsonObj.getLong("appModuleId");
         String version = jsonObj.getString("version");
-        String path = Config.DATA_HOME() + File.separator + appId + File.separator + moduleId + File.separator + "artifact" + File.separator + version + File.separator + "diff.json";
-        return FileUtil.getReadFileContent(path);
+        String artifactRootPath = Config.DATA_HOME() + File.separator + appId + File.separator + moduleId + File.separator + "artifact";
+        File diffFile = FileSafeUtil.getPath(version + File.separator + "diff.json", artifactRootPath);
+        return FileUtil.getReadFileContent(diffFile.getPath());
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +58,8 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+        String statusRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
+        String logPath = phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".txt";
         } else {
@@ -67,7 +69,8 @@ public class JobPhaseNodeStatusGetApi extends PrivateApiComponentBase {
                 logPath += "local-0-0.json";
             }
         }
-        return FileUtil.getReadFileContent(logPath);
+        File logFile = FileSafeUtil.getPath(logPath, statusRootPath);
+        return FileUtil.getReadFileContent(logFile.getPath());
     }
 
     @Override

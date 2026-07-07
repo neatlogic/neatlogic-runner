@@ -17,6 +17,7 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import com.neatlogic.autoexecrunner.util.TimeUtil;
@@ -50,9 +51,11 @@ public class JobConsoleLogAuditDownloadApi extends PrivateBinaryStreamApiCompone
         Long jobId = jsonObj.getLong("jobId");
         Long startTime = jsonObj.getLong("startTime");
         String execUser = jsonObj.getString("execUser");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.hislog" + File.separator;
+        String logRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.hislog";
+        String logPath = "";
         logPath += TimeUtil.convertDateToString(new Date(startTime), TimeUtil.YYYYMMDD_HHMMSS) + "." + execUser + ".txt";
-        FileUtil.downloadFileByPath(logPath, response);
+        File logFile = FileSafeUtil.getDownloadFile(logPath, logRootPath);
+        FileUtil.downloadFileByPath(logFile.getPath(), response);
         return null;
     }
 

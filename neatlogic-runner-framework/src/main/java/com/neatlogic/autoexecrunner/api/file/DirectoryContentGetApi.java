@@ -13,6 +13,7 @@ package com.neatlogic.autoexecrunner.api.file;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.constvalue.FileType;
 import com.neatlogic.autoexecrunner.exception.file.FileIsNotDirectoryException;
@@ -21,7 +22,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
-import com.neatlogic.autoexecrunner.util.FileUtil;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
@@ -74,19 +74,18 @@ public class DirectoryContentGetApi extends PrivateApiComponentBase {
         String home = jsonObj.getString("home");
         String path = jsonObj.getString("path");
         String type = jsonObj.getString("type");
-        String homePath = FileUtil.getFullAbsolutePath(home);
         File destFile;
-        File homeFile = new File(homePath).getCanonicalFile();
+        File dataHome = new File(Config.DATA_HOME()).getCanonicalFile();
+        File homeFile = FileSafeUtil.getChildPath(dataHome.getPath(), home);
         // 如果home尚不存在，则创建home并返回home目录
         if (!homeFile.exists()) {
-            Files.createDirectories(Paths.get(homePath));
+            Files.createDirectories(homeFile.toPath());
             destFile = homeFile;
         } else {
-            path = homePath + (path.startsWith(File.separator) ? path : File.separator + path);
-            destFile = new File(path).getCanonicalFile();
+            destFile = FileSafeUtil.getChildPath(homeFile.getPath(), getDirectoryRelativePath(path));
         }
         if (!destFile.isDirectory()) {
-            throw new FileIsNotDirectoryException(path);
+            throw new FileIsNotDirectoryException(destFile.getPath());
         }
         JSONArray jsonArray = new JSONArray();
         String[] dirItems = destFile.list();
@@ -97,8 +96,12 @@ public class DirectoryContentGetApi extends PrivateApiComponentBase {
                     continue;
                 }
                 try {
+                    File file = new File(destFile, name);
+                    if (!FileSafeUtil.isSubPath(dataHome, file.getCanonicalFile())) {
+                        continue;
+                    }
                     String fType = FileType.FILE.getValue();
-                    Path filePath = Paths.get(destFile.getPath() + File.separator + name);
+                    Path filePath = file.toPath();
                     if (type == null) {
                         if (Files.isDirectory(filePath)) {
                             fType = FileType.DIRECTORY.getValue();
@@ -129,7 +132,6 @@ public class DirectoryContentGetApi extends PrivateApiComponentBase {
                     object.put("fcdText", TimeUtil.getTimeToDateString(Files.getLastModifiedTime(filePath).toMillis(), TimeUtil.YYYY_MM_DD_HH_MM_SS));
                     object.put("permission", getPermission(filePath));
                     object.put("hasItems", 0);
-                    File file = new File(destFile.getPath() + File.separator + name);
                     if (file.isDirectory() && file.list() != null && file.list().length > 0) {
                         object.put("hasItems", 1);
                     }
@@ -140,6 +142,14 @@ public class DirectoryContentGetApi extends PrivateApiComponentBase {
             }
         }
         return jsonArray;
+    }
+
+    private String getDirectoryRelativePath(String path) {
+        String relativePath = path == null ? "" : path.replace("\\", "/");
+        while (relativePath.startsWith("/")) {
+            relativePath = relativePath.substring(1);
+        }
+        return relativePath;
     }
 
     /**

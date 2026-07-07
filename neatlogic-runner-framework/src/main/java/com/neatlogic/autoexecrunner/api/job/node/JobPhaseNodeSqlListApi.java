@@ -20,6 +20,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,14 +59,20 @@ public class JobPhaseNodeSqlListApi extends PrivateApiComponentBase {
         String phase = jsonObj.getString("phase");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status" + File.separator + phase + File.separator;
+        String statusRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "status";
+        String logPath = phase + File.separator;
         logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId");
-        List<FileVo> fileVoList = FileUtil.readFileList(logPath);
+        File sqlStatusDirectory = FileSafeUtil.getPath(logPath, statusRootPath);
+        List<FileVo> fileVoList = FileUtil.readFileList(sqlStatusDirectory.getPath());
         JSONArray resultArray = new JSONArray();
         if (CollectionUtils.isNotEmpty(fileVoList)) {
             for (FileVo fileVo : fileVoList) {
                 if (fileVo.getIsDirectory() == 0) {
-                    String sqlStatusContent = FileUtil.getReadFileContent(fileVo.getFilePath());
+                    File sqlStatusFile = new File(fileVo.getFilePath()).getCanonicalFile();
+                    if (!FileSafeUtil.isSubPath(sqlStatusDirectory, sqlStatusFile)) {
+                        continue;
+                    }
+                    String sqlStatusContent = FileUtil.getReadFileContent(sqlStatusFile.getPath());
                     JSONObject sqlStatus = JSONObject.parseObject(sqlStatusContent);
                     sqlStatus.put("sqlName", URLDecoder.decode(fileVo.getFileName().replaceAll(".txt", StringUtils.EMPTY), "UTF-8"));
                     Long startTime = sqlStatus.getLong("startTime");

@@ -65,7 +65,8 @@ public class FolderZipperUtil {
 			TarArchiveOutputStream tarOut = new ConcatableTarOutputStream(gzOut, charSet, isLastPart);
 
 			for (String subDir : subDirs) {
-				Path subPath = rootPath.resolve(subDir);
+				String safeSubDir = FileSafeUtil.getValidatedRelativePath(rootDir, subDir);
+				Path subPath = rootPath.resolve(safeSubDir);
 
 				try {
 					if (Files.exists(subPath)) {
@@ -176,8 +177,9 @@ public class FolderZipperUtil {
 			if (subDirs != null && subDirs.size() > 0) {
 				boolean isAllValid = false;
 				for (int i = 0; i < subDirs.size(); i++) {
-					if (Files.exists(rootPath.resolve(subDirs.get(i)))) {
-						cmdList.add(subDirs.get(i));
+					String safeSubDir = FileSafeUtil.getValidatedRelativePath(rootDir, subDirs.get(i));
+					if (Files.exists(rootPath.resolve(safeSubDir))) {
+						cmdList.add(safeSubDir);
 						isAllValid = true;
 					}
 				}

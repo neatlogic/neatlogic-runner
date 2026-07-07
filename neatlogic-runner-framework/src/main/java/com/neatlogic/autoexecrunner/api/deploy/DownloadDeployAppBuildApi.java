@@ -20,6 +20,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FolderZipperUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -33,8 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -65,27 +66,27 @@ public class DownloadDeployAppBuildApi extends PrivateBinaryStreamApiComponentBa
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long sysId = jsonObj.getLong("sysId");
         Long moduleId = jsonObj.getLong("moduleId");
-        String envName = jsonObj.getString("envName");
         String version = jsonObj.getString("version");
         Integer buildNo = jsonObj.getInteger("buildNo");
-        /*String subDirs = jsonObj.getString("subDirs");
 
-        if (subDirs == null || "".equals(subDirs)) {
-            subDirs = ".";
-        } else {
-            subDirs = subDirs.replace('\\', '/');
-            subDirs = subDirs.replace("..", "");
-            subDirs = subDirs.replace("//", "/");
-        }*/
-
-        String subSysPath = sysId + File.separator + moduleId;
-        String appbuildPath = Config.DATA_HOME() + File.separator + subSysPath + File.separator + "artifact" + File.separator + version + File.separator + "build" + File.separator + buildNo;
-        File appbuildFile = new File(appbuildPath);
-        if (!appbuildFile.exists()) {
-            throw new ApiRuntimeException("appbuild dir:" + appbuildPath + " doesn't exists on server.");
+        String artifactPath = Config.DATA_HOME() + File.separator + sysId + File.separator + moduleId + File.separator + "artifact";
+        String appbuildRelativePath = version + File.separator + "build" + File.separator + buildNo;
+        File appbuildFile;
+        try {
+            appbuildFile = FileSafeUtil.getValidatedDirectory(appbuildRelativePath, artifactPath);
+        } catch (IllegalArgumentException | IOException ex) {
+            throw new ApiRuntimeException("appbuild dir:" + appbuildRelativePath + " doesn't exists on server.");
         }
-        if (!appbuildFile.isDirectory()) {
-            throw new ApiRuntimeException("appbuild:" + appbuildPath + " is not a directory.");
+        String appbuildPath = appbuildFile.getPath();
+        JSONArray subDirsParam = jsonObj.getJSONArray("subDirs");
+        if (CollectionUtils.isEmpty(subDirsParam)) {
+            subDirsParam = new JSONArray();
+            subDirsParam.add(".");
+        }
+        List<String> subDirParamList = subDirsParam.toJavaList(String.class);
+        List<String> subDirList = new ArrayList<>();
+        for (String subDir : subDirParamList) {
+            subDirList.add(FileSafeUtil.getValidatedRelativePath(appbuildPath, subDir));
         }
         ServletContext ctx = request.getServletContext();
         String mimeType = ctx.getMimeType(appbuildFile.getAbsolutePath());
@@ -93,13 +94,6 @@ public class DownloadDeployAppBuildApi extends PrivateBinaryStreamApiComponentBa
         response.setHeader("Content-Disposition", " attachment; filename=\"" + URLEncoder.encode(appbuildFile.getName() + ".tar.gz", "UTF-8") + "\"");
         ServletOutputStream os = response.getOutputStream();
         try {
-            JSONArray subDirsParam = jsonObj.getJSONArray("subDirs");
-            if (CollectionUtils.isEmpty(subDirsParam)) {
-                subDirsParam = new JSONArray();
-                subDirsParam.add(".");
-            }
-            List<String> subDirList = subDirsParam.toJavaList(String.class);
-            subDirList = subDirList.stream().map(o -> o.replace('\\', '/').replace("..", "").replace("//", "/")).collect(Collectors.toList());
             FolderZipperUtil.tgzFolderToResponse(appbuildPath, appbuildPath, subDirList, os);
         } catch (IOException ex) {
             try {

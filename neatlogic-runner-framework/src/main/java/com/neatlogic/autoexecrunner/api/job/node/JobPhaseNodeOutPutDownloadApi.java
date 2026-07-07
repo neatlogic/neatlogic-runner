@@ -17,6 +17,7 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +57,8 @@ public class JobPhaseNodeOutPutDownloadApi extends PrivateBinaryStreamApiCompone
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "output" + File.separator;
+        String outputRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "output";
+        String logPath = StringUtils.EMPTY;
         if (Arrays.asList("target", "runner_target").contains(execMode)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + ".json";
         } else if (Objects.equals(execMode, "sqlfile")) {
@@ -64,7 +66,8 @@ public class JobPhaseNodeOutPutDownloadApi extends PrivateBinaryStreamApiCompone
         } else {
             logPath += "local-0-0.json";
         }
-        FileUtil.downloadFileByPath(logPath, response);
+        File outputFile = FileSafeUtil.getDownloadFile(logPath, outputRootPath);
+        FileUtil.downloadFileByPath(outputFile.getPath(), response);
         return null;
     }
 

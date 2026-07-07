@@ -20,6 +20,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -83,14 +84,15 @@ public class TailJobPhaseBatchNodeLogApi extends PrivateBinaryStreamApiComponent
         return null;
     }
 
-    private String getFilePath(JSONObject jsonObj) {
+    private String getFilePath(JSONObject jsonObj) throws IOException {
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("phase");
         String sqlName = jsonObj.getString("sqlName");
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        String logRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log";
+        String logPath = phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".txt";
         } else {
@@ -100,7 +102,8 @@ public class TailJobPhaseBatchNodeLogApi extends PrivateBinaryStreamApiComponent
                 logPath += "local-0-0.txt";
             }
         }
-        return logPath;
+        File logFile = FileSafeUtil.getPath(logPath, logRootPath);
+        return logFile.getPath();
     }
 
     public static void main(String[] args) throws IOException {

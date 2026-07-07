@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -56,13 +57,15 @@ public class GetJobPhaseOperationCustomDataApi extends PrivateApiComponentBase {
         String ip = jsonObj.getString("ip");
         String port = jsonObj.getString("port") == null ? StringUtils.EMPTY : jsonObj.getString("port");
         String execMode = jsonObj.getString("execMode");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "livedata" + File.separator + phase + File.separator;
+        String liveDataRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "livedata";
+        String logPath = phase + File.separator;
         if (Arrays.asList("target", "runner_target").contains(execMode)) {
             logPath += ip + "-" + port + "-" + resourceId + File.separator + operationName + "_" + jobPhaseOperationId + ".json";
         } else if (Objects.equals(execMode, "runner")) {
             logPath += "local-0-0" + File.separator + operationName + "_" + jobPhaseOperationId + ".json";
         }
-        return FileUtil.getReadFileContent(logPath);
+        File logFile = FileSafeUtil.getPath(logPath, liveDataRootPath);
+        return FileUtil.getReadFileContent(logFile.getPath());
     }
 
     @Override

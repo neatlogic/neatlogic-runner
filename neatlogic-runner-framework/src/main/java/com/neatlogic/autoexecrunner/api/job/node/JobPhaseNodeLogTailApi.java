@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +65,8 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         String direction = jsonObj.getString("direction");
         String execMode = jsonObj.getString("execMode");
         String encoding = jsonObj.getString("encoding");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + phase + File.separator;
+        String logRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log";
+        String logPath = phase + File.separator;
         if (Objects.equals(execMode, "sqlfile") && StringUtils.isNotBlank(sqlName)) {
             logPath += ip + "-" + port + "-" + jsonObj.getString("resourceId") + File.separator + sqlName + ".txt";
         } else {
@@ -75,7 +77,8 @@ public class JobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             }
         }
 
-        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"), false);
+        File logFile = FileSafeUtil.getPath(logPath, logRootPath);
+        return FileUtil.tailLogWithoutHtml(logFile.getPath(), logPos, direction, encoding, jsonObj.getString("status"), false);
     }
 
     @Override

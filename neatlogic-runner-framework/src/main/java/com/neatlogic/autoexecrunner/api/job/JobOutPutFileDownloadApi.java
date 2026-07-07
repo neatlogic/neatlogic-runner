@@ -6,6 +6,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.apache.commons.logging.Log;
@@ -32,12 +33,10 @@ public class JobOutPutFileDownloadApi extends PrivateBinaryStreamApiComponentBas
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
-        String outputFilePath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + paramObj.getString("path");
-        File outputFile = new File(outputFilePath);
-        if(outputFile.exists() && outputFile.isFile()) {
-            response.setHeader("Content-Disposition", " attachment; filename=\"" + outputFile.getName() + "\"");
-            FileUtil.downloadFileByPath(outputFilePath, response);
-        }
+        String jobPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder());
+        File outputFile = FileSafeUtil.getDownloadFile(paramObj.getString("path"), jobPath);
+        response.setHeader("Content-Disposition", " attachment; filename=\"" + outputFile.getName() + "\"");
+        FileUtil.downloadFileByPath(outputFile.getPath(), response);
         return null;
     }
 

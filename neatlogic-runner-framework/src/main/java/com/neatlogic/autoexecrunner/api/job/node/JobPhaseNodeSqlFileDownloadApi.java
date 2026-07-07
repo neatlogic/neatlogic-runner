@@ -6,6 +6,7 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.springframework.stereotype.Component;
@@ -39,11 +40,11 @@ public class JobPhaseNodeSqlFileDownloadApi extends PrivateBinaryStreamApiCompon
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         //非发布sql文件路径  /app/autoexec/data/job/638/151/568/343/048/sqlfile/execSql/test.sql
-        FileUtil.downloadFileByPath(Config.AUTOEXEC_HOME() + File.separator
+        String sqlFileRootPath = Config.AUTOEXEC_HOME() + File.separator
                         + JobUtil.getJobPath(paramObj.getLong("jobId").toString(), new StringBuilder())
-                        + File.separator + "sqlfile" + File.separator + paramObj.getString("phase")
-                        + File.separator + paramObj.getString("sqlName")
-                , response);
+                        + File.separator + "sqlfile";
+        File sqlFile = FileSafeUtil.getDownloadFile(paramObj.getString("phase") + File.separator + paramObj.getString("sqlName"), sqlFileRootPath);
+        FileUtil.downloadFileByPath(sqlFile.getPath(), response);
         return null;
     }
 

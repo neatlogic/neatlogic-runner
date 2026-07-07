@@ -18,6 +18,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import com.neatlogic.autoexecrunner.util.JobUtil;
 import org.springframework.stereotype.Component;
@@ -50,8 +51,9 @@ public class JobConsoleLogTailApi extends PrivateApiComponentBase {
         Long logPos = jsonObj.getLong("logPos");
         String direction = jsonObj.getString("direction");
         String encoding = jsonObj.getString("encoding");
-        String logPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log" + File.separator + "console.txt";
-        return FileUtil.tailLogWithoutHtml(logPath, logPos, direction, encoding, jsonObj.getString("status"), true);
+        String logRootPath = Config.AUTOEXEC_HOME() + File.separator + JobUtil.getJobPath(jobId.toString(), new StringBuilder()) + File.separator + "log";
+        File logFile = FileSafeUtil.getPath("console.txt", logRootPath);
+        return FileUtil.tailLogWithoutHtml(logFile.getPath(), logPos, direction, encoding, jsonObj.getString("status"), true);
     }
 
     @Override

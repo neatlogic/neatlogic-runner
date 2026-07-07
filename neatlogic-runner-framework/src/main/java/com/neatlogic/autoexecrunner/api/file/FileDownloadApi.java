@@ -23,6 +23,7 @@ import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 /**
@@ -69,23 +69,28 @@ public class FileDownloadApi extends PrivateBinaryStreamApiComponentBase {
         String path = paramObj.getString("path");
         Integer isPack = paramObj.getInteger("isPack");
         String fileName = paramObj.getString("fileName");
-        if (!path.startsWith(Config.DATA_HOME())) {
-            path = FileUtil.getFullAbsolutePath(path);
-        }
-        File file = new File(path);
-        if (!file.exists()) {
+        File file;
+        try {
+            file = Objects.equals(isPack, 1)
+                    ? FileSafeUtil.getValidatedDirectory(path, Config.DATA_HOME())
+                    : FileSafeUtil.getDownloadFile(path, Config.DATA_HOME());
+        } catch (java.io.FileNotFoundException ex) {
             throw new FileNotFoundException(path);
+        } catch (IllegalArgumentException ex) {
+            throw new FileNotAllowedDownloadException(path);
+        } catch (java.io.IOException ex) {
+            throw new FileNotAllowedDownloadException(path);
         }
         if (Objects.equals(isPack, 1) && !file.isDirectory()) {
             throw new FileIsNotDirectoryException(path);
         }
         fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                (StringUtils.isBlank(fileName) ? Paths.get(path).getFileName().toString() : fileName) + (Objects.equals(isPack, 1) ? ".zip" : ""));
+                (StringUtils.isBlank(fileName) ? file.getName() : fileName) + (Objects.equals(isPack, 1) ? ".zip" : ""));
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         response.setContentType("application/octet-stream");
         if (Objects.equals(isPack, 1)) {
             try (ServletOutputStream os = response.getOutputStream()) {
-                FileUtil.zipDirectory(path, os);
+                FileUtil.zipDirectory(file.getPath(), os);
             } catch (Exception ex) {
                 logger.error("download and pack file:" + path + " failed.", ex);
                 throw new FileDownloadException(path);

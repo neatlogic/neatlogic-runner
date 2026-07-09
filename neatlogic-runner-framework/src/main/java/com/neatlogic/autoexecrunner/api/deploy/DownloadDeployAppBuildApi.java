@@ -74,7 +74,8 @@ public class DownloadDeployAppBuildApi extends PrivateBinaryStreamApiComponentBa
         File appbuildFile;
         try {
             appbuildFile = FileSafeUtil.getValidatedDirectory(appbuildRelativePath, artifactPath);
-        } catch (IllegalArgumentException | IOException ex) {
+        } catch (IOException ex) {
+            logger.error("resolve appbuild directory failed, path: " + appbuildRelativePath, ex);
             throw new ApiRuntimeException("appbuild dir:" + appbuildRelativePath + " doesn't exists on server.");
         }
         String appbuildPath = appbuildFile.getPath();
@@ -85,8 +86,15 @@ public class DownloadDeployAppBuildApi extends PrivateBinaryStreamApiComponentBa
         }
         List<String> subDirParamList = subDirsParam.toJavaList(String.class);
         List<String> subDirList = new ArrayList<>();
-        for (String subDir : subDirParamList) {
-            subDirList.add(FileSafeUtil.getValidatedRelativePath(appbuildPath, subDir));
+        try {
+            for (String subDir : subDirParamList) {
+                String validatedSubDir = FileSafeUtil.getValidatedRelativePath(appbuildPath, subDir);
+                FileSafeUtil.validateNoForbiddenPathInDirectory(appbuildFile, new File(appbuildFile, validatedSubDir));
+                subDirList.add(validatedSubDir);
+            }
+        } catch (IOException ex) {
+            logger.error("resolve appbuild sub directory failed, path: " + appbuildRelativePath, ex);
+            throw new ApiRuntimeException("appbuild dir:" + appbuildRelativePath + " doesn't exists on server.");
         }
         ServletContext ctx = request.getServletContext();
         String mimeType = ctx.getMimeType(appbuildFile.getAbsolutePath());
@@ -100,6 +108,7 @@ public class DownloadDeployAppBuildApi extends PrivateBinaryStreamApiComponentBa
                 logger.error(ex.getMessage(), ex);
                 ex.printStackTrace(response.getWriter());
             } catch (Exception ignored) {
+                logger.error("write appbuild download error response failed.", ignored);
             }
         } finally {
             os.flush();

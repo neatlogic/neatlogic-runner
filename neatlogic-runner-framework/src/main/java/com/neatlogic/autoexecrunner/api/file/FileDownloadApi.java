@@ -17,7 +17,6 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.exception.file.FileDownloadException;
 import com.neatlogic.autoexecrunner.exception.file.FileIsNotDirectoryException;
 import com.neatlogic.autoexecrunner.exception.file.FileNotAllowedDownloadException;
-import com.neatlogic.autoexecrunner.exception.file.FileNotFoundException;
 import com.neatlogic.autoexecrunner.restful.annotation.Description;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
@@ -74,11 +73,11 @@ public class FileDownloadApi extends PrivateBinaryStreamApiComponentBase {
             file = Objects.equals(isPack, 1)
                     ? FileSafeUtil.getValidatedDirectory(path, Config.DATA_HOME())
                     : FileSafeUtil.getDownloadFile(path, Config.DATA_HOME());
-        } catch (java.io.FileNotFoundException ex) {
-            throw new FileNotFoundException(path);
-        } catch (IllegalArgumentException ex) {
-            throw new FileNotAllowedDownloadException(path);
+            if (Objects.equals(isPack, 1)) {
+                FileSafeUtil.validateNoForbiddenPathInDirectory(new File(Config.DATA_HOME()), file);
+            }
         } catch (java.io.IOException ex) {
+            logger.error("download file path resolve failed, path: {}", path, ex);
             throw new FileNotAllowedDownloadException(path);
         }
         if (Objects.equals(isPack, 1) && !file.isDirectory()) {

@@ -4,6 +4,8 @@ package com.neatlogic.autoexecrunner.tagent.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.neatlogic.autoexecrunner.asynchronization.NeatLogicThread;
+import com.neatlogic.autoexecrunner.asynchronization.threadpool.CachedThreadPool;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.common.tagent.Constant;
 import com.neatlogic.autoexecrunner.common.tagent.NettyUtil;
@@ -12,7 +14,6 @@ import com.neatlogic.autoexecrunner.constvalue.SystemUser;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentActionFailedException;
 import com.neatlogic.autoexecrunner.exception.tagent.TagentNettyTenantIsNullException;
-import com.neatlogic.autoexecrunner.threadpool.tagent.HeartbeatThreadPool;
 import com.neatlogic.autoexecrunner.util.HttpRequestUtil;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -56,7 +57,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, String msg) {
-        HeartbeatThreadPool.execute(new HeartbeatHandler(ctx, msg));
+        CachedThreadPool.execute(new HeartbeatHandler(ctx, msg));
     }
 
     /**
@@ -135,17 +136,18 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<String> {
         }
     }
 
-    private static class HeartbeatHandler implements Runnable {
+    private static class HeartbeatHandler extends NeatLogicThread {
         private final ChannelHandlerContext ctx;
         private final String msg;
 
         public HeartbeatHandler(ChannelHandlerContext _ctx, String _msg) {
+            super("HEARTBEAT_HANDLER");
             this.ctx = _ctx;
             this.msg = _msg;
         }
 
         @Override
-        public void run() {
+        public void execute() {
             boolean status = true;
             String agentKey = null;
             JSONObject result = new JSONObject();

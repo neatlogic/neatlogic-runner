@@ -16,12 +16,17 @@ public class TagentConfig {
     public static final Long AUTOEXEC_NETTY_WRITE_TIMEOUT;
     public static final Long AUTOEXEC_NETTY_ALL_TIMEOUT;
     public static final int AUTOEXEC_NETTY_PORT;
+    public static final int AUTOEXEC_NETTY_HEARTBEAT_MAX_THREADS;
+    public static final int AUTOEXEC_NETTY_HEARTBEAT_QUEUE_CAPACITY;
 
     static {
         AUTOEXEC_NETTY_READ_TIMEOUT = Long.valueOf(getProperty(CONFIG_FILE, "autoexec.netty.readtimeout", "300"));
         AUTOEXEC_NETTY_WRITE_TIMEOUT = Long.valueOf(getProperty(CONFIG_FILE, "autoexec.netty.writetimeout", "900"));
         AUTOEXEC_NETTY_ALL_TIMEOUT = Long.valueOf(getProperty(CONFIG_FILE, "autoexec.netty.alltimeout", "900"));
         AUTOEXEC_NETTY_PORT = Integer.parseInt(getProperty(CONFIG_FILE, "autoexec.netty.port", "8888"));
+        // 适配大规模 Tagent 心跳，线程数和积压容量允许按 Runner 规格调整。
+        AUTOEXEC_NETTY_HEARTBEAT_MAX_THREADS = Integer.parseInt(getProperty(CONFIG_FILE, "autoexec.netty.heartbeat.max-threads", "512"));
+        AUTOEXEC_NETTY_HEARTBEAT_QUEUE_CAPACITY = Integer.parseInt(getProperty(CONFIG_FILE, "autoexec.netty.heartbeat.queue-capacity", "20000"));
     }
 
     public static String getProperty(String configFile, String keyName, String defaultValue) {

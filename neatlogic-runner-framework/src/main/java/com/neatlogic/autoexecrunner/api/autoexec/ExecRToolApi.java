@@ -16,7 +16,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
-import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
+import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolExecuteFailedException;
+import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolOutputEmptyException;
+import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolOutputInvalidException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
@@ -117,7 +119,7 @@ public class ExecRToolApi extends PrivateApiComponentBase {
                     // 失败明细透传给 NeatLogic，便于直接在接口响应中排查。
                     message = StringUtils.defaultString(message) + ", detail: " + JSON.toJSONString(resultReturn);
                 }
-                throw new ApiRuntimeException(message);
+                throw new ExecRToolExecuteFailedException(message);
             }
             logger.info("execrtool success, param={}, durationMs={}", traceParam, durationMs);
             return result.get("Return");
@@ -144,12 +146,12 @@ public class ExecRToolApi extends PrivateApiComponentBase {
      */
     private JSONObject parseResult(String output, int exitValue) {
         if (StringUtils.isBlank(output)) {
-            throw new ApiRuntimeException("execrtool returned empty output, exitValue: " + exitValue);
+            throw new ExecRToolOutputEmptyException(exitValue);
         }
         try {
             return JSON.parseObject(output.trim());
         } catch (Exception ex) {
-            throw new ApiRuntimeException("execrtool returned invalid json, exitValue: " + exitValue + ", output: " + output);
+            throw new ExecRToolOutputInvalidException(exitValue, output, ex);
         }
     }
 

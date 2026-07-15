@@ -104,8 +104,8 @@ public final class FileSafeUtil {
         File root = getNormalizedAbsoluteFile(rootPath);
         File normalizedDirectory = getNormalizedAbsoluteFile(directory.getPath());
         File file = resolveNormalizedFile(normalizedDirectory, fileName);
-        if (!isLexicalSubPath(root, normalizedDirectory)
-                || !isLexicalSubPath(root, file)
+        if (!isSubPath(root, normalizedDirectory)
+                || !isSubPath(root, file)
                 || file.getParentFile() == null
                 || !normalizedDirectory.toPath().equals(file.getParentFile().toPath())) {
             throw new ApiRuntimeException("文件路径不合法");
@@ -195,18 +195,12 @@ public final class FileSafeUtil {
     }
 
     private static void validateLexicalSubPath(File root, File file) {
-        if (!isLexicalSubPath(root, file)) {
+        if (!isSubPath(root, file)) {
             throw new ApiRuntimeException("文件路径不合法");
         }
     }
 
-    private static boolean isLexicalSubPath(File root, File file) {
-        Path rootPath = root.toPath().toAbsolutePath().normalize();
-        Path filePath = file.toPath().toAbsolutePath().normalize();
-        return filePath.startsWith(rootPath);
-    }
-
-    public static boolean isSubPath(File root, File file) throws IOException {
+    public static boolean isSubPath(File root, File file){
         Path rootPath = root.toPath().toAbsolutePath().normalize();
         Path filePath = file.toPath().toAbsolutePath().normalize();
         return filePath.startsWith(rootPath);
@@ -215,7 +209,7 @@ public final class FileSafeUtil {
     public static String decode(String path) throws IOException {
         String decoded = StringUtils.defaultString(path);
         for (int i = 0; i < 3; i++) {
-            String next = URLDecoder.decode(decoded, StandardCharsets.UTF_8.name());
+            String next = URLDecoder.decode(decoded, StandardCharsets.UTF_8);
             if (next.equals(decoded)) {
                 break;
             }

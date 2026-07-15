@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,23 +28,20 @@ public final class FileSafeUtil {
     }
 
     public static File getChildFile(String rootPath, String relativePath, String fileName) throws IOException {
-        File root = new File(rootPath).getCanonicalFile();
-        File directory = StringUtils.isBlank(relativePath) ? root : new File(root, relativePath).getCanonicalFile();
-        File file = new File(directory, fileName).getCanonicalFile();
-        if (!isSubPath(root, directory) || !isSubPath(root, file)) {
-            throw new ApiRuntimeException("文件路径不合法");
-        }
+        File root = getNormalizedAbsoluteFile(rootPath);
+        File directory = StringUtils.isBlank(relativePath) ? root : resolveNormalizedFile(root, relativePath);
+        File file = resolveNormalizedFile(directory, fileName);
+        validateLexicalSubPath(root, directory);
+        validateLexicalSubPath(root, file);
         validateFilePathAllowed(root, directory);
         validateFilePathAllowed(root, file);
         return file;
     }
 
     public static File getChildPath(String rootPath, String childPath) throws IOException {
-        File root = new File(rootPath).getCanonicalFile();
-        File file = new File(root, StringUtils.defaultString(childPath)).getCanonicalFile();
-        if (!isSubPath(root, file)) {
-            throw new ApiRuntimeException("文件路径不合法");
-        }
+        File root = getNormalizedAbsoluteFile(rootPath);
+        File file = resolveNormalizedFile(root, StringUtils.defaultString(childPath));
+        validateLexicalSubPath(root, file);
         validateFilePathAllowed(root, file);
         return file;
     }
@@ -60,16 +58,10 @@ public final class FileSafeUtil {
         if (StringUtils.isBlank(path)) {
             throw new ApiRuntimeException("文件路径不能为空");
         }
-        File root = new File(rootPath).getCanonicalFile();
-        File file = new File(decode(path));
-        if (!file.isAbsolute()) {
-            file = new File(root, file.getPath());
-        }
-        file = file.getCanonicalFile();
-        // runner文件接口只允许访问DATA_HOME内的真实路径，避免../../和软链接逃逸到宿主机其他目录。
-        if (!isSubPath(root, file)) {
-            throw new ApiRuntimeException("文件路径不合法");
-        }
+        File root = getNormalizedAbsoluteFile(rootPath);
+        File file = resolveNormalizedFile(root, decode(path));
+        // 先按词法路径清理../../，软链接真实目标再由允许根目录单独控制。
+        validateLexicalSubPath(root, file);
         validateFilePathAllowed(root, file);
         return file;
     }
@@ -91,7 +83,7 @@ public final class FileSafeUtil {
     }
 
     public static String getValidatedRelativePath(String rootPath, String childPath) throws IOException {
-        File root = new File(rootPath).getCanonicalFile();
+        File root = getNormalizedAbsoluteFile(rootPath);
         String normalizedChildPath = decode(StringUtils.defaultIfBlank(childPath, ".")).replace("\\", "/");
         if (".".equals(normalizedChildPath)) {
             return ".";
@@ -100,26 +92,25 @@ public final class FileSafeUtil {
         if (child.isAbsolute()) {
             throw new ApiRuntimeException("文件路径不合法");
         }
-        File file = new File(root, normalizedChildPath).getCanonicalFile();
+        File file = resolveNormalizedFile(root, normalizedChildPath);
         // tar子目录参数必须保持为rootPath内的相对路径，避免绝对路径或../把打包范围带出制品目录。
-        if (!isSubPath(root, file)) {
-            throw new ApiRuntimeException("文件路径不合法");
-        }
+        validateLexicalSubPath(root, file);
         validateFilePathAllowed(root, file);
         String relativePath = root.toPath().relativize(file.toPath()).toString();
         return StringUtils.isBlank(relativePath) ? "." : relativePath.replace(File.separatorChar, '/');
     }
 
     public static File getValidatedChildFile(File directory, String fileName, String rootPath) throws IOException {
-        File root = new File(rootPath).getCanonicalFile();
-        File canonicalDirectory = directory.getCanonicalFile();
-        File file = new File(canonicalDirectory, fileName).getCanonicalFile();
-        if (!isSubPath(root, canonicalDirectory)
-                || !isSubPath(root, file)
-                || !canonicalDirectory.getCanonicalPath().equals(file.getParentFile().getCanonicalPath())) {
+        File root = getNormalizedAbsoluteFile(rootPath);
+        File normalizedDirectory = getNormalizedAbsoluteFile(directory.getPath());
+        File file = resolveNormalizedFile(normalizedDirectory, fileName);
+        if (!isLexicalSubPath(root, normalizedDirectory)
+                || !isLexicalSubPath(root, file)
+                || file.getParentFile() == null
+                || !normalizedDirectory.toPath().equals(file.getParentFile().toPath())) {
             throw new ApiRuntimeException("文件路径不合法");
         }
-        validateFilePathAllowed(root, canonicalDirectory);
+        validateFilePathAllowed(root, normalizedDirectory);
         validateFilePathAllowed(root, file);
         return file;
     }
@@ -131,35 +122,32 @@ public final class FileSafeUtil {
         if (directory == null) {
             return;
         }
-        File canonicalRoot = root.getCanonicalFile();
-        File canonicalFile = directory.getCanonicalFile();
-        if (!isSubPath(canonicalRoot, canonicalFile)) {
-            throw new ApiRuntimeException("文件路径不合法");
-        }
-        validateFilePathAllowed(canonicalRoot, canonicalFile);
-        if (!canonicalFile.isDirectory()) {
+        File normalizedRoot = getNormalizedAbsoluteFile(root.getPath());
+        File normalizedFile = getNormalizedAbsoluteFile(directory.getPath());
+        validateLexicalSubPath(normalizedRoot, normalizedFile);
+        validateFilePathAllowed(normalizedRoot, normalizedFile);
+        if (!normalizedFile.isDirectory()) {
             return;
         }
-        File[] childList = canonicalFile.listFiles();
+        File[] childList = normalizedFile.listFiles();
         if (childList == null) {
             return;
         }
         for (File child : childList) {
-            validateNoForbiddenPathInDirectory(canonicalRoot, child);
+            validateNoForbiddenPathInDirectory(normalizedRoot, child);
         }
     }
 
     /**
-     * 校验本地文件是否落入file.safe.forbidden.path配置的禁止访问路径。
+     * 校验本地文件真实目标未落入file.safe.forbidden.path禁止访问路径。
      */
     public static void validateFilePathAllowed(File root, File file) throws IOException {
         if (root == null || file == null) {
             return;
         }
-        File canonicalRoot = root.getCanonicalFile();
-        File canonicalFile = file.getCanonicalFile();
-        for (File forbiddenPath : getForbiddenPathList(canonicalRoot)) {
-            if (isSubPath(forbiddenPath, canonicalFile)) {
+        File normalizedRoot = getNormalizedAbsoluteFile(root.getPath());
+        for (File forbiddenPath : getForbiddenPathList(normalizedRoot)) {
+            if (isSubPath(forbiddenPath, file)) {
                 throw new ApiRuntimeException("文件路径不允许访问");
             }
         }
@@ -171,8 +159,13 @@ public final class FileSafeUtil {
     private static List<File> getForbiddenPathList(File root) throws IOException {
         String pathConfig = Config.getConfigProperty(FORBIDDEN_PATH_CONFIG_KEY, StringUtils.EMPTY);
         List<File> pathList = new ArrayList<>();
+        addConfiguredPathList(pathList, root, pathConfig);
+        return pathList;
+    }
+
+    private static void addConfiguredPathList(List<File> pathList, File root, String pathConfig) throws IOException {
         if (StringUtils.isBlank(pathConfig)) {
-            return pathList;
+            return;
         }
         String[] pathArray = pathConfig.split(",");
         for (String path : pathArray) {
@@ -180,19 +173,43 @@ public final class FileSafeUtil {
             if (StringUtils.isBlank(normalizedPath)) {
                 continue;
             }
-            File forbiddenPath = new File(normalizedPath);
-            if (!forbiddenPath.isAbsolute()) {
-                forbiddenPath = new File(root, normalizedPath);
+            File configuredPath = new File(normalizedPath);
+            if (!configuredPath.isAbsolute()) {
+                configuredPath = new File(root, normalizedPath);
             }
-            pathList.add(forbiddenPath.getCanonicalFile());
+            pathList.add(getNormalizedAbsoluteFile(configuredPath.getPath()));
         }
-        return pathList;
+    }
+
+    /**
+     * 仅规范化绝对路径中的.和..，不解析软链接，保留业务访问路径。
+     */
+    private static File getNormalizedAbsoluteFile(String path) {
+        return new File(path).toPath().toAbsolutePath().normalize().toFile();
+    }
+
+    private static File resolveNormalizedFile(File root, String childPath) {
+        Path child = new File(StringUtils.defaultString(childPath)).toPath();
+        Path resolvedPath = child.isAbsolute() ? child : root.toPath().resolve(child);
+        return resolvedPath.toAbsolutePath().normalize().toFile();
+    }
+
+    private static void validateLexicalSubPath(File root, File file) {
+        if (!isLexicalSubPath(root, file)) {
+            throw new ApiRuntimeException("文件路径不合法");
+        }
+    }
+
+    private static boolean isLexicalSubPath(File root, File file) {
+        Path rootPath = root.toPath().toAbsolutePath().normalize();
+        Path filePath = file.toPath().toAbsolutePath().normalize();
+        return filePath.startsWith(rootPath);
     }
 
     public static boolean isSubPath(File root, File file) throws IOException {
-        String rootPath = root.getCanonicalPath();
-        String filePath = file.getCanonicalPath();
-        return filePath.equals(rootPath) || filePath.startsWith(rootPath + File.separator);
+        Path rootPath = root.toPath().toAbsolutePath().normalize();
+        Path filePath = file.toPath().toAbsolutePath().normalize();
+        return filePath.startsWith(rootPath);
     }
 
     public static String decode(String path) throws IOException {

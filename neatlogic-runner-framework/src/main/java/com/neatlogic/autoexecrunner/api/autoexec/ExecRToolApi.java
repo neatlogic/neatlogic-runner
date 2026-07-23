@@ -69,10 +69,7 @@ public class ExecRToolApi extends PrivateApiComponentBase {
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "执行器映射id", isRequired = true),
             @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
             @Param(name = "execId", type = ApiParamType.STRING, desc = "执行id", isRequired = true),
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "跨步骤执行上下文id"),
-            @Param(name = "reserveRunPath", type = ApiParamType.BOOLEAN, desc = "是否保留执行目录"),
-            @Param(name = "cleanupContext", type = ApiParamType.BOOLEAN, desc = "是否仅清理跨步骤执行上下文"),
-            @Param(name = "execrtoolSerialId", type = ApiParamType.LONG, desc = "execrtool流水id"),
+            @Param(name = "execrtoolSerialId", type = ApiParamType.LONG, desc = "execrtool流水id", isRequired = true),
             @Param(name = "ip", type = ApiParamType.STRING, desc = "目标ip"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id")
     })
@@ -87,8 +84,6 @@ public class ExecRToolApi extends PrivateApiComponentBase {
         traceParam.put("runnerId", jsonObj.getLong("runnerId"));
         traceParam.put("execUser", jsonObj.getString("execUser"));
         traceParam.put("execId", jsonObj.getString("execId"));
-        traceParam.put("jobId", jsonObj.getLong("jobId"));
-        traceParam.put("cleanupContext", jsonObj.getBoolean("cleanupContext"));
         traceParam.put("execrtoolSerialId", jsonObj.getLong("execrtoolSerialId"));
         traceParam.put("ip", jsonObj.getString("ip"));
         traceParam.put("resourceId", jsonObj.getLong("resourceId"));

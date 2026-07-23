@@ -13,7 +13,6 @@ package com.neatlogic.autoexecrunner.api.job.node;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONWriter;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
@@ -67,19 +66,21 @@ public class TailJobPhaseBatchNodeLogApi extends PrivateBinaryStreamApiComponent
         JSONArray nodeList = jsonObj.getJSONArray("nodeList");
         int wordCountLimit = jsonObj.getIntValue("wordCountLimit");
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8);
-        JSONWriter jsonWriter = new JSONWriter(outputStreamWriter);
-        jsonWriter.startArray();
+        // fastjson 2.x 兼容包的 JSONWriter 不再提供数组边界方法，直接写入边界以保持原有流式输出行为。
+        outputStreamWriter.write("[");
         for (int i = 0; i < nodeList.size(); i++) {
+            if (i > 0) {
+                outputStreamWriter.write(",");
+            }
             JSONObject obj = nodeList.getJSONObject(i);
             String filePath = getFilePath(obj);
             String content = FileUtil.getFileContentWithLimit(filePath, wordCountLimit);
             JSONObject node = new JSONObject();
             node.put("id", obj.getLong("id"));
             node.put("content", content);
-            jsonWriter.writeObject(node);
+            outputStreamWriter.write(node.toJSONString());
         }
-        jsonWriter.endArray();
-        jsonWriter.close();
+        outputStreamWriter.write("]");
         outputStreamWriter.close();
         return null;
     }

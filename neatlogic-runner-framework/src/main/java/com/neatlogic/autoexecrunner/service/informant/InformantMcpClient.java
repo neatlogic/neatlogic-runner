@@ -23,9 +23,18 @@ import io.modelcontextprotocol.spec.ProtocolVersions;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
 
@@ -135,7 +144,7 @@ public class InformantMcpClient {
      */
     private McpSyncClient createClient(String protocol, String ip, int port, Map<String, String> header) {
         String baseUri = buildBaseUri(protocol, ip, port);
-        HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder(baseUri)
+        HttpClientStreamableHttpTransport.Builder transportBuilder = HttpClientStreamableHttpTransport.builder(baseUri)
                 .endpoint(MCP_ENDPOINT)
                 .connectTimeout(connectTimeout)
                 .supportedProtocolVersions(Arrays.asList(
@@ -143,13 +152,34 @@ public class InformantMcpClient {
                         ProtocolVersions.MCP_2025_06_18,
                         ProtocolVersions.MCP_2025_11_25
                 ))
-                .httpRequestCustomizer((builder, method, uri, body, context) -> applyHeaders(builder, header))
-                .build();
+                .httpRequestCustomizer((builder, method, uri, body, context) -> applyHeaders(builder, header));
+        if (StringUtils.equalsIgnoreCase("https", protocol)) {
+            transportBuilder.clientBuilder(createInformantHttpsClientBuilder());
+        }
+        HttpClientStreamableHttpTransport transport = transportBuilder.build();
         return McpClient.sync(transport)
                 .requestTimeout(requestTimeout)
                 .initializationTimeout(requestTimeout)
                 .clientInfo(McpSchema.Implementation.builder("neatlogic-runner", "1.0.0").build())
                 .build();
+    }
+
+    /**
+     * 为Informant节点创建独立的HTTPS客户端，兼容节点自签名或主机名不匹配的存量证书。
+     * 该信任策略只作用于当前MCP客户端，不修改Runner进程的全局TLS配置。
+     */
+    HttpClient.Builder createInformantHttpsClientBuilder() {
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,
+                    new X509ExtendedTrustManager[]{new InformantNodeTrustManager()},
+                    new SecureRandom());
+            return HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .sslContext(sslContext);
+        } catch (NoSuchAlgorithmException | KeyManagementException ex) {
+            throw new ApiRuntimeException("初始化Informant HTTPS连接失败");
+        }
     }
 
     /**
@@ -240,13 +270,20 @@ public class InformantMcpClient {
     /**
      * 构造不包含认证头和会话标识的调用异常。
      */
-    private ApiRuntimeException buildMcpException(Exception ex) {
+    ApiRuntimeException buildMcpException(Exception ex) {
         if (exceptionContains(ex, "401", "unauthorized")) {
             return new ApiRuntimeException("调用Informant MCP失败：认证失败");
         } else if (exceptionContains(ex, "404", "not found")) {
             return new ApiRuntimeException("调用Informant MCP失败：服务或工具不存在");
         } else if (exceptionContains(ex, "timeout", "timed out")) {
             return new ApiRuntimeException("调用Informant MCP失败：请求超时");
+        } else if (exceptionContains(ex,
+                "sslhandshakeexception",
+                "certificateexception",
+                "pkix",
+                "certification path",
+                "subject alternative")) {
+            return new ApiRuntimeException("调用Informant MCP失败：HTTPS证书校验失败");
         } else {
             // 不透传SDK原始异常，避免响应头、Session标识或请求上下文进入上层日志。
             return new ApiRuntimeException("调用Informant MCP失败：协议交互异常");
@@ -268,5 +305,40 @@ public class InformantMcpClient {
             current = current.getCause();
         }
         return false;
+    }
+
+    /**
+     * 兼容由Informant节点自行生成的证书，并避免JDK为普通X509TrustManager追加主机名校验。
+     * Informant请求仍由数据库中的固定节点地址和HMAC签名共同约束。
+     */
+    static class InformantNodeTrustManager extends X509ExtendedTrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
     }
 }

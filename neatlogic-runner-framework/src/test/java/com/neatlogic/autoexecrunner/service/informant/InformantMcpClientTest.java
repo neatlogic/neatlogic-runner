@@ -21,8 +21,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -259,6 +262,27 @@ public class InformantMcpClientTest {
 
         Assertions.assertTrue(timeout.getMessage().contains("请求超时"));
         Assertions.assertFalse(timeout.getMessage().contains("signature-1"));
+    }
+
+    @Test
+    public void httpsClientUsesScopedCompatibilitySslContext() throws Exception {
+        HttpClient httpClient = new InformantMcpClient()
+                .createInformantHttpsClientBuilder()
+                .build();
+
+        Assertions.assertNotSame(SSLContext.getDefault(), httpClient.sslContext());
+        Assertions.assertEquals(HttpClient.Version.HTTP_1_1, httpClient.version());
+    }
+
+    @Test
+    public void certificateFailureIsClassifiedWithoutRawCertificateDetails() {
+        SSLHandshakeException cause = new SSLHandshakeException(
+                "No subject alternative names matching IP address 192.0.2.25 found");
+
+        ApiRuntimeException exception = new InformantMcpClient().buildMcpException(cause);
+
+        Assertions.assertTrue(exception.getMessage().contains("HTTPS证书校验失败"));
+        Assertions.assertFalse(exception.getMessage().contains("192.0.2.25"));
     }
 
     /**

@@ -3,7 +3,6 @@ package com.neatlogic.autoexecrunner.restful.core.privateapi;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.dto.ApiHandlerVo;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
 import com.neatlogic.autoexecrunner.restful.annotation.QpsLimitKey;
@@ -151,11 +150,8 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                     // 限流
                     QpsLimitKey qpsLimitKey = component.getClass().getAnnotation(QpsLimitKey.class);
                     if (qpsLimitKey != null) {
-                        String qpsLimitConfigKey = qpsLimitKey.value();
-                        String value = Config.getConfigProperty(qpsLimitConfigKey,null);
-                        if(value != null) {
-                            apiVo.setQpsLimitConfigKey(qpsLimitConfigKey);
-                        }
+                        apiVo.setQpsLimitConfigKey(qpsLimitKey.value());
+                        apiVo.setQpsLimitDefaultValue(qpsLimitKey.defaultValue());
                     }
                     if (token.contains("{")) {
                         Matcher m = p.matcher(token);
@@ -213,11 +209,8 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                     // 限流
                     QpsLimitKey qpsLimitKey = component.getClass().getAnnotation(QpsLimitKey.class);
                     if (qpsLimitKey != null) {
-                        String qpsLimitConfigKey = qpsLimitKey.value();
-                        String value = Config.getConfigProperty(qpsLimitConfigKey,null);
-                        if(value != null) {
-                            apiVo.setQpsLimitConfigKey(qpsLimitConfigKey);
-                        }
+                        apiVo.setQpsLimitConfigKey(qpsLimitKey.value());
+                        apiVo.setQpsLimitDefaultValue(qpsLimitKey.defaultValue());
                     }
                     if (token.contains("{")) {
                         Matcher m = p.matcher(token);
@@ -274,11 +267,8 @@ public class PrivateApiComponentFactory implements ApplicationListener<ContextRe
                     // 限流
                     QpsLimitKey qpsLimitKey = component.getClass().getAnnotation(QpsLimitKey.class);
                     if (qpsLimitKey != null) {
-                        String qpsLimitConfigKey = qpsLimitKey.value();
-                        String value = Config.getConfigProperty(qpsLimitConfigKey,null);
-                        if(value != null) {
-                            apiVo.setQpsLimitConfigKey(qpsLimitConfigKey);
-                        }
+                        apiVo.setQpsLimitConfigKey(qpsLimitKey.value());
+                        apiVo.setQpsLimitDefaultValue(qpsLimitKey.defaultValue());
                     }
                     if (token.contains("{")) {
                         Matcher m = p.matcher(token);

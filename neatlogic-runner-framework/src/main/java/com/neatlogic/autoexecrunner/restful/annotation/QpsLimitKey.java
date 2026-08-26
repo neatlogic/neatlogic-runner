@@ -7,4 +7,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface QpsLimitKey {
     String value();
+
+    int defaultValue() default 500;
 }

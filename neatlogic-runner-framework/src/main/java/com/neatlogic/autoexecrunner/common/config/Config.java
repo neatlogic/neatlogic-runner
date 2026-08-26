@@ -33,6 +33,9 @@ public class Config {
     private static String GITLAB_PASSWORD;// gitlab private_token
     private static Integer SUBPROCESS_COMMAND_QUEUE_MAX_SIZE;//自动化作业命令等待队列的最大容量，超过此数量的新命令将被拒绝或丢弃
     private static Integer SUBPROCESS_EXECUTION_MAX_CONCURRENT;//自动化作业最大并发子进程数，超过此数量的命令将进入等待队列
+    private static Integer EXECRTOOL_EXECUTION_MAX_CONCURRENT;//execrtool同步执行最大并发数
+    private static Integer EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS;//execrtool单次执行最大时长，单位：秒
+    private static Integer EXECRTOOL_EXECUTION_MAX_OUTPUT_KB;//execrtool单次执行最大输出，单位：KB
     //neatlogic
     private static String NEATLOGIC_ROOT;
 
@@ -125,6 +128,18 @@ public class Config {
         return SUBPROCESS_EXECUTION_MAX_CONCURRENT;
     }
 
+    public static Integer EXECRTOOL_EXECUTION_MAX_CONCURRENT() {
+        return EXECRTOOL_EXECUTION_MAX_CONCURRENT;
+    }
+
+    public static Integer EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS() {
+        return EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS;
+    }
+
+    public static Integer EXECRTOOL_EXECUTION_MAX_OUTPUT_KB() {
+        return EXECRTOOL_EXECUTION_MAX_OUTPUT_KB;
+    }
+
 
     public Config() {
         try {
@@ -165,6 +180,19 @@ public class Config {
             SUBPROCESS_COMMAND_QUEUE_MAX_SIZE = Integer.parseInt(prop.getProperty("subprocess.command.queue.max-size", "1000"));
 
             SUBPROCESS_EXECUTION_MAX_CONCURRENT = Integer.parseInt(prop.getProperty("subprocess.execution.max-concurrent", "20"));
+
+            EXECRTOOL_EXECUTION_MAX_CONCURRENT = Integer.parseInt(prop.getProperty("execrtool.execution.max-concurrent", "20"));
+
+            EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS = Integer.parseInt(prop.getProperty("execrtool.execution.max-runtime-seconds", "300"));
+
+            EXECRTOOL_EXECUTION_MAX_OUTPUT_KB = Integer.parseInt(prop.getProperty("execrtool.execution.max-output-kb", "10240"));
+
+            // execrtool protection limits must remain effective; invalid values should fail runner startup.
+            if (EXECRTOOL_EXECUTION_MAX_CONCURRENT <= 0
+                    || EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS <= 0
+                    || EXECRTOOL_EXECUTION_MAX_OUTPUT_KB <= 0) {
+                throw new IllegalArgumentException("execrtool execution limits must be greater than zero");
+            }
 
             INFORMANT_HEARTBEAT_INTERVAL = Integer.parseInt(prop.getProperty("informant.heartbeat.interval", "300"));
 

@@ -103,11 +103,18 @@ public final class TokenRateLimiter {
             apiVo = PublicApiComponentFactory.getApiByToken(token);
         }
         if (apiVo != null && apiVo.getQpsLimitConfigKey() != null) {
-            String value = Config.getConfigProperty(apiVo.getQpsLimitConfigKey(), null);
-            if (value != null) {
-                return Integer.parseInt(value);
-            }
+            return resolveQps(apiVo);
         }
         return 500; // 默认
+    }
+
+    /**
+     * Resolve configured QPS first and fall back to the annotation default.
+     */
+    static Integer resolveQps(ApiVo apiVo) {
+        Integer defaultValue = apiVo.getQpsLimitDefaultValue();
+        String value = Config.getConfigProperty(apiVo.getQpsLimitConfigKey(),
+                defaultValue == null ? null : defaultValue.toString());
+        return value == null ? 500 : Integer.parseInt(value);
     }
 }

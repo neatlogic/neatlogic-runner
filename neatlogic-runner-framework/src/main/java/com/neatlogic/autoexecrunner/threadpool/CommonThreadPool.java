@@ -8,8 +8,8 @@ import java.util.concurrent.*;
 
 public class CommonThreadPool {
 	private static final Log logger = LogFactory.getLog(CommonThreadPool.class);
-	private static BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(1000);
-	private static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.SECONDS, workQueue, new ThreadFactory() {
+	private static final BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(1000);
+	private static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(10, 30, 30, TimeUnit.SECONDS, workQueue, new ThreadFactory() {
 		@Override
 		public Thread newThread(Runnable r) {
 			Thread t = new Thread(r);

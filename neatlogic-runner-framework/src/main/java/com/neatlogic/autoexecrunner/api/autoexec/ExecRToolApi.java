@@ -19,14 +19,16 @@ import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolExecuteFailedException;
 import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolOutputEmptyException;
 import com.neatlogic.autoexecrunner.exception.autoexec.ExecRToolOutputInvalidException;
+import com.neatlogic.autoexecrunner.exception.core.TooManyRequestsException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
+import com.neatlogic.autoexecrunner.restful.annotation.QpsLimitKey;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateApiComponentBase;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -36,14 +38,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Runner-side synchronous entry for direct autoexec script execution.
  */
+@QpsLimitKey(value = "qps.limit.execrtool.exec", defaultValue = 20)
 @Component
+@DependsOn("config")
 public class ExecRToolApi extends PrivateApiComponentBase {
 
     private static final Logger logger = LoggerFactory.getLogger(ExecRToolApi.class);
+    private static final long PROCESS_WAIT_SLICE_MILLIS = 200L;
+    private static final long PROCESS_TERMINATE_WAIT_SECONDS = 5L;
+    private final Semaphore executionSemaphore = new Semaphore(Config.EXECRTOOL_EXECUTION_MAX_CONCURRENT());
 
     /**
      * Return runner private API token used by NeatLogic to call execrtool.
@@ -93,21 +102,34 @@ public class ExecRToolApi extends PrivateApiComponentBase {
         traceParam.put("ip", jsonObj.getString("ip"));
         traceParam.put("resourceId", jsonObj.getLong("resourceId"));
         Path payloadFilePath = null;
+        Path outputFilePath = null;
+        Process process = null;
+        boolean acquired = false;
         boolean errorLogged = false;
         logger.info("execrtool start, param={}", traceParam);
         try {
+            acquired = executionSemaphore.tryAcquire();
+            if (!acquired) {
+                throw new TooManyRequestsException("execrtool并发执行数已达到上限，请稍后重试。");
+            }
+
             // payload 写入临时文件，避免命令行参数过长或特殊字符影响 execrtool 启动。
             Path payloadDir = Paths.get(Config.AUTOEXEC_HOME(), "tmp", "execrtool");
             Files.createDirectories(payloadDir);
-            payloadFilePath = payloadDir.resolve(UUID.randomUUID() + ".json");
+            String fileNamePrefix = UUID.randomUUID().toString();
+            payloadFilePath = payloadDir.resolve(fileNamePrefix + ".json");
+            outputFilePath = payloadDir.resolve(fileNamePrefix + ".out");
             Files.write(payloadFilePath, jsonObj.toJSONString().getBytes(StandardCharsets.UTF_8));
+            Files.createFile(outputFilePath);
 
             // execrtool 是同步阻塞入口，runner 必须等进程结束后再返回 HTTP 响应。
             ProcessBuilder builder = new ProcessBuilder("execrtool", "--payloadfile", payloadFilePath.toString());
             builder.redirectErrorStream(true);
-            Process process = builder.start();
-            String output = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
-            int exitValue = process.waitFor();
+            builder.redirectOutput(outputFilePath.toFile());
+            process = builder.start();
+            waitForProcess(process, outputFilePath);
+            int exitValue = process.exitValue();
+            String output = Files.readString(outputFilePath, StandardCharsets.UTF_8);
 
             JSONObject result = parseResult(output, exitValue);
             long durationMs = System.currentTimeMillis() - startTime;
@@ -129,20 +151,102 @@ public class ExecRToolApi extends PrivateApiComponentBase {
             logger.info("execrtool success, param={}, durationMs={}", traceParam, durationMs);
             return result.get("Return");
         } catch (Exception ex) {
+            if (process != null && process.isAlive()) {
+                terminateProcessTree(process);
+            }
             if (!errorLogged) {
                 logger.error("execrtool exception, param={}, durationMs={}, exceptionClass={}, stack={}",
                         traceParam, System.currentTimeMillis() - startTime, ex.getClass().getName(), Arrays.toString(ex.getStackTrace()));
             }
+            if (ex instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw ex;
         } finally {
+            cleanupTempFiles(payloadFilePath, outputFilePath);
+            if (acquired) {
+                executionSemaphore.release();
+            }
+        }
+    }
+
+    /**
+     * Wait for execrtool in short slices so runtime and redirected output remain bounded.
+     */
+    private void waitForProcess(Process process, Path outputFilePath) throws Exception {
+        long maxRuntimeNanos = TimeUnit.SECONDS.toNanos(Config.EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS());
+        long maxOutputBytes = Math.multiplyExact(Config.EXECRTOOL_EXECUTION_MAX_OUTPUT_KB().longValue(), 1024L);
+        long deadlineNanos = System.nanoTime() + maxRuntimeNanos;
+        while (true) {
+            long remainingNanos = deadlineNanos - System.nanoTime();
+            if (remainingNanos <= 0) {
+                terminateProcessTree(process);
+                throw new ExecRToolExecuteFailedException("execrtool执行超时，最大执行时长为"
+                        + Config.EXECRTOOL_EXECUTION_MAX_RUNTIME_SECONDS() + "秒。");
+            }
+            long waitNanos = Math.min(TimeUnit.MILLISECONDS.toNanos(PROCESS_WAIT_SLICE_MILLIS), remainingNanos);
+            boolean finished = process.waitFor(waitNanos, TimeUnit.NANOSECONDS);
+            long outputBytes = Files.size(outputFilePath);
+            if (outputBytes > maxOutputBytes) {
+                terminateProcessTree(process);
+                throw new ExecRToolExecuteFailedException("execrtool输出超过上限"
+                        + Config.EXECRTOOL_EXECUTION_MAX_OUTPUT_KB() + "KB。");
+            }
+            if (finished) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Terminate descendants before the wrapper process to avoid orphaned execrtool children.
+     */
+    private void terminateProcessTree(Process process) {
+        if (process == null || !process.isAlive()) {
+            return;
+        }
+        try {
+            process.descendants().forEach(processHandle -> {
+                try {
+                    processHandle.destroyForcibly();
+                } catch (Exception ex) {
+                    logger.error("Terminate execrtool child process failed, pid={}", processHandle.pid(), ex);
+                }
+            });
+            process.destroyForcibly();
+            if (!process.waitFor(PROCESS_TERMINATE_WAIT_SECONDS, TimeUnit.SECONDS)) {
+                logger.error("Terminate execrtool process timed out, pid={}", process.pid());
+            }
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logger.error("Wait for execrtool process termination interrupted, pid={}", process.pid(), ex);
+        } catch (Exception ex) {
+            logger.error("Terminate execrtool process failed, pid={}", process.pid(), ex);
+        }
+    }
+
+    /**
+     * Remove request-scoped files without masking the real execution result.
+     */
+    private void cleanupTempFiles(Path payloadFilePath, Path outputFilePath) {
+        Path parentPath = payloadFilePath != null ? payloadFilePath.getParent()
+                : outputFilePath != null ? outputFilePath.getParent() : null;
+        try {
             if (payloadFilePath != null) {
                 Files.deleteIfExists(payloadFilePath);
-                File parentFile = payloadFilePath.getParent().toFile();
-                File[] files = parentFile.listFiles();
+            }
+            if (outputFilePath != null) {
+                Files.deleteIfExists(outputFilePath);
+            }
+            if (parentPath != null) {
+                File[] files = parentPath.toFile().listFiles();
                 if (files != null && files.length == 0) {
-                    Files.deleteIfExists(payloadFilePath.getParent());
+                    Files.deleteIfExists(parentPath);
                 }
             }
+        } catch (Exception ex) {
+            logger.error("Clean execrtool temporary files failed, payloadFile={}, outputFile={}",
+                    payloadFilePath, outputFilePath, ex);
         }
     }
 

@@ -77,11 +77,11 @@ public class ExecProcessCommand implements Runnable {
             }
         } catch (IllegalThreadStateException e) {
             //不wait for子进程正常结束返回，就一定会抛 IllegalThreadStateException 异常
-            logger.info("execute " + commandVo + " failed. " + e.getMessage(), e);
+            logger.info("execute {} failed. {}", commandVo, e.getMessage(), e);
         } catch (Exception e) {
             payload.put("status", 0);
             payload.put("errorMsg", e.getMessage());
-            logger.error("execute " + commandVo.toString() + " failed. " + e.getMessage(), e);
+            logger.error("execute {} failed. {}", commandVo.toString(), e.getMessage(), e);
             try {
                 FileUtil.saveFile(TimeUtil.getTimeToDateString(System.currentTimeMillis(), TimeUtil.HH_MM_SS) + " ERROR: " + e.getMessage(), commandVo.getConsoleLogPath(), true);
             } catch (Exception ex) {

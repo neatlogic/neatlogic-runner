@@ -23,6 +23,7 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
     private static final int DEFAULT_INFORMANT_CONNECT_TIMEOUT = 10000;
     private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 5 * 60 * 1000;
     private static final String DUMP_TXT_DOWNLOAD_URL = "/api/threaddump/dumptxt/download";
+    private static final String LOG_DOWNLOAD_URL = "/api/query/v1/logs/download";
 
     @Override
     public String getName() {
@@ -76,8 +77,9 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
         throw new ApiRuntimeException("protocol不合法");
     }
 
-    private void validateDownloadUrl(String url) {
-        if (!StringUtils.equals(url, DUMP_TXT_DOWNLOAD_URL)) {
+    static void validateDownloadUrl(String url) {
+        // 下载代理仅允许已确认的 Informant 文件接口，避免被用于访问任意地址。
+        if (!StringUtils.equalsAny(url, DUMP_TXT_DOWNLOAD_URL, LOG_DOWNLOAD_URL)) {
             throw new ApiRuntimeException("informant下载地址不允许");
         }
     }

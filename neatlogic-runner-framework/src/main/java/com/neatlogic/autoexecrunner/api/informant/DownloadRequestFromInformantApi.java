@@ -16,7 +16,13 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiComponentBase {
@@ -97,12 +103,15 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
         HttpRequestUtil httpUtil = buildHttpRequest(finalUrl, method, param, header, actualConnectTimeout, actualReadTimeout, response);
         httpUtil.sendRequest();
         if (httpUtil.getError() != null) {
-            throw new ApiRuntimeException(buildInformantRequestError(protocol, finalUrl, actualConnectTimeout, actualReadTimeout, httpUtil));
+            writeForwardError(response, httpUtil);
         }
     }
 
     private HttpRequestUtil buildHttpRequest(String finalUrl, String method, JSONObject param, JSONObject header, int connectTimeout, int readTimeout, HttpServletResponse response) throws Exception {
-        HttpRequestUtil httpUtil = HttpRequestUtil.download(finalUrl, method.toUpperCase(), response.getOutputStream())
+        HttpRequestUtil httpUtil = HttpRequestUtil.download(
+                        finalUrl,
+                        method.toUpperCase(),
+                        new NonClosingOutputStream(response.getOutputStream()))
                 .setContentType(HttpRequestUtil.ContentType.CONTENT_TYPE_APPLICATION_FORM)
                 .setResponseHeaders(Arrays.asList("Content-Type"));
         if ("get".equalsIgnoreCase(method)) {
@@ -124,31 +133,75 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
         return httpUtil;
     }
 
-    private String buildInformantRequestError(String protocol, String finalUrl, int connectTimeout, int readTimeout, HttpRequestUtil httpUtil) {
-        String errorMsg = StringUtils.defaultIfBlank(httpUtil.getErrorMsg(), "unknown error");
-        StringBuilder errorBuilder = new StringBuilder();
-        errorBuilder.append("请求informant下载数据失败")
-                .append("，url=").append(finalUrl)
-                .append("，connectTimeout=").append(connectTimeout).append("ms")
-                .append("，readTimeout=").append(readTimeout).append("ms");
-        if (isSslHandshakeReadTimeout(protocol, httpUtil)) {
-            errorBuilder.append("，可能是SSL握手读取超时，请检查informant HTTPS端口、TLS响应和网络链路");
+    private void writeForwardError(HttpServletResponse response, HttpRequestUtil httpUtil) throws IOException {
+        response.reset();
+        String body;
+        if (httpUtil.getResponseCode() > 0) {
+            int statusCode = httpUtil.getResponseCode();
+            response.setStatus(statusCode >= 400 && statusCode <= 599 ? statusCode : 502);
+            response.setContentType(safeErrorContentType(getContentType(httpUtil)));
+            body = StringUtils.defaultIfBlank(
+                    httpUtil.getErrorResponseBody(),
+                    errorBody("informant_http_error", "Informant 节点返回 HTTP 错误"));
+        } else {
+            String detail = StringUtils.defaultString(httpUtil.getErrorMsg()) + " "
+                    + StringUtils.defaultString(httpUtil.getError());
+            boolean timeout = StringUtils.containsIgnoreCase(detail, "timed out")
+                    || StringUtils.containsIgnoreCase(detail, "timeout");
+            response.setStatus(timeout ? 504 : 502);
+            response.setContentType("application/json");
+            body = errorBody(
+                    timeout ? "informant_timeout" : "informant_unreachable",
+                    timeout ? "请求 Informant 节点超时" : "无法连接 Informant 节点");
         }
-        errorBuilder.append("，error=").append(errorMsg);
-        if (StringUtils.isNotBlank(httpUtil.getError())) {
-            errorBuilder.append("\n").append(httpUtil.getError());
-        }
-        return errorBuilder.toString();
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getOutputStream().write(body.getBytes(StandardCharsets.UTF_8));
+        response.getOutputStream().flush();
+        response.flushBuffer();
     }
 
-    private boolean isSslHandshakeReadTimeout(String protocol, HttpRequestUtil httpUtil) {
-        if (!"https".equalsIgnoreCase(protocol)) {
-            return false;
+    private String getContentType(HttpRequestUtil httpUtil) {
+        Map<String, List<String>> headers = httpUtil.getResponseHeadersMap();
+        if (headers == null) {
+            return null;
         }
-        String error = StringUtils.defaultString(httpUtil.getError());
-        String errorMsg = StringUtils.defaultString(httpUtil.getErrorMsg());
-        return StringUtils.containsIgnoreCase(error + errorMsg, "Read timed out")
-                && error.contains("SSLSocketImpl.startHandshake");
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            if (StringUtils.equalsIgnoreCase(entry.getKey(), "Content-Type") && entry.getValue() != null
+                    && !entry.getValue().isEmpty()) {
+                return entry.getValue().get(0);
+            }
+        }
+        return null;
+    }
+
+    static String safeErrorContentType(String contentType) {
+        if (StringUtils.startsWithIgnoreCase(contentType, "application/json")
+                || StringUtils.startsWithIgnoreCase(contentType, "application/problem+json")
+                || StringUtils.startsWithIgnoreCase(contentType, "text/")) {
+            return contentType;
+        }
+        return "application/json";
+    }
+
+    private String errorBody(String code, String message) {
+        JSONObject error = new JSONObject();
+        error.put("code", code);
+        error.put("message", message);
+        JSONObject body = new JSONObject();
+        body.put("error", error);
+        return body.toJSONString();
+    }
+
+    /** HttpRequestUtil 不拥有 Servlet 响应流，失败时仍需由转发层写入结构化错误。 */
+    private static class NonClosingOutputStream extends FilterOutputStream {
+        NonClosingOutputStream(OutputStream outputStream) {
+            super(outputStream);
+        }
+
+        @Override
+        public void close() {
+            // 由 Servlet 容器管理底层响应流。
+        }
     }
 
     @Override

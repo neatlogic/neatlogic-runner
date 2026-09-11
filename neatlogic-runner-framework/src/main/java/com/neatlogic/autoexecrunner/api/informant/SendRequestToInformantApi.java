@@ -13,8 +13,12 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 public class SendRequestToInformantApi extends PrivateApiComponentBase {
+    static final String FORWARD_RESPONSE_MARKER = "_informantForwardResponse";
     private static final int DEFAULT_INFORMANT_CONNECT_TIMEOUT = 10000;
     private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 5 * 60 * 1000;
 
@@ -74,10 +78,13 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         int actualReadTimeout = readTimeout != null ? readTimeout : DEFAULT_INFORMANT_READ_TIMEOUT;
         HttpRequestUtil httpUtil = buildHttpRequest(finalUrl, method, param, header, actualConnectTimeout, actualReadTimeout);
         httpUtil.sendRequest();
-        if (httpUtil.getError() != null) {
-            throw new ApiRuntimeException(buildInformantRequestError(protocol, finalUrl, actualConnectTimeout, actualReadTimeout, httpUtil));
+        if (httpUtil.getResponseCode() > 0) {
+            String body = httpUtil.getResponseCode() >= 400
+                    ? httpUtil.getErrorResponseBody()
+                    : httpUtil.getResult();
+            return buildForwardResponse(httpUtil.getResponseCode(), getContentType(httpUtil), body);
         }
-        return httpUtil.getResult();
+        return buildTransportErrorResponse(httpUtil);
     }
 
     private HttpRequestUtil buildHttpRequest(String finalUrl, String method, JSONObject param, JSONObject header, int connectTimeout, int readTimeout) {
@@ -106,31 +113,40 @@ public class SendRequestToInformantApi extends PrivateApiComponentBase {
         return httpUtil;
     }
 
-    private String buildInformantRequestError(String protocol, String finalUrl, int connectTimeout, int readTimeout, HttpRequestUtil httpUtil) {
-        String errorMsg = StringUtils.defaultIfBlank(httpUtil.getErrorMsg(), "unknown error");
-        StringBuilder errorBuilder = new StringBuilder();
-        errorBuilder.append("请求informant失败")
-                .append("，url=").append(finalUrl)
-                .append("，connectTimeout=").append(connectTimeout).append("ms")
-                .append("，readTimeout=").append(readTimeout).append("ms");
-        if (isSslHandshakeReadTimeout(protocol, httpUtil)) {
-            errorBuilder.append("，可能是SSL握手读取超时，请检查informant HTTPS端口、TLS响应和网络链路");
-        }
-        errorBuilder.append("，error=").append(errorMsg);
-        if (StringUtils.isNotBlank(httpUtil.getError())) {
-            errorBuilder.append("\n").append(httpUtil.getError());
-        }
-        return errorBuilder.toString();
+    static JSONObject buildForwardResponse(int statusCode, String contentType, String body) {
+        JSONObject response = new JSONObject();
+        response.put(FORWARD_RESPONSE_MARKER, true);
+        response.put("statusCode", statusCode);
+        response.put("contentType", StringUtils.defaultIfBlank(contentType, "application/json"));
+        response.put("body", StringUtils.defaultString(body));
+        return response;
     }
 
-    private boolean isSslHandshakeReadTimeout(String protocol, HttpRequestUtil httpUtil) {
-        if (!"https".equalsIgnoreCase(protocol)) {
-            return false;
+    static JSONObject buildTransportErrorResponse(HttpRequestUtil httpUtil) {
+        String detail = StringUtils.defaultString(httpUtil.getErrorMsg()) + " "
+                + StringUtils.defaultString(httpUtil.getError());
+        boolean timeout = StringUtils.containsIgnoreCase(detail, "timed out")
+                || StringUtils.containsIgnoreCase(detail, "timeout");
+        JSONObject error = new JSONObject();
+        error.put("code", timeout ? "informant_timeout" : "informant_unreachable");
+        error.put("message", timeout ? "请求 Informant 节点超时" : "无法连接 Informant 节点");
+        JSONObject body = new JSONObject();
+        body.put("error", error);
+        return buildForwardResponse(timeout ? 504 : 502, "application/json", body.toJSONString());
+    }
+
+    private String getContentType(HttpRequestUtil httpUtil) {
+        Map<String, List<String>> headers = httpUtil.getResponseHeadersMap();
+        if (headers == null) {
+            return null;
         }
-        String error = StringUtils.defaultString(httpUtil.getError());
-        String errorMsg = StringUtils.defaultString(httpUtil.getErrorMsg());
-        return StringUtils.containsIgnoreCase(error + errorMsg, "Read timed out")
-                && error.contains("SSLSocketImpl.startHandshake");
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            if (StringUtils.equalsIgnoreCase(entry.getKey(), "Content-Type") && entry.getValue() != null
+                    && !entry.getValue().isEmpty()) {
+                return entry.getValue().get(0);
+            }
+        }
+        return null;
     }
 
     @Override

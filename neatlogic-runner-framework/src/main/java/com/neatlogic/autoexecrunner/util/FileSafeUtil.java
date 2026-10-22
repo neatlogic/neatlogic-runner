@@ -9,9 +9,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final class FileSafeUtil {
     private static final String FORBIDDEN_PATH_CONFIG_KEY = "file.safe.forbidden.path";
@@ -119,38 +123,73 @@ public final class FileSafeUtil {
      * 递归校验目录内文件是否落入禁止访问路径，避免打包下载绕过单文件路径限制。
      */
     public static void validateNoForbiddenPathInDirectory(File root, File directory) throws IOException {
-        if (directory == null) {
+        validateDirectory(root, directory, new HashSet<>());
+    }
+
+    /**
+     * 按真实目录跟踪当前递归链，允许目录内软链接，但拒绝循环和越界目标。
+     */
+    private static void validateDirectory(File root, File file, Set<Path> ancestors) throws IOException {
+        if (file == null) {
             return;
         }
-        File normalizedRoot = getNormalizedAbsoluteFile(root.getPath());
-        File normalizedFile = getNormalizedAbsoluteFile(directory.getPath());
-        validateLexicalSubPath(normalizedRoot, normalizedFile);
-        validateFilePathAllowed(normalizedRoot, normalizedFile);
-        if (!normalizedFile.isDirectory()) {
+        validateFilePathAllowed(root, file);
+        if (!file.isDirectory()) {
             return;
         }
-        File[] childList = normalizedFile.listFiles();
-        if (childList == null) {
-            return;
+        Path realPath = resolveRealPath(file.toPath());
+        if (!ancestors.add(realPath)) {
+            throw new IOException("目录软链接形成循环");
         }
-        for (File child : childList) {
-            validateNoForbiddenPathInDirectory(normalizedRoot, child);
+        try {
+            File[] children = file.listFiles();
+            if (children == null) {
+                throw new IOException("无法读取目录：" + file);
+            }
+            for (File child : children) {
+                validateDirectory(root, child, ancestors);
+            }
+        } finally {
+            ancestors.remove(realPath);
         }
     }
 
     /**
-     * 校验本地文件真实目标未落入file.safe.forbidden.path禁止访问路径。
+     * 同时校验业务访问路径和真实目标；不存在的写入目标通过最近已存在的父目录解析。
      */
     public static void validateFilePathAllowed(File root, File file) throws IOException {
         if (root == null || file == null) {
             return;
         }
         File normalizedRoot = getNormalizedAbsoluteFile(root.getPath());
+        File normalizedFile = getNormalizedAbsoluteFile(file.getPath());
+        validateLexicalSubPath(normalizedRoot, normalizedFile);
+        Path realRoot = resolveRealPath(normalizedRoot.toPath());
+        Path realFile = resolveRealPath(normalizedFile.toPath());
+        if (!realFile.startsWith(realRoot)) {
+            throw new ApiRuntimeException("文件真实路径不允许访问");
+        }
         for (File forbiddenPath : getForbiddenPathList(normalizedRoot)) {
-            if (isSubPath(forbiddenPath, file)) {
+            if (isSubPath(forbiddenPath, normalizedFile)
+                    || realFile.startsWith(resolveRealPath(forbiddenPath.toPath()))) {
                 throw new ApiRuntimeException("文件路径不允许访问");
             }
         }
+    }
+
+    /**
+     * 保留尚未创建的路径后缀，避免新文件通过父目录软链接写到业务根目录之外。
+     */
+    private static Path resolveRealPath(Path path) throws IOException {
+        Path absolute = path.toAbsolutePath().normalize();
+        Path existing = absolute;
+        while (!Files.exists(existing, LinkOption.NOFOLLOW_LINKS)) {
+            existing = existing.getParent();
+            if (existing == null) {
+                throw new IOException("文件路径无法解析");
+            }
+        }
+        return existing.toRealPath().resolve(existing.relativize(absolute)).normalize();
     }
 
     /**

@@ -1,13 +1,14 @@
 package com.neatlogic.autoexecrunner.util;
 
+import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.deploy.ConcatableTarOutputStream;
 import com.neatlogic.autoexecrunner.deploy.FolderZipperFileVisitor;
+import jakarta.servlet.ServletOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 
-import jakarta.servlet.ServletOutputStream;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -25,7 +26,7 @@ public class FolderZipperUtil {
 
 	/*
 	 * public static void zipFolderToResponse(String rootDir, ZipOutputStream zip)
-	 * throws IOException { Path rootPath = Paths.get(rootDir).toAbsolutePath();
+	 * throws IOException { Path rootPath = Paths.get(rootDir).toAbsolutePath().normalize();
 	 * Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class),
 	 * Integer.MAX_VALUE, new FolderZipperFileVisitor(rootPath, zip)); zip.finish();
 	 * }
@@ -39,7 +40,7 @@ public class FolderZipperUtil {
 		resRootFullDir = Paths.get(resRootFullDir).toAbsolutePath().toString();
 		String lockFilePath = resRootFullDir + ".lock";
 
-		Path rootPath = Paths.get(rootDir).toAbsolutePath();
+		Path rootPath = Paths.get(rootDir).toAbsolutePath().normalize();
 		rootDir = rootPath.toString();
 
 		File lockFile = new File(lockFilePath);
@@ -67,16 +68,27 @@ public class FolderZipperUtil {
 			for (String subDir : subDirs) {
 				String safeSubDir = FileSafeUtil.getValidatedRelativePath(rootDir, subDir);
 				Path subPath = rootPath.resolve(safeSubDir);
+                validatePackedDirectory(rootPath, subPath);
 
 				try {
 					if (Files.exists(subPath)) {
 						// 遍历文件目录树
 						Files.walkFileTree(subPath, options, Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 
-							// 当成功访问到一个文件
-							@Override
+							/**
+                             * 遍历目录前校验真实目标，避免目录链接越界。
+                             */
+                            @Override
+                            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                                validatePackedPath(rootPath, dir);
+                                return FileVisitResult.CONTINUE;
+                            }
+
+                            // 当成功访问到一个文件
+                            @Override
 							public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-								// 获取当前遍历文件名称
+								validatePackedPath(rootPath, file);
+                                // 获取当前遍历文件名称
 								Path targetFile = rootPath.relativize(file);
 
 								if (attributes.isDirectory()) {
@@ -146,173 +158,120 @@ public class FolderZipperUtil {
 
 	}
 
-	public static void tgzFolderToResponse(String resRootFullDir, String rootDir, List<String> subDirs, ServletOutputStream out) throws IOException {
-		resRootFullDir = Paths.get(resRootFullDir).toAbsolutePath().toString();
-		String lockFilePath = resRootFullDir + ".lock";
+    /**
+     * 使用逐条目校验的 TAR 输出，保留目录和目录内合法软链接的既有打包行为。
+     */
+    public static void tgzFolderToResponse(String resRootFullDir, String rootDir, List<String> subDirs, ServletOutputStream out) throws IOException {
+        Path root = Paths.get(rootDir).toAbsolutePath().normalize();
+        List<Path> selections = new ArrayList<>();
+        if (subDirs == null || subDirs.isEmpty()) {
+            selections.add(root);
+        } else {
+            for (String subDir : subDirs) {
+                String safePath = FileSafeUtil.getValidatedRelativePath(root.toString(), subDir);
+                Path selected = root.resolve(safePath);
+                if (Files.exists(selected)) {
+                    selections.add(selected);
+                }
+            }
+        }
+        if (selections.isEmpty()) {
+            throw new IOException("所有要打包的文件夹都不存在");
+        }
+        try (RandomAccessFile lockFile = new RandomAccessFile(resRootFullDir + ".lock", "rw");
+             FileChannel channel = lockFile.getChannel();
+             FileLock ignored = channel.lock(0, 4096, true);
+             GzipCompressorOutputStream gzip = new GzipCompressorOutputStream(new BufferedOutputStream(out));
+             TarArchiveOutputStream tar = new TarArchiveOutputStream(gzip)) {
+            tar.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+            tar.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_POSIX);
+            for (Path selected : selections) {
+                validatePackedDirectory(root, selected);
+                Path traversal = selected;
+                // 原系统 tar 以根目录作为工作目录；根目录本身为软链接时仍应打包其内容。
+                if (selected.equals(root) && Files.isSymbolicLink(selected)) {
+                    traversal = selected.toRealPath();
+                }
+                final Path traversalRoot = traversal;
+                Files.walkFileTree(traversalRoot, new SimpleFileVisitor<Path>() {
+                    /**
+                     * 保留空目录并在读取前检查目录边界。
+                     */
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                        writeTarEntry(root, selected.resolve(traversalRoot.relativize(dir)), tar, true);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-		Path rootPath = Paths.get(rootDir).toAbsolutePath();
-		rootDir = rootPath.toString();
+                    /**
+                     * 保留普通文件属性和合法软链接，特殊文件拒绝打包。
+                     */
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (!attrs.isRegularFile() && !attrs.isSymbolicLink()) {
+                            throw new IOException("不支持打包特殊文件：" + file);
+                        }
+                        writeTarEntry(root, selected.resolve(traversalRoot.relativize(file)), tar, false);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+        }
+    }
 
-		File lockFile = new File(lockFilePath);
+    /**
+     * 在每个 TAR 条目实际写出前校验逻辑路径与真实目标。
+     */
+    private static void writeTarEntry(Path root, Path file, TarArchiveOutputStream tar, boolean directory) throws IOException {
+        validatePackedPath(root, file);
+        String name = root.relativize(file).toString().replace(File.separatorChar, '/');
+        if (name.isEmpty()) {
+            name = ".";
+        }
+        TarArchiveEntry entry;
+        if (!directory && Files.isSymbolicLink(file)) {
+            entry = new TarArchiveEntry(name, TarConstants.LF_SYMLINK);
+            entry.setLinkName(Files.readSymbolicLink(file).toString());
+        } else {
+            entry = new TarArchiveEntry(file.toFile(), name);
+        }
+        tar.putArchiveEntry(entry);
+        if (!directory && !Files.isSymbolicLink(file)) {
+            Files.copy(file, tar);
+        }
+        tar.closeArchiveEntry();
+    }
 
-		RandomAccessFile randomAccessFile = null;
-		FileChannel lockChannel = null;
-		FileLock buildLock = null;
+    /**
+     * 打包边界使用当前制品目录，禁止路径同时按 DATA_HOME 的配置语义匹配。
+     */
+    private static void validatePackedPath(Path root, Path file) throws IOException {
+        FileSafeUtil.validateFilePathAllowed(root.toFile(), file.toFile());
+        if (Config.DATA_HOME() != null && FileSafeUtil.isSubPath(new File(Config.DATA_HOME()), root.toFile())) {
+            FileSafeUtil.validateFilePathAllowed(new File(Config.DATA_HOME()), file.toFile());
+        }
+    }
 
-		Process proc = null;
-		InputStream in = null;
-		InputStream err = null;
+    /**
+     * 打包前完整检查所选目录，避免隐藏子目录或软链接绕过禁止访问配置。
+     */
+    private static void validatePackedDirectory(Path root, Path selected) throws IOException {
+        FileSafeUtil.validateNoForbiddenPathInDirectory(root.toFile(), selected.toFile());
+        if (Config.DATA_HOME() != null && FileSafeUtil.isSubPath(new File(Config.DATA_HOME()), root.toFile())) {
+            FileSafeUtil.validateNoForbiddenPathInDirectory(new File(Config.DATA_HOME()), selected.toFile());
+        }
+    }
 
-		int bufLen = BUF_SIZE;
-		byte[] buf = new byte[bufLen];
-		try {
-			randomAccessFile = new RandomAccessFile(lockFile, "rw");
-			lockChannel = randomAccessFile.getChannel();
-			buildLock = lockChannel.lock(0, 4096, true);
-
-			List<String> cmdList = new ArrayList<String>();
-			cmdList.add("tar");
-			cmdList.add("-czf");
-			cmdList.add("-");
-			if (subDirs != null && subDirs.size() > 0) {
-				boolean isAllValid = false;
-				for (int i = 0; i < subDirs.size(); i++) {
-					String safeSubDir = FileSafeUtil.getValidatedRelativePath(rootDir, subDirs.get(i));
-					if (Files.exists(rootPath.resolve(safeSubDir))) {
-						cmdList.add(safeSubDir);
-						isAllValid = true;
-					}
-				}
-				
-				// 这里判断如果所有目录都不存在, 那么就报错抛出, 否则tar会出现 create an empty archive 错误
-				if (!isAllValid) {
-					throw new IOException("tar dir failed:" + rootDir + ": 所有要打包的文件夹都不存在");
-				}
-				
-			} else {
-				cmdList.add(".");
-			}
-
-			ProcessBuilder builder = new ProcessBuilder(cmdList);
-			builder.directory(new File(rootDir));
-			proc = builder.start();
-
-			in = proc.getInputStream();
-			err = proc.getErrorStream();
-			int len;
-			while ((len = in.read(buf, 0, bufLen)) >= 0) {
-				out.write(buf, 0, len);
-			}
-			proc.waitFor();
-			int exitValue = proc.exitValue();
-			if (exitValue != 0) {
-				String errMsg = "";
-				try {
-					len = err.read(buf, 0, bufLen);
-					errMsg = new String(buf, 0, bufLen);
-				} catch (Exception ex) {
-				}
-				throw new IOException("tar dir failed:" + rootDir + ":" + errMsg);
-			}
-		} catch (Exception e) {
-			throw new IOException("tar dir failed:" + rootDir, e);
-		} finally {
-			if (buildLock != null) {
-				try {
-					buildLock.release();
-				} catch (IOException e) {
-				}
-			}
-			if (lockChannel != null) {
-				try {
-					lockChannel.close();
-				} catch (IOException e) {
-				}
-			}
-			if (randomAccessFile != null) {
-				try {
-					randomAccessFile.close();
-				} catch (IOException e) {
-				}
-			}
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-				}
-			}
-			if (err != null) {
-				try {
-					err.close();
-				} catch (IOException e) {
-				}
-			}
-			if (proc != null && proc.isAlive()) {
-				proc.destroyForcibly();
-			}
-		}
-
-	}
-
-	public static void zipFolderToResponse(String resRootFullDir, String rootDir, ServletOutputStream out) throws IOException {
-		resRootFullDir = Paths.get(resRootFullDir).toAbsolutePath().toString();
-		String lockFilePath = resRootFullDir + ".lock";
-
-		Path rootPath = Paths.get(rootDir).normalize().toAbsolutePath();
-		rootDir = rootPath.toString();
-
-		File lockFile = new File(lockFilePath);
-		RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "rw");
-		FileChannel lockChannel = randomAccessFile.getChannel();
-		FileLock buildLock = lockChannel.lock(0, 4096, true);
-
-		int bufLen = BUF_SIZE;
-		byte[] buf = new byte[bufLen];
-		try {
-			// ProcessBuilder builder = new ProcessBuilder("zip", "-qr", "-", ".");
-			// .git/config里有密码信息，屏蔽掉
-			ProcessBuilder builder = null;
-			if (".git".equals(rootPath.getFileName().toString())) {
-				builder = new ProcessBuilder("zip", "-qr", "-x", "config", "-", ".");
-			} else {
-				builder = new ProcessBuilder("zip", "-qr", "-x", "/.git/config", "-", ".");
-			}
-
-			builder.directory(new File(rootDir));
-			Process proc = builder.start();
-
-			InputStream in = proc.getInputStream();
-			InputStream err = proc.getErrorStream();
-			int len;
-			while ((len = in.read(buf, 0, bufLen)) >= 0) {
-				out.write(buf, 0, len);
-			}
-			proc.waitFor();
-			int exitValue = proc.exitValue();
-			if (exitValue != 0) {
-				String errMsg = "";
-				try {
-					len = err.read(buf, 0, bufLen);
-					errMsg = new String(buf, 0, bufLen);
-				} catch (Exception ex) {
-				}
-				throw new IOException("zip dir failed:" + rootDir + ":" + errMsg);
-			}
-		} catch (InterruptedException e) {
-			throw new IOException("zip dir failed:" + rootDir, e);
-		} finally {
-			if (buildLock != null) {
-				buildLock.release();
-			}
-			if (lockChannel != null) {
-				lockChannel.close();
-			}
-			if (randomAccessFile != null) {
-				randomAccessFile.close();
-			}
-		}
-
-	}
+    /**
+     * 复用逐条目校验的 ZIP 打包实现，并保留发布目录读锁。
+     */
+    public static void zipFolderToResponse(String resRootFullDir, String rootDir, ServletOutputStream out) throws IOException {
+        try (RandomAccessFile lockFile = new RandomAccessFile(resRootFullDir + ".lock", "rw");
+             FileChannel channel = lockFile.getChannel();
+             FileLock ignored = channel.lock(0, 4096, true)) {
+            FileUtil.zipDirectory(rootDir, out);
+        }
+    }
 
 	public static void main(String[] args) throws IOException {
 		ZipOutputStream zipStream = null;
@@ -321,7 +280,7 @@ public class FolderZipperUtil {
 		zipStream = new ZipOutputStream(fileWriter);
 
 		String rootDir = "/app/ezdeploy/data/version/1/1/1.0.10/appbuild";
-		final Path rootPath = Paths.get(rootDir).toAbsolutePath();
+		final Path rootPath = Paths.get(rootDir).toAbsolutePath().normalize();
 
 		Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, new FolderZipperFileVisitor(rootPath, zipStream));
 		zipStream.finish();

@@ -10,23 +10,21 @@ import com.neatlogic.autoexecrunner.exception.FileCreatePermissionDeniedExceptio
 import com.neatlogic.autoexecrunner.exception.MkdirPermissionDeniedException;
 import com.neatlogic.autoexecrunner.exception.file.FileDeleteException;
 import com.neatlogic.autoexecrunner.exception.job.ExecuteJobFileNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * @author lvzk
@@ -602,22 +600,15 @@ public class FileUtil {
      * @return 保存后的文件绝对路径
      */
     public static String uploadFile(String filePath, InputStream is) throws IOException {
-        FileOutputStream fos = null;
-        File file = new File(getFullAbsolutePath(filePath));
-        try {
-            fos = new FileOutputStream(file);
-            IOUtils.copyLarge(is, fos);
-            fos.flush();
-        } finally {
-            if (fos != null) {
-                fos.close();
+        try (InputStream input = is) {
+            // 上传路径保留原有虚拟根语义，不对文件名中的加号和百分号再作 URL 解码。
+            File file = FileSafeUtil.getChildPath(Config.DATA_HOME(), getFullAbsolutePath(filePath));
+            try (FileOutputStream output = new FileOutputStream(file)) {
+                IOUtils.copyLarge(input, output);
+                output.flush();
             }
-            if (is != null) {
-                is.close();
-            }
+            return file.getCanonicalPath();
         }
-
-        return file.getCanonicalPath();
     }
 
     /**
@@ -638,35 +629,13 @@ public class FileUtil {
      * @param targetDir 目标目录
      */
     public static void unzipFileToDestDirectory(File zipFile, String charset, String targetDir) throws Exception {
-        try (ZipFile zip = new ZipFile(zipFile, Charset.forName(charset))) {//解决中文文件名乱码
-            if (targetDir == null || targetDir.equals("")) {
-                targetDir = zip.getName().substring(0, zip.getName().lastIndexOf(File.separatorChar));
-            }
-            for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
-                ZipEntry entry = entries.nextElement();
-                String zipEntryName = entry.getName();
-                String outPath = (targetDir + File.separator + zipEntryName).replaceAll("\\*", File.separator);
-                // 判断路径是否存在,不存在则创建文件路径
-                String tmpFilePath = outPath.substring(0, outPath.lastIndexOf(File.separatorChar));
-                File file = new File(tmpFilePath);
-                if (!file.exists()) {
-                    if (!file.mkdirs()) {
-                        throw new FileCreatePermissionDeniedException(tmpFilePath);
-                    }
-                }
-                // 判断文件全路径是否为文件夹,如果是上面已经上传,不需要解压
-                if (new File(outPath).isDirectory()) {
-                    continue;
-                }
-                try (InputStream in = zip.getInputStream(entry); FileOutputStream out = new FileOutputStream(outPath)) {
-                    byte[] buf = new byte[1024];
-                    int len;
-                    while ((len = in.read(buf)) > 0) {
-                        out.write(buf, 0, len);
-                    }
-                }
-            }
+        File destination;
+        if (StringUtils.isBlank(targetDir)) {
+            destination = zipFile.getAbsoluteFile().getParentFile();
+        } else {
+            destination = new File(targetDir);
         }
+        SafeArchiveUtil.unpack(zipFile, destination, charset);
     }
 
     /**
@@ -677,53 +646,68 @@ public class FileUtil {
      */
     public static void zipDirectory(String rootDir, OutputStream out) throws IOException {
         Path rootPath = Paths.get(rootDir).normalize().toAbsolutePath();
-        rootDir = rootPath.toString();
-        InputStream in = null;
-        InputStream err = null;
-        byte[] buf = new byte[BUF_SIZE];
-        try {
-            // ProcessBuilder builder = new ProcessBuilder("zip", "-qr", "-", ".");
-            // .git/config里有密码信息，屏蔽掉
-            ProcessBuilder builder = null;
-            if (".git".equals(rootPath.getFileName().toString())) {
-                builder = new ProcessBuilder("zip", "-qr", "-x", "config", "-", ".");
-            } else {
-                builder = new ProcessBuilder("zip", "-qr", "-x", "/.git/config", "-", ".");
-            }
-
-            builder.directory(new File(rootDir));
-            Process proc = builder.start();
-
-            in = proc.getInputStream();
-            err = proc.getErrorStream();
-            int len;
-            while ((len = in.read(buf, 0, BUF_SIZE)) >= 0) {
-                out.write(buf, 0, len);
-            }
-            proc.waitFor();
-            int exitValue = proc.exitValue();
-            if (exitValue != 0) {
-                String errMsg = "";
-                try {
-                    len = err.read(buf, 0, BUF_SIZE);
-                    errMsg = new String(buf, 0, BUF_SIZE);
-                } catch (Exception ignored) {
-                }
-                throw new IOException("zip dir failed:" + rootDir + ":" + errMsg);
-            }
-        } catch (InterruptedException e) {
-            throw new IOException("zip dir failed:" + rootDir, e);
-        } finally {
-            if (in != null) {
-                in.close();
-            }
-            if (out != null) {
-                out.close();
-            }
-            if (err != null) {
-                err.close();
-            }
+        File root = rootPath.toFile();
+        File configuredRoot = root;
+        if (Config.DATA_HOME() != null && FileSafeUtil.isSubPath(new File(Config.DATA_HOME()), root)) {
+            configuredRoot = new File(Config.DATA_HOME());
         }
+        final File forbiddenRoot = configuredRoot;
+        FileSafeUtil.validateNoForbiddenPathInDirectory(forbiddenRoot, root);
+        // 每个条目在实际读取前重新校验，FOLLOW_LINKS 的循环检测防止目录链接无限递归。
+        FileSafeUtil.validateNoForbiddenPathInDirectory(root, root);
+        try (ZipArchiveOutputStream zip = new ZipArchiveOutputStream(out)) {
+            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+                    new SimpleFileVisitor<Path>() {
+                        /**
+                         * 验证目录真实目标并保留空目录。
+                         */
+                        @Override
+                        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                            FileSafeUtil.validateFilePathAllowed(root, dir.toFile());
+                            FileSafeUtil.validateFilePathAllowed(forbiddenRoot, dir.toFile());
+                            if (!rootPath.equals(dir)) {
+                                zip.putArchiveEntry(createZipEntry(dir, rootPath.relativize(dir).toString().replace(File.separatorChar, '/') + "/"));
+                                zip.closeArchiveEntry();
+                            }
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        /**
+                         * 排除 Git 凭据文件，只读取仍位于打包根目录的普通文件。
+                         */
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                            FileSafeUtil.validateFilePathAllowed(root, file.toFile());
+                            FileSafeUtil.validateFilePathAllowed(forbiddenRoot, file.toFile());
+                            if (!attrs.isRegularFile()) {
+                                throw new IOException("不支持打包特殊文件：" + file);
+                            }
+                            String name = rootPath.relativize(file).toString().replace(File.separatorChar, '/');
+                            String realName = file.toRealPath().toString().replace(File.separatorChar, '/');
+                            if (name.endsWith(".git/config") || realName.endsWith("/.git/config")
+                                    || (".git".equals(root.getName()) && "config".equals(name))) {
+                                return FileVisitResult.CONTINUE;
+                            }
+                            zip.putArchiveEntry(createZipEntry(file, name));
+                            Files.copy(file, zip);
+                            zip.closeArchiveEntry();
+                            return FileVisitResult.CONTINUE;
+                        }
+                    });
+        }
+    }
+
+    /**
+     * 保留系统 ZIP 的文件权限行为，避免下载再发布后脚本执行位丢失。
+     */
+    private static ZipArchiveEntry createZipEntry(Path file, String name) throws IOException {
+        ZipArchiveEntry entry = new ZipArchiveEntry(file.toFile(), name);
+        try {
+            entry.setUnixMode((Integer) Files.getAttribute(file, "unix:mode"));
+        } catch (UnsupportedOperationException ignored) {
+            // 非 Unix 文件系统保留 ZIP 的默认属性。
+        }
+        return entry;
     }
 
     /**

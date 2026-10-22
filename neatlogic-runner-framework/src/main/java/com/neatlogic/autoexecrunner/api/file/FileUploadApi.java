@@ -12,15 +12,18 @@
 package com.neatlogic.autoexecrunner.api.file;
 
 import com.alibaba.fastjson.JSONObject;
+import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
-import com.neatlogic.autoexecrunner.exception.file.FileIsNotFileException;
-import com.neatlogic.autoexecrunner.exception.file.FileUnpackException;
 import com.neatlogic.autoexecrunner.restful.annotation.Description;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
 import com.neatlogic.autoexecrunner.restful.annotation.Param;
 import com.neatlogic.autoexecrunner.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import com.neatlogic.autoexecrunner.util.FileSafeUtil;
 import com.neatlogic.autoexecrunner.util.FileUtil;
+import com.neatlogic.autoexecrunner.util.SafeArchiveUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +31,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 
@@ -70,45 +74,35 @@ public class FileUploadApi extends PrivateBinaryStreamApiComponentBase {
         Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
         if (MapUtils.isNotEmpty(fileMap)) {
             MultipartFile multipartFile = fileMap.entrySet().stream().findFirst().get().getValue();
-            String filePath = FileUtil.uploadFile(path, multipartFile.getInputStream());
             if (Objects.equals(unpack, 1)) {
-                File file = new File(filePath);
-                if (!file.isFile()) {
-                    throw new FileIsNotFileException(filePath);
+                // 先校验原虚拟上传路径，再把压缩包放到临时目录，失败时不能覆盖或删除历史同名文件。
+                File destinationFile = FileSafeUtil.getChildPath(Config.DATA_HOME(), FileUtil.getFullAbsolutePath(path));
+                File parent = destinationFile.getParentFile();
+                FileSafeUtil.validateFilePathAllowed(new File(Config.DATA_HOME()), parent);
+                if (!parent.isDirectory()) {
+                    throw new java.io.IOException("上传目标的父目录不存在");
                 }
-                String parentDir = file.getParent();
-                String fileName = file.getName();
-                String packName = fileName.toLowerCase();
-                String cmd = null;
-                String opts = null;
-                if (packName.endsWith(".tgz") || packName.endsWith(".tar.gz")) {
-                    cmd = "tar";
-                    opts = "-xzf";
-                } else if (packName.endsWith(".tar")) {
-                    cmd = "tar";
-                    opts = "-xf";
+                if (destinationFile.isDirectory()) {
+                    throw new java.io.IOException("上传目标不能是目录");
                 }
-                // zip 文件使用 java 解压
-                if ("tar".equals(cmd)) {
-                    ProcessBuilder builder = new ProcessBuilder(cmd, opts, fileName);
-                    builder.directory(new File(parentDir));
-                    Process proc = builder.start();
-                    proc.waitFor();
-                    int exitValue = proc.exitValue();
-                    file.delete();
-                    if (exitValue != 0) {
-                        throw new FileUnpackException(filePath, cmd + " " + opts);
+                Path temporaryDirectory = Files.createTempDirectory("runner-upload-");
+                Path archive = temporaryDirectory.resolve(destinationFile.getName());
+                try {
+                    try (InputStream input = multipartFile.getInputStream()) {
+                        Files.copy(input, archive);
                     }
-                } else {
+                    // 所有格式先在临时目录验证，禁止直接调用系统 tar 写入业务目录。
                     try {
-                        // 优先使用 GBK 解码 zip 文件，解码失败则使用 UTF-8解码
-                        FileUtil.unzipFile(file, "GBK");
-                    } catch (Exception ex) {
-                        FileUtil.unzipFile(file, StandardCharsets.UTF_8.name());
-                    } finally {
-                        file.delete();
+                        SafeArchiveUtil.unpack(archive.toFile(), parent, "GBK");
+                    } catch (java.nio.charset.MalformedInputException | java.nio.charset.UnmappableCharacterException ex) {
+                        SafeArchiveUtil.unpack(archive.toFile(), parent, StandardCharsets.UTF_8.name());
                     }
+                } finally {
+                    Files.deleteIfExists(archive);
+                    Files.deleteIfExists(temporaryDirectory);
                 }
+            } else {
+                FileUtil.uploadFile(path, multipartFile.getInputStream());
             }
         }
         return null;

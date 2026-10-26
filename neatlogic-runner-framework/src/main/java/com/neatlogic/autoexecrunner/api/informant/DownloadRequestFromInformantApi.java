@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Service
 public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiComponentBase {
@@ -30,6 +31,8 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
     private static final int DEFAULT_INFORMANT_READ_TIMEOUT = 5 * 60 * 1000;
     private static final String DUMP_TXT_DOWNLOAD_URL = "/api/threaddump/dumptxt/download";
     private static final String LOG_DOWNLOAD_URL = "/api/query/v1/logs/download";
+    // Runner 独立校验下载边界，参数仍由既有 param 转发。
+    private static final Pattern LOG_EVIDENCE_DOWNLOAD_URL = Pattern.compile("/api/query/v1/incidents/[0-9a-fA-F]+/log-evidence/download");
 
     @Override
     public String getName() {
@@ -83,9 +86,11 @@ public class DownloadRequestFromInformantApi extends PrivateBinaryStreamApiCompo
         throw new ApiRuntimeException("protocol不合法");
     }
 
+    /** 精确匹配证据下载路由，仅允许十六进制事件 ID 作为动态路径段。 */
     static void validateDownloadUrl(String url) {
         // 下载代理仅允许已确认的 Informant 文件接口，避免被用于访问任意地址。
-        if (!StringUtils.equalsAny(url, DUMP_TXT_DOWNLOAD_URL, LOG_DOWNLOAD_URL)) {
+        if (!StringUtils.equalsAny(url, DUMP_TXT_DOWNLOAD_URL, LOG_DOWNLOAD_URL)
+                && !(url != null && LOG_EVIDENCE_DOWNLOAD_URL.matcher(url).matches())) {
             throw new ApiRuntimeException("informant下载地址不允许");
         }
     }

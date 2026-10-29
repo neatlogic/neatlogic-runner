@@ -30,6 +30,8 @@
         <tomcat.version>10.1.55</tomcat.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
         <jackson.version>2.15.0</jackson.version>
+        <!-- 保留 MongoDB 4.0 协议兼容性；与 Spring Data 4.5.x 的组合需通过运行时回归验证。 -->
+        <mongodb.version>5.4.0</mongodb.version>
     </properties>
 
     <distributionManagement>

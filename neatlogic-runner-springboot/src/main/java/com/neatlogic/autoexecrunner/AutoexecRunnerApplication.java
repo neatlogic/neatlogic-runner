@@ -1,7 +1,6 @@
 package com.neatlogic.autoexecrunner;
 
 import com.neatlogic.autoexecrunner.filter.DuplicateSlashPathFilter;
-import com.neatlogic.autoexecrunner.listener.ThreadlocalClearListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -10,7 +9,6 @@ import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfigurat
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.DependsOn;
@@ -27,7 +25,6 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.ServletRequestListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,11 +45,6 @@ class AutoexecRunnerApplication extends WebMvcConfigurationSupport {
         } else {
             logger.info("Signal handling is not supported on this operating system.");
         }
-    }
-
-    @Bean
-    public ServletListenerRegistrationBean<ServletRequestListener> requestListener() {
-        return new ServletListenerRegistrationBean<>(new ThreadlocalClearListener());
     }
 
     @Bean

@@ -25,8 +25,9 @@ public abstract class JsonStreamApiComponentBase extends ApiValidateAndHelpBase 
             validApi(this.getClass(), paramObj, JSONObject.class, JSONReader.class);
             result = myDoService(paramObj, jsonReader);
         } catch (Exception ex) {
-            if (ex.getCause() != null && ex.getCause() instanceof ApiRuntimeException) {
-                throw new ApiRuntimeException(ex.getCause().getMessage());
+            if (ex.getCause() instanceof ApiRuntimeException known) {
+                // 保留已知异常的展示消息和原始原因。
+                throw known;
             } else {
                 throw ex;
             }

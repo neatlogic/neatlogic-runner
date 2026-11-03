@@ -16,10 +16,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 保存请求信息
@@ -100,13 +97,20 @@ public class RequestContext implements Serializable {
         RequestContext context = new RequestContext(request, url);
         context.setResponse(response);
         instance.set(context);
-        if (request.getCookies() != null && request.getCookies().length > 0) {
-            Optional<Cookie> languageCookie = Arrays.stream(request.getCookies()).filter(o -> Objects.equals(o.getName(), "neatlogic_language")).findFirst();
-            if (languageCookie.isPresent()) {
-                context.setLocale(new Locale(languageCookie.get().getValue()));
-            } else {
-                context.setLocale(Locale.getDefault());
+        // 兼容已有语言 Cookie；服务间调用通过标准请求头传递解析后的用户语言。
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("neatlogic_language".equals(cookie.getName())) {
+                    context.setLocale(Locale.forLanguageTag(cookie.getValue().replace('_', '-')));
+                    return context;
+                }
             }
+        }
+        if (request.getHeader("Accept-Language") != null) {
+            context.setLocale(request.getLocale());
+        } else if (cookies != null && cookies.length > 0) {
+            context.setLocale(Locale.getDefault());
         }
         return context;
     }

@@ -13,16 +13,23 @@
 package com.neatlogic.autoexecrunner.listener;
 
 
+import com.neatlogic.autoexecrunner.asynchronization.threadlocal.RequestContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.TenantContext;
 import com.neatlogic.autoexecrunner.asynchronization.threadlocal.UserContext;
 
 import jakarta.servlet.ServletRequestEvent;
 import jakarta.servlet.ServletRequestListener;
+import jakarta.servlet.annotation.WebListener;
 
+/** 在容器复用线程前释放本次请求的上下文。 */
+@WebListener
 public class ThreadlocalClearListener implements ServletRequestListener {
+    /** 按请求生命周期清理语言、租户和用户信息。 */
     @Override
     public void requestDestroyed(ServletRequestEvent event) {
-        // 清除所有threadlocal
+        if (RequestContext.get() != null) {
+            RequestContext.get().release();
+        }
         if (TenantContext.get() != null) {
             TenantContext.get().release();
         }

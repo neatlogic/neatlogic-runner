@@ -3,6 +3,7 @@ package com.neatlogic.autoexecrunner.util;
 import com.neatlogic.autoexecrunner.common.config.Config;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.file.FileNotFoundException;
+import com.neatlogic.autoexecrunner.exception.core.UserMessageException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -167,12 +168,12 @@ public final class FileSafeUtil {
         Path realRoot = resolveRealPath(normalizedRoot.toPath());
         Path realFile = resolveRealPath(normalizedFile.toPath());
         if (!realFile.startsWith(realRoot)) {
-            throw new ApiRuntimeException("文件真实路径不允许访问");
+            throw new UserMessageException("文件真实路径不允许访问", RunnerMessages.t("runnerframework.error.path.resolvedoutside"), null);
         }
         for (File forbiddenPath : getForbiddenPathList(normalizedRoot)) {
             if (isSubPath(forbiddenPath, normalizedFile)
                     || realFile.startsWith(resolveRealPath(forbiddenPath.toPath()))) {
-                throw new ApiRuntimeException("文件路径不允许访问");
+                throw new UserMessageException("文件路径不允许访问", RunnerMessages.t("runnerframework.error.path.forbidden"), null);
             }
         }
     }
@@ -235,7 +236,7 @@ public final class FileSafeUtil {
 
     private static void validateLexicalSubPath(File root, File file) {
         if (!isSubPath(root, file)) {
-            throw new ApiRuntimeException("文件路径不合法");
+            throw new UserMessageException("文件路径不合法", RunnerMessages.t("runnerframework.error.path.outside"), null);
         }
     }
 

@@ -3,7 +3,6 @@ package com.neatlogic.autoexecrunner.restful.core;
 import com.alibaba.fastjson.JSONObject;
 import com.neatlogic.autoexecrunner.api.ratelimit.TokenRateLimiter;
 import com.neatlogic.autoexecrunner.dto.ApiVo;
-import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.core.TooManyRequestsException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.aop.framework.AopContext;
@@ -33,12 +32,6 @@ public abstract class ApiComponentBase extends ApiValidateAndHelpBase implements
             } catch (IllegalStateException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException ex) {
                 validApi(this.getClass(), paramObj, JSONObject.class);
                 result = myDoService(paramObj);
-            } catch (Exception ex) {
-                if (ex.getCause() != null && ex.getCause() instanceof ApiRuntimeException) {
-                    throw new ApiRuntimeException(ex.getCause().getMessage());
-                } else {
-                    throw ex;
-                }
             }
         } catch (Exception e) {
             Throwable target = e;

@@ -33,8 +33,9 @@ public abstract class BinaryStreamApiComponentBase extends ApiValidateAndHelpBas
                 validApi(this.getClass(), paramObj, JSONObject.class, HttpServletRequest.class, HttpServletResponse.class);
                 result = myDoService(paramObj, request, response);
             } catch (Exception ex) {
-                if (ex.getCause() != null && ex.getCause() instanceof ApiRuntimeException) {
-                    throw new ApiRuntimeException(ex.getCause().getMessage());
+                if (ex.getCause() instanceof ApiRuntimeException known) {
+                    // 保留已知异常的展示消息和原始原因。
+                    throw known;
                 } else {
                     throw ex;
                 }

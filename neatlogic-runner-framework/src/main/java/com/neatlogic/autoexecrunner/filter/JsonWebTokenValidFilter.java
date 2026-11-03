@@ -12,6 +12,7 @@ import com.neatlogic.autoexecrunner.filter.core.LoginAuthFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebFilter;
@@ -19,7 +20,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebFilter(filterName = "jsonWebTokenValidFilter", urlPatterns = {"/api/*"})
+// 双斜杠兼容处理会转发到标准路径，转发后的私有接口也必须初始化当前请求上下文并鉴权。
+@WebFilter(filterName = "jsonWebTokenValidFilter", urlPatterns = "/api/*",
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD})
 public class JsonWebTokenValidFilter extends OncePerRequestFilter {
 
     /**

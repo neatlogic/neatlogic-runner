@@ -11,6 +11,7 @@ import com.neatlogic.autoexecrunner.exception.ApiNotFoundException;
 import com.neatlogic.autoexecrunner.exception.ComponentNotFoundException;
 import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.core.TooManyRequestsException;
+import com.neatlogic.autoexecrunner.exception.core.UserMessageException;
 import com.neatlogic.autoexecrunner.restful.core.IApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IBinaryStreamApiComponent;
 import com.neatlogic.autoexecrunner.restful.core.IJsonStreamApiComponent;
@@ -48,6 +49,20 @@ public class ApiDispatcher {
     Logger logger = LoggerFactory.getLogger(ApiDispatcher.class);
     private static final String RESPONSE_TYPE_JSON = "application/json;charset=UTF-8";
     private static final Map<Integer, String> errorMap = new HashMap<>();
+
+    /** 保留原始诊断字段，只为明确提供安全提示的异常输出 UserMessage。 */
+    static JSONObject businessError(ApiRuntimeException ex) {
+        JSONObject result = new JSONObject();
+        result.put("Status", "ERROR");
+        result.put("Message", ex.getMessage());
+        if (ex instanceof UserMessageException) {
+            String message = ((UserMessageException) ex).getUserMessage();
+            if (StringUtils.isNotBlank(message)) {
+                result.put("UserMessage", message);
+            }
+        }
+        return result;
+    }
 
     public ApiDispatcher() {
         errorMap.put(522, "访问认证失败");
@@ -186,10 +201,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -237,10 +249,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         } catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             response.setStatus(521);
             JSONObject rObj = new JSONObject();
@@ -282,10 +291,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -328,10 +334,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -373,10 +376,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -418,10 +418,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -452,10 +449,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -484,10 +478,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);
@@ -516,10 +507,7 @@ public class ApiDispatcher {
             returnObj = rObj;
         }  catch (ApiRuntimeException ex) {
             response.setStatus(520);
-            JSONObject rObj = new JSONObject();
-            rObj.put("Status", "ERROR");
-            rObj.put("Message", ex.getMessage());
-            returnObj = rObj;
+            returnObj = businessError(ex);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             response.setStatus(521);

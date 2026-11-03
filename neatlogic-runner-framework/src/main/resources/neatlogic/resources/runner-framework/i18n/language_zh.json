@@ -1,0 +1,38 @@
+{
+  "nfef": {
+    "mkdirpermissiondeniedexception": {
+      "mkdirpermissiondeniedexception": "没有创建文件夹权限"
+    }
+  },
+  "nmautoexec": {
+    "execrtoolapi": {
+      "param": {
+        "jobid": "跨步骤执行上下文 Snowflake ID",
+        "reserverunpath": "是否保留执行目录"
+      }
+    }
+  },
+  "runnerframework": {
+    "error": {
+      "fifo": {
+        "accessdenied": "Runner 没有访问交互管道的权限",
+        "interrupted": "交互管道操作被中断",
+        "invalidpipe": "目标不是有效的交互管道，或管道在打开时已被替换",
+        "ioerror": "访问交互管道时发生 I/O 错误",
+        "missingpath": "交互管道路径不存在",
+        "nativeunavailable": "Runner 无法使用系统管道接口",
+        "noreader": "交互管道没有读取进程，无法提交输入",
+        "notwritable": "交互管道暂时不可写",
+        "readerclosed": "写入过程中读取端已关闭",
+        "withcode": "{0}（HTTP 520，{1}）",
+        "witherrno": "{0}（HTTP 520，{1}，errno={2}）",
+        "writetimeout": "未在规定时间内写完交互输入"
+      },
+      "path": {
+        "forbidden": "请求的路径或其实际位置位于禁止访问的目录（HTTP 520）",
+        "outside": "请求的文件路径超出允许的工作目录（HTTP 520）",
+        "resolvedoutside": "文件解析后的实际位置超出允许的工作目录（HTTP 520）"
+      }
+    }
+  }
+}

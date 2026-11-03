@@ -1,0 +1,38 @@
+{
+  "nfef": {
+    "mkdirpermissiondeniedexception": {
+      "mkdirpermissiondeniedexception": "No permission to create folder"
+    }
+  },
+  "nmautoexec": {
+    "execrtoolapi": {
+      "param": {
+        "jobid": "Cross-step execution context Snowflake ID",
+        "reserverunpath": "Whether to preserve the execution directory"
+      }
+    }
+  },
+  "runnerframework": {
+    "error": {
+      "fifo": {
+        "accessdenied": "The Runner does not have permission to access the interaction pipe",
+        "interrupted": "The interaction pipe operation was interrupted",
+        "invalidpipe": "The target is not a valid interaction pipe or was replaced while being opened",
+        "ioerror": "An I/O error occurred while accessing the interaction pipe",
+        "missingpath": "The interaction pipe path does not exist",
+        "nativeunavailable": "The Runner cannot use the native pipe interface",
+        "noreader": "No process is reading from the interaction pipe, so the input could not be submitted",
+        "notwritable": "The interaction pipe is temporarily unavailable for writing",
+        "readerclosed": "The read end of the interaction pipe closed during the write",
+        "withcode": "{0} (HTTP 520, {1})",
+        "witherrno": "{0} (HTTP 520, {1}, errno={2})",
+        "writetimeout": "The interaction input was not fully written before the deadline"
+      },
+      "path": {
+        "forbidden": "The requested path or its resolved location is in a restricted directory (HTTP 520)",
+        "outside": "The requested file path is outside the permitted working directory (HTTP 520)",
+        "resolvedoutside": "The resolved file path is outside the permitted working directory (HTTP 520)"
+      }
+    }
+  }
+}

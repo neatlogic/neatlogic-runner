@@ -28,8 +28,11 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tomcat.version>10.1.55</tomcat.version>
+        <!-- 覆盖 Spring Boot 管理的 Netty BOM，统一 Runner 的 Netty 组件版本。 -->
+        <netty.version>4.1.140.Final</netty.version>
         <commons-lang3.version>3.18.0</commons-lang3.version>
-        <jackson.version>2.15.0</jackson.version>
+        <!-- 覆盖 Spring Boot 管理的 Jackson BOM，统一核心组件和扩展模块版本。 -->
+        <jackson-bom.version>2.21.8</jackson-bom.version>
         <!-- 保留 MongoDB 4.0 协议兼容性；与 Spring Data 4.5.x 的组合需通过运行时回归验证。 -->
         <mongodb.version>5.4.0</mongodb.version>
     </properties>

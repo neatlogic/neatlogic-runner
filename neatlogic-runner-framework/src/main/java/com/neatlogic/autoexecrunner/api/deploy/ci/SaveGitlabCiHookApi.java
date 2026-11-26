@@ -12,9 +12,10 @@
 package com.neatlogic.autoexecrunner.api.deploy.ci;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONArray;
+import com.neatlogic.autoexecrunner.exception.deploy.DeployCiGitlabHookException;
 import com.neatlogic.autoexecrunner.constvalue.ApiParamType;
 import com.neatlogic.autoexecrunner.constvalue.DeployCiRepoEvent;
-import com.neatlogic.autoexecrunner.exception.core.ApiRuntimeException;
 import com.neatlogic.autoexecrunner.exception.deploy.DeployCiGitlabTokenLostException;
 import com.neatlogic.autoexecrunner.restful.annotation.Input;
 import com.neatlogic.autoexecrunner.restful.annotation.Output;
@@ -53,6 +54,7 @@ public class SaveGitlabCiHookApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "ciId", desc = "持续集成配置id", type = ApiParamType.LONG, isRequired = true),
+            @Param(name = "reconcile", desc = "按回调地址核对已存在的 Webhook", type = ApiParamType.BOOLEAN),
             @Param(name = "hookId", desc = "webhook id", type = ApiParamType.LONG),
             @Param(name = "callbackHost", desc = "gitlab webhook回调主机地址", type = ApiParamType.STRING, isRequired = true),
             @Param(name = "repoServerAddress", desc = "仓库服务器地址", type = ApiParamType.STRING, isRequired = true),
@@ -96,8 +98,14 @@ public class SaveGitlabCiHookApi extends PrivateApiComponentBase {
                 hookId = null;
             }
         }
+        String callback = String.format("%s/anonymous/api/rest/deploy/ci/gitlab/event/callback/%s?ciId=%s", callbackHost, paramObj.getString("tenant"), ciId);
+        if (StringUtils.isBlank(hookId) && paramObj.getBooleanValue("reconcile")) {
+            // 上次创建可能已经到达 GitLab，但 Runner 未能将结果返回给平台。
+            String collection = deployCiService.getGitlabHookApiUrl(null, repoServerAddress, repoName, authMode, token);
+            hookId = findExistingHook(collection, callback, ciId);
+        }
         url = deployCiService.getGitlabHookApiUrl(hookId, repoServerAddress, repoName, authMode, token);
-        param.put("url", String.format("%s/anonymous/api/rest/deploy/ci/gitlab/event/callback/%s?ciId=%s", callbackHost, paramObj.getString("tenant"), ciId));
+        param.put("url", callback);
         param.put("enable_ssl_verification", false);
         if (DeployCiRepoEvent.POSTRECEIVE.getValue().equals(event)) {
             param.put("push_events", true);
@@ -113,10 +121,25 @@ public class SaveGitlabCiHookApi extends PrivateApiComponentBase {
         String error = request.getError();
         JSONObject resultJson = request.getResultJson();
         if (StringUtils.isNotBlank(error)) {
-            logger.error("Gitlab webhook save failed. Request url: {}; params: {}; error: {}", url, param.toJSONString(), error);
-            throw new ApiRuntimeException(error);
+            logger.error("GitLab Webhook 保存失败，CI ID={}，HTTP 状态={}", ciId, request.getResponseCode());
+            throw new DeployCiGitlabHookException(ciId, request.getResponseCode());
         }
+        if (resultJson == null || resultJson.getLong("id") == null) throw new DeployCiGitlabHookException(ciId, request.getResponseCode());
         return resultJson.getLong("id");
     }
 
+    /** 仅复用同一租户同一 CI 的回调，在列表读取失败时保留待重试状态。 */
+    private String findExistingHook(String collection, String callback, Long ciId) {
+        for (int page = 1; ; page++) {
+            HttpRequestUtil request = HttpRequestUtil.get(collection + "&per_page=100&page=" + page).sendRequest();
+            if (request.getResponseCode() != 200) throw new DeployCiGitlabHookException(ciId, request.getResponseCode());
+            JSONArray hooks = request.getResultJsonArray();
+            if (hooks == null) throw new DeployCiGitlabHookException(ciId, request.getResponseCode());
+            for (int index = 0; index < hooks.size(); index++) {
+                JSONObject hook = hooks.getJSONObject(index);
+                if (callback.equals(hook.getString("url"))) return hook.getString("id");
+            }
+            if (hooks.size() < 100) return null;
+        }
+    }
 }
